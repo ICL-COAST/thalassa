@@ -26,7 +26,9 @@ integer  ::  gdeg,gord          ! Gravitational potential - maximum degree and o
 ! Integrator settings
 integer  ::  integ              ! Integrator type. 1 = LSODAR, 2 = CVODE.
 integer  ::  mxstep             ! Max. number of integration/output steps.
-real(dk) ::  tol                ! Integrator tolerance.
+integer  ::  ntol               ! Number of runs in tolerance
+real(dk) ::  tol                ! Integrator tolerance. (TODO)
+real(dk) ::  tolarr(1:2)        ! Max and min tolerances for batch propagation.
 ! Equations of motion settings
 integer  ::  eqs                ! Equations of motion type. 1 = Cowell,
 !                                 2 = EDromo(t), 3 = EDromo(c), 4 = EDromo(l)
@@ -62,7 +64,8 @@ read(id_set,'(a11,i3)') dummy, iephem
 read(id_set,'(a11,i3)') dummy, gdeg
 read(id_set,'(a11,i3,8(/))') dummy, gord
 read(id_set,'(a11,i3)') dummy, integ
-read(id_set,'(a11,e22.15)') dummy, tol
+read(id_set,'(a11,i3)') dummy, ntol
+read(id_set,'(a11,2(e22.15,2x))') dummy, tolarr
 read(id_set,'(a11,e22.15)') dummy, tspan
 read(id_set,'(a11,e22.15)') dummy, tstep
 read(id_set,'(a11,e10.1,4(/))') dummy, rmxstep

@@ -34,7 +34,7 @@ use PHYS_CONST,  only: READ_PHYS,GMST_UNIFORM
 use PROPAGATE,   only: DPROP_REGULAR
 use SETTINGS,    only: READ_SETTINGS
 use IO,          only: id_cart,id_orb,id_stat
-use SETTINGS,    only: model,gdeg,gord,outpath
+use SETTINGS,    only: model,gdeg,gord,outpath,tol,tolarr
 use PHYS_CONST,  only: GE,d2r,r2d,secsPerDay,secsPerSidDay,twopi
 implicit none
 
@@ -51,10 +51,13 @@ integer               ::  npts,ipt
 real(dk),allocatable  ::  cart(:,:),orb(:,:)
 real(dk)              ::  R(1:3),V(1:3)
 ! Measurement of CPU time
-integer  ::  rate,tic,toc
-real(dk) ::  cputime
+integer,parameter  ::  rep_time = 5
+integer     ::  itime
+integer(8)  ::  rate,tic,toc
+real(dk) ::  cputime_sum,cputime_avg
 ! Function calls and integration steps
 integer  ::  int_steps,tot_calls
+! Batch tolerance loop
 
 
 ! ==============================================================================
@@ -63,9 +66,6 @@ integer  ::  int_steps,tot_calls
 ! ==============================================================================
 ! 01. INITIALIZATIONS
 ! ==============================================================================
-
-! Start clock
-call SYSTEM_CLOCK(tic,rate)
 
 ! Read initial conditions, settings and physical model data.
 call READ_IC(MJD0,COE0)
@@ -98,22 +98,32 @@ write(*,'(a,g22.15)') 'VZ = ',V0(3)/aGEO*(secsPerDay/1.0027379093508_dk)
 write(*,'(a,g22.15)') 'Initial GMST (deg): ',GMST0*r2d
 write(*,'(a,g22.15)') 'Initial orbital period (sid. days): ',period
 
-call DPROP_REGULAR(R0,V0,tspan,tstep,cart,int_steps,tot_calls)
+cputime_sum = 0._dk
+time_loop: do itime=1,rep_time
+    ! Start clock
+    call SYSTEM_CLOCK(tic,rate)
+
+    tol = tolarr(1)
+    call DPROP_REGULAR(R0,V0,tspan,tstep,cart,int_steps,tot_calls)
+
+    ! End timing BEFORE converting back to orbital elements
+    call SYSTEM_CLOCK(toc)
+    cputime_sum = cputime_sum + real((toc-tic),dk)/real(rate,dk)
+
+end do time_loop
+
+cputime_avg = cputime_sum/real(rep_time,dk)
+write(*,*) 'CPU time (avg.): ',cputime_avg,'s'
 
 ! ==============================================================================
 ! 03. PROCESSING AND OUTPUT
-! ==============================================================================
+! ==============================================================================    
 
 ! Initialize orbital elements array
 npts = size(cart,1)
 if (allocated(orb)) deallocate(orb)
 allocate(orb(1:npts,1:7))
 orb = 0._dk
-
-! End timing BEFORE converting back to orbital elements
-call SYSTEM_CLOCK(toc)
-cputime = real((toc-tic),dk)/real(rate,dk)
-write(*,'(a,g9.2,a)') 'CPU time: ',cputime,' s'
 
 ! Convert to orbital elements.
 ! orb(1): MJD,  orb(2): a,  orb(3): e, orb(4): i
@@ -137,7 +147,7 @@ call DUMP_TRAJ(id_cart,npts,cart)
 call DUMP_TRAJ(id_orb,npts,orb)
 
 ! Write statistics line: calls, steps, CPU time, final time and orbital elements
-write(id_stat,100) tot_calls, int_steps, cputime, orb(npts,:)
+write(id_stat,100) tot_calls, int_steps, cputime_avg, orb(npts,:)
 
 100 format((2(i10,'',''),8(es22.15,'','')))
 end program THALASSA
