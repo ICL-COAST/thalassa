@@ -33,7 +33,7 @@ use CART_COE,    only: COE2CART,CART2COE
 use PHYS_CONST,  only: READ_PHYS,GMST_UNIFORM
 use PROPAGATE,   only: DPROP_REGULAR
 use SETTINGS,    only: READ_SETTINGS
-use IO,          only: id_cartF,id_orbF
+use IO,          only: id_cartF,id_orbF,id_stat
 use SETTINGS,    only: model,gdeg,gord,outpath,statpath,tol,tol_lim,ntol
 use PHYS_CONST,  only: GE,d2r,r2d,secsPerDay,secsPerSidDay,twopi
 implicit none
@@ -50,7 +50,7 @@ real(dk)  ::  tspan,tstep
 integer               ::  npts,ipt
 real(dk),allocatable  ::  cart(:,:),orb(:,:)
 real(dk)              ::  R(1:3),V(1:3)
-real(dk)              ::  JD_fin,R_fin(1:3),V_fin(1:3)
+real(dk)              ::  MJD_fin,R_fin(1:3),V_fin(1:3)
 real(dk)              ::  orb_fin(1:6)
 ! Measurement of CPU time
 integer,parameter  ::  rep_time = 1
@@ -116,6 +116,7 @@ call SYSTEM('mkdir -p '//trim(outpath));    call SYSTEM('mkdir -p '//trim(statpa
 call SYSTEM('cp in/*.txt '//trim(outpath)); call SYSTEM('cp in/*.txt '//trim(statpath))
 call CREATE_OUT(id_cartF)
 call CREATE_OUT(id_orbF)
+call CREATE_OUT(id_stat)
 
 tol_loop: do itol=1,ntol
     tol = tolarr(itol)
@@ -136,15 +137,17 @@ tol_loop: do itol=1,ntol
 
     ! Save results and convert to orbital elements
     npts = size(cart,1)
-    JD_fin = cart(npts,1)
+    MJD_fin = cart(npts,1)
     R_fin  = cart(npts,2:4)
     V_fin  = cart(npts,5:7)
     call CART2COE(R_fin,V_fin,orb_fin,GE)
 
     ! Dump output
-    write(id_cartF,'(2(g11.4,1x),7(es23.15,1x))') tol, cputime_avg, JD_fin, R_fin, V_fin
-    write(id_orbF,'(2(g11.4,1x),7(es23.15,1x))') tol, cputime_avg, JD_fin,&
+    write(id_cartF,'(2(g15.8,1x),7(es23.15,1x))') tol, cputime_avg, MJD_fin, R_fin, V_fin
+    write(id_orbF,'(2(g15.8,1x),7(es23.15,1x))') tol, cputime_avg, MJD_fin,&
     & orb_fin(1:2), orb_fin(3:6)*d2r
+    write(id_stat,'(2(g15.8,1x),es23.15,1x,2(i11,1x))')&
+    & tol, cputime_avg, MJD_fin, int_steps, tot_calls
 
 end do tol_loop
 
@@ -167,5 +170,6 @@ end do tol_loop
 deallocate(tolarr)
 close(id_cartF)
 close(id_orbF)
+close(id_stat)
 
 end program THALASSA

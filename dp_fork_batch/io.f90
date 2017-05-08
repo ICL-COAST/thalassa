@@ -91,25 +91,17 @@ select case (fid)
     case(14) ! Integration statistics file, id_stat = 14 (see module preamble)
         filepath = adjustl(trim(statpath)//'stats.dat')
         header(1) = '# THALASSA - STATISTICS'
-        write(header(2),'(''#'',195(''=''))')
-        write(header(3),'(''#'',a9,1x,a9,8(a22))')&
-        & 'CALLS', 'STEPS', 'CPUT [s]', 'MJD', 'SMA [km]', 'ECC [-]',&
-        & 'INC [deg]', 'RAAN [deg]', 'AOP [deg]', 'MA [deg]'
-        inquire(file=trim(filepath),exist=stat_exists)
-        if (stat_exists) then
-          open(unit=fid,file=trim(filepath),action='write',status='old')
-
-        else
-          open(unit=fid,file=trim(filepath),action='write',status='new')
-          write(fid,'(a200)') header
-
-        end if
+        write(header(2),'(''#'',71(''=''))')
+        write(header(3),'(''#'',a14,1x,a15,1x,a23,2(a11,1x))')&
+        & 'TOL', 'CPUT [s]', 'MJD', 'NSTEPS', 'CALLS'
+        open(unit=fid,file=trim(filepath),action='write',status='replace')
+        write(fid,'(a200)') header
     
     case(15) ! Final position and velocity file, id_cartF = 15
         filepath = adjustl(trim(statpath)//'cart_fin.dat')
         header(1) = '# THALASSA - FINAL POSITION AND VELOCITY'
         write(header(2),'(''#'',183(''=''))')
-        write(header(3),'(''#'',a10,1x,a11,7(a22,1x))')&
+        write(header(3),'(''#'',a14,1x,a15,7(a22,1x))')&
         & 'TOL', 'CPUT [s]', 'MJD', 'X [km]', 'Y [km]', 'Z [km]', 'VX [km/s]',&
         & 'VY [km/s]','VZ [km/s]'
         open(unit=fid,file=trim(filepath),action='write',status='replace')
@@ -119,7 +111,7 @@ select case (fid)
         filepath = adjustl(trim(statpath)//'orb_fin.dat')
         header(1) = '# THALASSA - FINAL ORBITAL ELEMENTS'
         write(header(2),'(''#'',183(''=''))')
-        write(header(3),'(''#'',a10,1x,a11,7(a22,1x))')&
+        write(header(3),'(''#'',a14,1x,a15,7(a22,1x))')&
         & 'TOL', 'CPUT [s]', 'MJD', 'SMA [km]', 'ECC [-]', 'INC [deg]',&
         & 'RAAN [deg]', 'AOP [deg]', 'MA [deg]'
         open(unit=fid,file=trim(filepath),action='write',status='replace')
