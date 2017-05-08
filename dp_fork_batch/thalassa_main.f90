@@ -53,7 +53,7 @@ real(dk)              ::  R(1:3),V(1:3)
 real(dk)              ::  MJD_fin,R_fin(1:3),V_fin(1:3)
 real(dk)              ::  orb_fin(1:6)
 ! Measurement of CPU time
-integer,parameter  ::  rep_time = 1
+integer,parameter  ::  rep_time = 3
 integer     ::  itime
 integer(8)  ::  rate,tic,toc
 real(dk) ::  cputime_sum,cputime_avg
