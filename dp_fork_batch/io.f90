@@ -16,7 +16,7 @@ use SETTINGS, only: outpath,statpath
 ! VARIABLES
 implicit none
 integer,parameter  ::  id_ic = 10, id_in = 11, id_cart = 12, id_orb = 13
-integer,parameter  ::  id_stat = 14
+integer,parameter  ::  id_stat = 14, id_cartF = 15, id_orbF = 16
 
 contains
 
@@ -74,7 +74,8 @@ select case (fid)
         header(1) = '# THALASSA - CARTESIAN COORDINATES'
         write(header(2),'(''#'',160(''=''))')
         write(header(3),'(''#'',a21,1x,6(a22,1x))') &
-        & 'MJD', 'X [km]', 'Y [km]', 'Z [km]', 'VX [km]', 'VY [km]', 'VZ [km]'
+        & 'MJD', 'X [km]', 'Y [km]', 'Z [km]', 'VX [km/s]', 'VY [km/s]',&
+        & 'VZ [km/s]'
         open(unit=fid,file=trim(filepath),action='write',status='replace')
         write(fid,'(a200)') header
 
@@ -103,6 +104,27 @@ select case (fid)
           write(fid,'(a200)') header
 
         end if
+    
+    case(15) ! Final position and velocity file, id_cartF = 15
+        filepath = adjustl(trim(statpath)//'cart_fin.dat')
+        header(1) = '# THALASSA - FINAL POSITION AND VELOCITY'
+        write(header(2),'(''#'',183(''=''))')
+        write(header(3),'(''#'',a10,1x,a11,7(a22,1x))')&
+        & 'TOL', 'CPUT [s]', 'MJD', 'X [km]', 'Y [km]', 'Z [km]', 'VX [km/s]',&
+        & 'VY [km/s]','VZ [km/s]'
+        open(unit=fid,file=trim(filepath),action='write',status='replace')
+        write(fid,'(a200)') header
+    
+    case(16) ! Final position and velocity file, id_cartF = 15
+        filepath = adjustl(trim(statpath)//'orb_fin.dat')
+        header(1) = '# THALASSA - FINAL ORBITAL ELEMENTS'
+        write(header(2),'(''#'',183(''=''))')
+        write(header(3),'(''#'',a10,1x,a11,7(a22,1x))')&
+        & 'TOL', 'CPUT [s]', 'MJD', 'SMA [km]', 'ECC [-]', 'INC [deg]',&
+        & 'RAAN [deg]', 'AOP [deg]', 'MA [deg]'
+        open(unit=fid,file=trim(filepath),action='write',status='replace')
+        write(fid,'(a200)') header
+
 
 end select
 

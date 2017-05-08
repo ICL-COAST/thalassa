@@ -7,3 +7,5 @@
 *.log
 *.dat
 fort.*
+.vscode
+
