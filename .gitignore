@@ -1,0 +1,9 @@
+# Compiled files
+*.o
+*.x
+# Fortran module files
+*.mod
+# Outputs
+*.log
+*.dat
+fort.*
