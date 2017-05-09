@@ -34,7 +34,7 @@ use PHYS_CONST,  only: READ_PHYS,GMST_UNIFORM
 use PROPAGATE,   only: DPROP_REGULAR
 use SETTINGS,    only: READ_SETTINGS
 use IO,          only: id_cartF,id_orbF,id_stat
-use SETTINGS,    only: model,gdeg,gord,outpath,statpath,tol,tol_lim,ntol
+use SETTINGS,    only: model,gdeg,gord,outpath,statpath,tol,tol_lim,ntol,eqs
 use PHYS_CONST,  only: GE,d2r,r2d,secsPerDay,secsPerSidDay,twopi
 implicit none
 
@@ -99,8 +99,11 @@ write(*,'(a,g22.15)') 'Z = ',R0(3)/aGEO
 write(*,'(a,g22.15)') 'VX = ',V0(1)/aGEO*(secsPerDay/1.0027379093508_dk)
 write(*,'(a,g22.15)') 'VY = ',V0(2)/aGEO*(secsPerDay/1.0027379093508_dk)
 write(*,'(a,g22.15)') 'VZ = ',V0(3)/aGEO*(secsPerDay/1.0027379093508_dk)
-write(*,'(a,g22.15)') 'Initial GMST (deg): ',GMST0*r2d
+! write(*,'(a,g22.15)') 'Initial GMST (deg): ',GMST0*r2d
 write(*,'(a,g22.15)') 'Initial orbital period (sid. days): ',period
+write(*,*) 'Formulation: ',eqs
+write(*,*) 'Tolmin, Tolmax: ',tol_lim
+write(*,*) 'ntol: ',ntol
 
 ! Allocations
 allocate(tolarr(1:ntol))
@@ -133,7 +136,7 @@ tol_loop: do itol=1,ntol
     
     end do time_loop
     cputime_avg = cputime_sum/real(rep_time,dk)
-    write(*,*) 'CPU time (avg.): ',cputime_avg,'s'
+    write(*,*) 'Run ',itol,', CPU time (avg.): ',cputime_avg,'s'
 
     ! Save results and convert to orbital elements
     npts = size(cart,1)
@@ -148,6 +151,15 @@ tol_loop: do itol=1,ntol
     & orb_fin(1:2), orb_fin(3:6)*d2r
     write(id_stat,'(2(g15.8,1x),es23.15,1x,2(i11,1x))')&
     & tol, cputime_avg, MJD_fin, int_steps, tot_calls
+
+    ! Close and reopen files to write buffer to disk
+    close(id_cartF); close(id_orbF); close(id_stat)
+    open(id_cartF,file=trim(adjustl(trim(statpath)//'cart_fin.dat')),&
+    &action='write',status='old',position='append')
+    open(id_orbF,file=trim(adjustl(trim(statpath)//'orb_fin.dat')),&
+    &action='write',status='old',position='append')
+    open(id_stat,file=trim(adjustl(trim(statpath)//'stats.dat')),&
+    &action='write',status='old',position='append')
 
 end do tol_loop
 
