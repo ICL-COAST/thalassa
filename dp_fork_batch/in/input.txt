@@ -39,5 +39,5 @@ mxstep:    1.0E+05
 eqs:       4
 
 # OUTPUT DIRECTORY
-out: /home/davide/Documents/PhD/02.Progetti/THESS/data/Thalassa/Galileo/full/eff_200yr_EDrl/
-stat: /home/davide/Documents/PhD/02.Progetti/THESS/data/Thalassa/Galileo/full/eff_200yr_EDrl/
+out: /home/davide/Documents/PhD/02.Progetti/THESS/data/Thalassa/Galileo/full/eff_200yr_Cow/
+stat: /home/davide/Documents/PhD/02.Progetti/THESS/data/Thalassa/Galileo/full/eff_200yr_Cow/

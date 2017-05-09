@@ -148,7 +148,7 @@ tol_loop: do itol=1,ntol
     ! Dump output
     write(id_cartF,'(2(g15.8,1x),7(es23.15,1x))') tol, cputime_avg, MJD_fin, R_fin, V_fin
     write(id_orbF,'(2(g15.8,1x),7(es23.15,1x))') tol, cputime_avg, MJD_fin,&
-    & orb_fin(1:2), orb_fin(3:6)*d2r
+    & orb_fin(1:2), orb_fin(3:6)*r2d
     write(id_stat,'(2(g15.8,1x),es23.15,1x,2(i11,1x))')&
     & tol, cputime_avg, MJD_fin, int_steps, tot_calls
 
