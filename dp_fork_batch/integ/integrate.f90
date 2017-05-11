@@ -65,7 +65,7 @@ integer,intent(in)      ::  neq                   ! Number of equations
 integer,intent(in)      ::  lrw,liw               ! Length of work arrays
 real(dk),intent(in)     ::  yi(1:neq),xi          ! State vector and ind. var. at beginning of step
 real(dk),intent(in)     ::  dx                    ! Independent variable
-real(dk),intent(in)     ::  rtol,atol             ! Absolute and relative tolerances
+real(dk),intent(in)     ::  rtol(:),atol(:)             ! Absolute and relative tolerances
 integer,intent(inout)   ::  isett(:),iwork(1:liw) ! Settings and integer work arrays
 real(dk),intent(inout)  ::  rwork(1:lrw)          ! Real work array
 real(dk),intent(out)    ::  yf(1:neq),xf          ! State vector and ind. variables at end of step
@@ -156,7 +156,7 @@ select case (integ)
     case(1) ! SLSODAR,DLSODAR
 
       ! Default values for isett
-      isett(1) = 1      ! itol
+      isett(1) = 4      ! itol
       isett(2) = 1      ! itask
       isett(3) = 1      ! istate
       isett(4) = 1      ! iopt

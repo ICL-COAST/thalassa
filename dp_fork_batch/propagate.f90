@@ -93,6 +93,10 @@ integer               ::  npts,nels
 real(dk),allocatable  ::  yx(:,:)
 real(dk)              ::  t
 
+! LSODAR TESTS
+real(dk)  ::  atols(1:8)
+real(dk)  ::  rtols(1:8)
+
 ! ==============================================================================
 
 ! ==============================================================================
@@ -122,15 +126,21 @@ call SET_SOLV(integ,eqs,tol,isett,iwork,rwork)
 
 dx = SET_DX(eqs,tstep,TU)
 
+!!! DEBUG
+atols = tol
+rtols(1:7) = tol
+rtols(8) = 1._dk
+!!! DEBUG
+
 ! Choose equations of motion and start MAIN INTEGRATION LOOP
 select case (eqs)
     case(1)   ! Cowell, 1st order
-        call INTLOOP(COWELL_RHS,COWELL_EVT,integ,eqs,neq,y0,x0,dx,tstep,yx,tol,&
-        &tol,isett,liw,iwork,lrw,rwork)
+        call INTLOOP(COWELL_RHS,COWELL_EVT,integ,eqs,neq,y0,x0,dx,tstep,yx,rtols,&
+        &atols,isett,liw,iwork,lrw,rwork)
 
     case(2:4) ! EDromo
-        call INTLOOP(EDROMO_RHS,EDROMO_EVT,integ,eqs,neq,y0,x0,dx,tstep,yx,tol,&
-        &tol,isett,liw,iwork,lrw,rwork)
+        call INTLOOP(EDROMO_RHS,EDROMO_EVT,integ,eqs,neq,y0,x0,dx,tstep,yx,rtols,&
+        &atols,isett,liw,iwork,lrw,rwork)
 
 end select
 
@@ -187,7 +197,7 @@ integer,intent(in)   ::  neq                   ! Number of equations
 integer,intent(in)   ::  liw,lrw               ! Length of work arrays
 real(dk),intent(in)  ::  y0(1:neq),x0,dx       ! Initial values and step size in independent var.
 real(dk),intent(in)  ::  tstep                 ! Step size in phys. time (days)
-real(dk),intent(in)  ::  rtol,atol             ! Integration tolerances
+real(dk),intent(in)  ::  rtol(:),atol(:)       ! Integration tolerances
 integer,intent(inout)   ::  isett(:)           ! Integrator settings
 integer,intent(inout)   ::  iwork(1:liw)       ! Integer work array
 real(dk),intent(inout)  ::  rwork(1:lrw)       ! Real work array
