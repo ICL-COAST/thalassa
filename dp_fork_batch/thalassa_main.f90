@@ -34,7 +34,7 @@ use PHYS_CONST,  only: READ_PHYS,GMST_UNIFORM
 use PROPAGATE,   only: DPROP_REGULAR
 use SETTINGS,    only: READ_SETTINGS
 use IO,          only: id_cartF,id_orbF,id_stat
-use SETTINGS,    only: model,gdeg,gord,outpath,statpath,tol,tol_lim,ntol
+use SETTINGS,    only: model,gdeg,gord,outpath,statpath,tol,tol_lim,ntol,eqs
 use PHYS_CONST,  only: GE,d2r,r2d,secsPerDay,secsPerSidDay,twopi
 implicit none
 
@@ -101,6 +101,7 @@ write(*,'(a,g22.15)') 'VY = ',V0(2)/aGEO*(secsPerDay/1.0027379093508_dk)
 write(*,'(a,g22.15)') 'VZ = ',V0(3)/aGEO*(secsPerDay/1.0027379093508_dk)
 write(*,'(a,g22.15)') 'Initial GMST (deg): ',GMST0*r2d
 write(*,'(a,g22.15)') 'Initial orbital period (sid. days): ',period
+write(*,*) 'Formulation: ',eqs
 
 ! Allocations
 allocate(tolarr(1:ntol))

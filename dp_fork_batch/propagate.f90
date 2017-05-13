@@ -93,9 +93,9 @@ integer               ::  npts,nels
 real(dk),allocatable  ::  yx(:,:)
 real(dk)              ::  t
 
-! LSODAR TESTS
-real(dk)  ::  atols(1:8)
-real(dk)  ::  rtols(1:8)
+! LSODAR - individual tolerances
+real(dk),allocatable  ::  atols(:)
+real(dk),allocatable  ::  rtols(:)
 
 ! ==============================================================================
 
@@ -122,15 +122,9 @@ call INIT_STATE(eqs,R0,V0,MJD0,neq,y0,x0)
 ! ==============================================================================
 
 ! Solver initialization
-call SET_SOLV(integ,eqs,tol,isett,iwork,rwork)
+call SET_SOLV(integ,eqs,neq,tol,isett,iwork,rwork,rtols,atols)
 
 dx = SET_DX(eqs,tstep,TU)
-
-!!! DEBUG
-atols = tol
-rtols(1:7) = tol
-rtols(8) = 1._dk
-!!! DEBUG
 
 ! Choose equations of motion and start MAIN INTEGRATION LOOP
 select case (eqs)
