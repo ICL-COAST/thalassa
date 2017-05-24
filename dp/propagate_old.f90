@@ -67,9 +67,6 @@ use REGULAR_AUX, only: PHYSICAL_TIME,CARTESIAN
 use AUXILIARIES, only: MJD0,MJDnext,MJDf,DU,TU
 use PHYS_CONST,  only: GE,secsPerDay,GE,RE,GE_nd,RE_nd,ERR_constant,&
 &ERR_constant_nd,pi,reentry_height,reentry_radius_nd
-!!! DEBUG
-use PHYS_CONST,  only: GMST_UNIFORM,secsPerSidDay
-!!! DEBUG
 use SETTINGS,    only: integ,eqs,tol
 
 ! VARIABLES
@@ -154,10 +151,6 @@ do ip=1,npts
     t = PHYSICAL_TIME(eqs,neq,yx(ip,1),yx(ip,2:nels))
     cart(ip,1)   = MJD0 + t/TU/secsPerDay
     cart(ip,2:7) = CARTESIAN(eqs,neq,DU,TU,yx(ip,1),yx(ip,2:nels))
-
-    !!! DEBUG
-    ! write(20,*) (cart(ip,1) - MJD0)*secsPerSidDay/secsPerDay, GMST_UNIFORM(cart(ip,1))
-    !!! DEBUG
 
 end do
 

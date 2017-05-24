@@ -65,7 +65,7 @@ integer,intent(in)      ::  neq                   ! Number of equations
 integer,intent(in)      ::  lrw,liw               ! Length of work arrays
 real(dk),intent(in)     ::  yi(1:neq),xi          ! State vector and ind. var. at beginning of step
 real(dk),intent(in)     ::  dx                    ! Independent variable
-real(dk),intent(in)     ::  rtol,atol             ! Absolute and relative tolerances
+real(dk),intent(in)     ::  rtol(:),atol(:)             ! Absolute and relative tolerances
 integer,intent(inout)   ::  isett(:),iwork(1:liw) ! Settings and integer work arrays
 real(dk),intent(inout)  ::  rwork(1:lrw)          ! Real work array
 real(dk),intent(out)    ::  yf(1:neq),xf          ! State vector and ind. variables at end of step
@@ -129,7 +129,7 @@ end select
 end subroutine INTSTEP
 
 
-subroutine SET_SOLV(integ,eqs,tol,isett,iwork,rwork)
+subroutine SET_SOLV(integ,eqs,neq,tol,isett,iwork,rwork,rtols,atols)
 ! Description:
 !    Sets solver settings.
 ! ==============================================================================
@@ -139,10 +139,11 @@ use PHYS_CONST, only: twopi
 ! VARIABLES
 implicit none
 ! Arguments
-integer,intent(in)   ::  integ,eqs
+integer,intent(in)   ::  integ,eqs,neq
 real(dk),intent(in)  ::  tol
 integer,intent(inout)   ::  isett(:),iwork(:)
 real(dk),intent(inout)  ::  rwork(:)
+real(dk),allocatable,intent(out)  ::  rtols(:),atols(:)
 ! Locals
 real(dk)    ::  liw,lrw
 
@@ -156,7 +157,7 @@ select case (integ)
     case(1) ! SLSODAR,DLSODAR
 
       ! Default values for isett
-      isett(1) = 1      ! itol
+      isett(1) = 4      ! itol
       isett(2) = 1      ! itask
       isett(3) = 1      ! istate
       isett(4) = 1      ! iopt
@@ -170,6 +171,13 @@ select case (integ)
       iwork(6) = 10000000
       ! Next is the user-assigned initial step size. Set to 0 to let LSODAR
       ! estimate it.
+
+      ! Allocate tolerances
+      if (allocated(rtols)) deallocate(rtols); allocate(rtols(1:neq))
+      if (allocated(atols)) deallocate(atols); allocate(atols(1:neq))
+      rtols = tol
+      atols = tol
+
       select case (eqs)
           case(1,-1)
               ! For Cowell, let the solver estimate the step size.
@@ -180,6 +188,9 @@ select case (integ)
               ! estimate the step size as ~100th of a period, and scale according
               ! to tolerance.
               rwork(5) = -0.01_dk*twopi/log10(tol)
+
+              ! For EDromo(c), set only absolute tolerance for the time element.
+              rtols(8) = 1._dk
 
       end select
 
