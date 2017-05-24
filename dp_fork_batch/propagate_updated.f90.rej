@@ -1,0 +1,39 @@
+*** /dev/null
+--- /dev/null
+***************
+*** 125
+- call SET_SOLV(integ,eqs,tol,isett,iwork,rwork)
+--- 129 -----
++ call SET_SOLV(integ,eqs,neq,tol,isett,iwork,rwork,rtols,atols)
+***************
+*** 132,133
+-         call INTLOOP(COWELL_RHS,COWELL_EVT,integ,eqs,neq,y0,x0,dx,tstep,yx,tol,&
+-         &tol,isett,liw,iwork,lrw,rwork)
+--- 136,137 -----
++         call INTLOOP(COWELL_RHS,COWELL_EVT,integ,eqs,neq,y0,x0,dx,tstep,yx,rtols,&
++         &atols,isett,liw,iwork,lrw,rwork)
+***************
+*** 136,137
+-         call INTLOOP(EDROMO_RHS,EDROMO_EVT,integ,eqs,neq,y0,x0,dx,tstep,yx,tol,&
+-         &tol,isett,liw,iwork,lrw,rwork)
+--- 140,141 -----
++         call INTLOOP(EDROMO_RHS,EDROMO_EVT,integ,eqs,neq,y0,x0,dx,tstep,yx,rtols,&
++         &atols,isett,liw,iwork,lrw,rwork)
+***************
+*** 194
+- real(dk),intent(in)  ::  rtol,atol             ! Integration tolerances
+--- 198 -----
++ real(dk),intent(in)  ::  rtol(:),atol(:)       ! Integration tolerances
+***************
+*** 226,230
+-     ! Print message every print_each steps
+-     if (i_print - print_each == 0) then
+-       write(*,'(a,f9.2,a)') 'Progress: ',real(iint)/real(nsteps)*100.,'%'
+-       i_print = 0
+-     end if
+--- 230,234 -----
++     ! ! Print message every print_each steps
++     ! if (i_print - print_each == 0) then
++     !   write(*,'(a,f9.2,a)') 'Progress: ',real(iint)/real(nsteps)*100.,'%'
++     !   i_print = 0
++     ! end if

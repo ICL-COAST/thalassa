@@ -110,7 +110,7 @@ allocate(tolarr(1:ntol))
 
 delta_tol = (log10(tol_lim(2)) - log10(tol_lim(1)))/(ntol - 1)
 tolarr(1) = tol_lim(1)
-do itol=1,ntol
+do itol=2,ntol
     tolarr(itol) = 10._dk**(log10(tolarr(1)) + (itol - 1)*delta_tol)
 end do
 

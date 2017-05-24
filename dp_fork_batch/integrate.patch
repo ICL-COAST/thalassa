@@ -1,0 +1,30 @@
+68c68
+< real(dk),intent(in)     ::  rtol,atol             ! Absolute and relative tolerances
+---
+> real(dk),intent(in)     ::  rtol(:),atol(:)             ! Absolute and relative tolerances
+132c132
+< subroutine SET_SOLV(integ,eqs,tol,isett,iwork,rwork)
+---
+> subroutine SET_SOLV(integ,eqs,neq,tol,isett,iwork,rwork,rtols,atols)
+142c142
+< integer,intent(in)   ::  integ,eqs
+---
+> integer,intent(in)   ::  integ,eqs,neq
+145a146
+> real(dk),allocatable,intent(out)  ::  rtols(:),atols(:)
+159c160
+<       isett(1) = 1      ! itol
+---
+>       isett(1) = 4      ! itol
+172a174,180
+> 
+>       ! Allocate tolerances
+>       if (allocated(rtols)) deallocate(rtols); allocate(rtols(1:neq))
+>       if (allocated(atols)) deallocate(atols); allocate(atols(1:neq))
+>       rtols = tol
+>       atols = tol
+> 
+182a191,193
+> 
+>               ! For EDromo(c), set only absolute tolerance for the time element.
+>               rtols(8) = 1._dk

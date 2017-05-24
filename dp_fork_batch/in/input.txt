@@ -36,7 +36,7 @@ mxstep:    1.0E+05
 # EQUATIONS OF MOTION
 # eqs:       Type of the equations of motion.
 #            1 = Cowell, 2 = EDromo(t), 3 = EDromo(c), 4 = EDromo(l)
-eqs:       4
+eqs:       3
 
 # OUTPUT DIRECTORY
 out: /home/davide/Documents/PhD/02.Progetti/THESS/data/Thalassa/Galileo/full/eff_200yr_Cow/
