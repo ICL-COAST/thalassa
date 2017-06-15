@@ -33,6 +33,7 @@ integer  ::  eqs                ! Equations of motion type. 1 = Cowell,
 ! Output directories
 character(len=512)  ::  outpath
 character(len=512)  ::  statpath
+character(len=512)  ::  input_path
 
 contains
 
@@ -50,7 +51,7 @@ character(len=4096)  ::  dummy
 real(dk)  ::  rmxstep
 
 ! Open and skip header lines
-open(unit=id_set,file='./in/input.txt',status='old',action='read')
+open(unit=id_set,file=adjustl(trim(input_path)),status='old',action='read')
 read(id_set,'(a)') (dummy, i = 1,hlines)
 
 read(id_set,'(a11,i3)') dummy, model

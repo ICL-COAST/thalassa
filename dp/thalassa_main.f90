@@ -33,8 +33,8 @@ use CART_COE,    only: COE2CART,CART2COE
 use PHYS_CONST,  only: READ_PHYS,GMST_UNIFORM
 use PROPAGATE,   only: DPROP_REGULAR
 use SETTINGS,    only: READ_SETTINGS
-use IO,          only: id_cart,id_orb,id_stat
-use SETTINGS,    only: model,gdeg,gord,outpath
+use IO,          only: id_cart,id_orb,id_stat,IC_path
+use SETTINGS,    only: model,gdeg,gord,outpath,input_path
 use PHYS_CONST,  only: GE,d2r,r2d,secsPerDay,secsPerSidDay,twopi
 implicit none
 
@@ -56,9 +56,16 @@ real(dk) ::  cputime
 ! Function calls and integration steps
 integer  ::  int_steps,tot_calls
 
-
 ! ==============================================================================
 
+! ==============================================================================
+! 00. USER PROMPT
+! ==============================================================================
+
+write(*,'(a)') 'Enter path of INITIAL CONDITIONS file: '
+read(*,*) IC_path
+write(*,'(a)') 'Enter path of INPUT file: '
+read(*,*) input_path
 
 ! ==============================================================================
 ! 01. INITIALIZATIONS

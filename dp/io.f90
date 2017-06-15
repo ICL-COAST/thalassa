@@ -15,8 +15,9 @@ use SETTINGS, only: outpath,statpath
 
 ! VARIABLES
 implicit none
-integer,parameter  ::  id_ic = 10, id_in = 11, id_cart = 12, id_orb = 13
-integer,parameter  ::  id_stat = 14
+integer,parameter   ::  id_ic = 10, id_in = 11, id_cart = 12, id_orb = 13
+integer,parameter   ::  id_stat = 14
+character(len=512)  ::  IC_path
 
 contains
 
@@ -36,7 +37,7 @@ integer               ::  i
 
 ! ==============================================================================
 
-open(unit=id_ic,file='./in/oels_ic.txt',status='old',action='read')
+open(unit=id_ic,file=adjustl(trim(IC_path)),status='old',action='read')
 
 ! Skip header lines
 read(id_ic,'(a)') (dummy, i=1,hlines)
