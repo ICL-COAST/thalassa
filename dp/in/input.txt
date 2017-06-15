@@ -37,6 +37,8 @@ mxstep:    1.0E+05
 #            1 = Cowell, 2 = EDromo(t), 3 = EDromo(c), 4 = EDromo(l)
 eqs:       3
 
-# OUTPUT DIRECTORY
-out: /home/davide/Documents/PhD/02.Progetti/THESS/data/Thalassa/temp/
-stat: /home/davide/Documents/PhD/02.Progetti/THESS/data/Thalassa/temp/
+# OUTPUT DIRECTORIES AND FILE NAMES
+out: /home/davide/Documents/PhD/02.Progetti/THESS/data/Asperger/Thalassa/temp/
+stat: /home/davide/Documents/PhD/02.Progetti/THESS/data/Asperger/Thalassa/temp/
+oels_name: orbels.dat
+cart_name: cart.dat

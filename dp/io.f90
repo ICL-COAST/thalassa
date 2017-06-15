@@ -11,7 +11,7 @@ module IO
 
 ! MODULES
 use KINDS, only: dk
-use SETTINGS, only: outpath,statpath
+use SETTINGS, only: outpath,statpath,oels_name,cart_name
 
 ! VARIABLES
 implicit none
@@ -71,7 +71,7 @@ logical                  ::  stat_exists
 
 select case (fid)
     case(12) ! Cartesian trajectory file, id_cart = 12 (see module preamble)
-        filepath = adjustl(trim(outpath)//'cart.dat')
+        filepath = adjustl(trim(outpath)//trim(cart_name))
         header(1) = '# THALASSA - CARTESIAN COORDINATES'
         write(header(2),'(''#'',160(''=''))')
         write(header(3),'(''#'',a21,1x,6(a22,1x))') &
@@ -80,7 +80,7 @@ select case (fid)
         write(fid,'(a200)') header
 
     case(13) ! Orbital elements file, id_orb = 13 (see module preamble)
-        filepath = adjustl(trim(outpath)//'orbels.dat')
+        filepath = adjustl(trim(outpath)//trim(oels_name))
         header(1) = '# THALASSA - ORBITAL ELEMENTS'
         write(header(2),'(''#'',160(''=''))')
         write(header(3),'(''#'',a21,1x,6(a22,1x))') &

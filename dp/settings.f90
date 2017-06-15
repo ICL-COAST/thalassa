@@ -33,7 +33,7 @@ integer  ::  eqs                ! Equations of motion type. 1 = Cowell,
 ! Output directories
 character(len=512)  ::  outpath
 character(len=512)  ::  statpath
-character(len=512)  ::  input_path
+character(len=512)  ::  input_path,oels_name,cart_name
 
 contains
 
@@ -70,6 +70,8 @@ read(id_set,'(a11,e10.1,4(/))') dummy, rmxstep
 read(id_set,'(a11,i3,2(/))') dummy, eqs
 read(id_set,'(a4,a)') dummy,outpath
 read(id_set,'(a5,a)') dummy,statpath
+read(id_set,'(a11,a)') dummy,oels_name
+read(id_set,'(a11,a)') dummy,cart_name
 
 close(id_set)
 
