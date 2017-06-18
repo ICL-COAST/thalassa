@@ -11,11 +11,11 @@
 # gdeg:      Maximum degree of the gravitational potential.
 # gord:      Maximum order of the gravitational potential.
 model:     1
-insgrav:   0
-isun:      0
-imoon:     0
+insgrav:   1
+isun:      1
+imoon:     1
 idrag:     1
-iephem:    2
+iephem:    1
 gdeg:      1
 gord:      0
 
@@ -27,15 +27,9 @@ gord:      0
 # tstep:     Step size (solar days).
 # mxstep:    Maximum number of integration/output steps.
 integ:     1
-<<<<<<< HEAD
 tol:       1.000000000000000E-14
 tspan:     3.652500000000000E+04
-tstep:     1.000000000000000E+00
-=======
-tol:       1.000000000000000E-12
-tspan:     -7.305000000000000E+04
-tstep:     -1.000000000000000E+01
->>>>>>> ff2560c... Add support for backwards integration
+tstep:     1.000000000000000E+01
 mxstep:    1.0E+05
 
 # EQUATIONS OF MOTION
@@ -43,14 +37,6 @@ mxstep:    1.0E+05
 #            1 = Cowell, 2 = EDromo(t), 3 = EDromo(c), 4 = EDromo(l)
 eqs:       4
 
-<<<<<<< HEAD
 # OUTPUT DIRECTORY
-out: /home/davide/Documents/PhD/02.Progetti/THESS/data/Thalassa/drag_validation_ETS-7/EDrl_t1E-14/
-stat: /home/davide/Documents/PhD/02.Progetti/THESS/data/Thalassa/drag_validation_ETS-7/EDrl_t1E-14/
-=======
-# OUTPUT DIRECTORIES AND FILE NAMES
-out: /home/davide/Documents/PhD/02.Progetti/THESS/data/Farewell/Thalassa/temp/
-stat: /home/davide/Documents/PhD/02.Progetti/THESS/data/Farewell/Thalassa/temp/
-oels_name: orbels.dat
-cart_name: cart.dat
->>>>>>> ff2560c... Add support for backwards integration
+out: /home/davide/Documents/PhD/02.Progetti/THESS/data/Thalassa/INTEGRAL_validation/
+stat: /home/davide/Documents/PhD/02.Progetti/THESS/data/Thalassa/INTEGRAL_validation/
