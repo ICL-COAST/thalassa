@@ -14,6 +14,7 @@ use KINDS,       only: dk
 use NSGRAV
 use SUN_MOON
 use DRAG_EXPONENTIAL
+use Atmosphere1976, only: ATMOS76 => Atmosphere,dens_SL => RHOZERO
 use PHYS_CONST,  only: Clm,Slm
 use AUXILIARIES, only: DU,TU
 implicit none
@@ -88,10 +89,14 @@ real(dk)  ::  p_nsg(1:3)
 ! Third bodies
 real(dk)  ::  r_sun(1:3),v_sun(1:3),p_sun(1:3)
 real(dk)  ::  r_moon(1:3),v_moon(1:3),p_moon(1:3)
-! Drag
+! Drag, density (US76)
 real(dk)  ::  p_drag(1:3)
+real(dk)  ::  drag_term
+real(dk)  ::  density,temp1,temp2
+! Velocity wrt atmosphere (km/s)
+real(dk)  ::  v_rel(1:3),v_atm(1:3),v_relNorm
 ! Dimensional quantities for drag computation
-real(dk)  ::  r_D(1:3),v_D(1:3)
+real(dk)  ::  r_D(1:3),v_D(1:3),h_D
 real(dk)  ::  wE_D
 
 
@@ -146,13 +151,36 @@ PACC_EJ2K = p_sun + p_moon + PACC_EJ2K
 
 p_drag = 0._dk
 if (idrag == 1) then
-  ! Exponential density model
+  ! Exponential density model (Vallado)
   ! Make quantities dimensional
   r_D = r*DU; v_D = v*DU*TU
   wE_D = ERR_constant*twopi/secsPerDay
 
   ! Compute drag and non-dimensionalize
   p_drag = DRAG_ACC([r_D,v_D],wE_D,RE,CD,A2M)
+  p_drag = p_drag/(DU*TU**2)
+
+else if (idrag == 2) then
+  ! US76 Atmosphere (code by R. Carmichael)
+  ! Make quantities dimensional
+  r_D = r*DU; v_D = v*DU*TU
+  h_D = sqrt(dot_product(r_D,r_D)) - RE
+
+  ! Get density
+  call ATMOS76(h_D,density,temp1,temp2)
+  density = density*dens_SL                ! Dimensionalize to kg/m^3
+  
+  ! The following is taken from DRAG_ACC. Relative velocity wrt atmosphere
+  wE_D = ERR_constant*twopi/secsPerDay
+  v_atm = wE_D*[-r_D(2),r_D(1),0._dk]
+  v_rel = v_D - v_atm
+  v_relNorm = sqrt(dot_product(v_rel,v_rel))
+
+  ! Acceleration (in km/s^2)
+  drag_term = -0.5_dk*1.E3_dk*CD*A2M*density
+  p_drag    = drag_term*v_relNorm*v_rel
+
+  ! Acceleration (non-dimensionalized)
   p_drag = p_drag/(DU*TU**2)
 
 end if

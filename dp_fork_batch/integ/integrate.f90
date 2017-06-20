@@ -98,6 +98,7 @@ select case (integ)
     jroot  = isett(7:16)
 
     y = yi; x = xi; xf = xi + dx
+    rwork(5) = rwork(5)*(dx/abs(dx))
 
     ! Switch for quad or double precision
     if (dk == 8) then
@@ -224,7 +225,7 @@ select case (eqs)
     case (2:4) ! EDromo
         ! For regularized formulations, set the step size to +inf since they are
         ! to be stopped by event location.
-        SET_DX = huge(0._dk)
+        SET_DX = (tstep/abs(tstep))*huge(0._dk)
 
 end select
 

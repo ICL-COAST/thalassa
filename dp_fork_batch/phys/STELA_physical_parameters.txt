@@ -18,7 +18,7 @@
 # Drag coefficient (CD)
 2.2000000000000E+00
 # Area-to-mass ratio (kg/m^2)
-0.0005000000000E+00
+1.0204081632653E-02
 # Re-entry height (km)
 8.0000000000000E+01
 # Gravitational potential - spherical harmonics
