@@ -304,8 +304,12 @@ select case (integ)
         if (jroot(2) == 1 .or. jroot(3) == 1) then
             QUIT_LOOP = .true.
             if (jroot(3) == 1) then
-              write(*,'(a,g9.2,a)') 'Reentry detected, height <= ',&
-              &reentry_height,' km.'
+              tcur = PHYSICAL_TIME(eqs,neq,x,y)
+              MJDcur = MJD0 + tcur/TU/secsPerDay
+              write(*,*) 'Reentry detected, height <= ',&
+              &reentry_height,' km, MJD = ',MJDcur,', duration = ',&
+              &tcur/TU/secsPerDay/365.25_dk
+
             end if
 
         end if

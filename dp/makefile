@@ -39,7 +39,7 @@ settings.o: settings.f90 kinds.o
 auxiliaries.o: auxiliaries.f90 kinds.o phys_const.o
 	$(FC) $(FCFLAGS) auxiliaries.f90
 
-io.o: io.f90 kinds.o settings.o
+io.o: io.f90 kinds.o settings.o phys_const.o
 	$(FC) $(FCFLAGS) io.f90
 
 kepler.o: kepler.f90 kinds.o

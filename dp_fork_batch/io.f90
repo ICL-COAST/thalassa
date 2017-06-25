@@ -23,6 +23,9 @@ contains
 
 subroutine READ_IC(MJD,COE)
 
+! MODULES
+use PHYS_CONST, only: CD,A2M
+
 ! VARIABLES
 implicit none
 ! Arguments
@@ -46,6 +49,10 @@ read(id_ic,'(e22.15,a)') MJD, dummy
 do i=1,6
     read(id_ic,'(e22.15,a)') COE(i), dummy
 end do
+
+! CD and A/m
+read(id_ic,'(e22.15,a)') CD
+read(id_ic,'(e22.15,a)') A2M
 
 close(id_ic)
 

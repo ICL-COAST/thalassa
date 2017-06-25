@@ -99,8 +99,9 @@ read(id_val,'(3(e20.13,/))') GS,GE,GM
 read(id_val,'(e20.13,/)') RE
 read(id_val,'(e20.13)') secsPerDay
 read(id_val,'(e20.13,/)') secsPerSidDay
-read(id_val,'(e20.13,/)') CD
-read(id_val,'(e20.13,/)') A2M
+! read(id_val,'(e20.13,/)') CD    !! OBSOLETE
+! read(id_val,'(e20.13,/)') A2M   !! OBSOLETE
+read(id_val,'(a)') (dummy, i=1,4)
 read(id_val,'(e20.13)') reentry_height
 
 ! Compute Earth Rotation Rate (rounds per tropical day)
