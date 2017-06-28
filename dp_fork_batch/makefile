@@ -15,7 +15,7 @@ FORMUL  = cowell.o edromo.o regular_aux.o
 
 # Source and object files
 OBJECTS = kinds.o phys_const.o settings.o io.o kepler.o cart_coe.o nsgrav.o \
-sun_moon.o drag_exponential.o atmos76.o perturbations.o initialize.o \
+sun_moon.o drag_exponential.o atmos76_kinds.o perturbations.o initialize.o \
 integrate.o $(SLSODAR) $(DLSODAR) $(FORMUL) propagate.o auxiliaries.o \
 thalassa_main.o
 
@@ -57,11 +57,11 @@ sun_moon.o: ./model/sun_moon.f90 kinds.o phys_const.o settings.o auxiliaries.o
 drag_exponential.o: ./model/drag_exponential.f90 kinds.o
 	$(FC) $(FCFLAGS) ./model/drag_exponential.f90
 
-atmos76.o: ./model/atmos76.f90 # Note that this version is double-precision only!
-	$(FC) $(FCFLAGS) -fdefault-real-8 ./model/atmos76.f90
+atmos76_kinds.o: ./model/atmos76_kinds.f90
+	$(FC) $(FCFLAGS) -fdefault-real-8 ./model/atmos76_kinds.f90
 
 perturbations.o: ./model/perturbations.f90 kinds.o nsgrav.o sun_moon.o \
-drag_exponential.o atmos76.o phys_const.o auxiliaries.o
+drag_exponential.o atmos76_kinds.o phys_const.o auxiliaries.o
 	$(FC) $(FCFLAGS) ./model/perturbations.f90
 
 initialize.o: initialize.f90 kinds.o settings.o auxiliaries.o edromo.o \
