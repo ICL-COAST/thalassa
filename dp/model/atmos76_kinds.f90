@@ -19,6 +19,7 @@ MODULE Atmosphere1976
 !----------------------------------------------------------------------------
 
 use KINDS, only: dk
+use SETTINGS, only: dens_err
 
 IMPLICIT NONE
   CHARACTER(LEN=*),PUBLIC,PARAMETER:: ATM76_VERSION = "0.61 (20 June 2017)"
@@ -231,7 +232,7 @@ SUBROUTINE UpperAtmosphere(alt, sigma, delta, theta)
   
   rho=EXP(EvaluateCubic(Z(i),LOGRHO(i),DLOGRHODZ(i), &
                       Z(i+1),LOGRHO(i+1),DLOGRHODZ(i+1), alt))
-  sigma=rho/RHOZERO
+  sigma=rho/RHOZERO*(1._dk + dens_err)
 
   theta=KineticTemperature(alt)/TZERO
   RETURN

@@ -27,6 +27,7 @@ integer  ::  gdeg,gord          ! Gravitational potential - maximum degree and o
 integer  ::  integ              ! Integrator type. 1 = LSODAR, 2 = CVODE.
 integer  ::  mxstep             ! Max. number of integration/output steps.
 real(dk) ::  tol                ! Integrator tolerance.
+real(dk) ::  dens_err           ! Density error.
 ! Equations of motion settings
 integer  ::  eqs                ! Equations of motion type. 1 = Cowell,
 !                                 2 = EDromo(t), 3 = EDromo(c), 4 = EDromo(l)
@@ -68,7 +69,8 @@ read(id_set,'(a11,e22.15)') dummy, tstep
 read(id_set,'(a11,e10.1,4(/))') dummy, rmxstep
 read(id_set,'(a11,i3,2(/))') dummy, eqs
 read(id_set,'(a4,a)') dummy,outpath
-read(id_set,'(a5,a)') dummy,statpath
+read(id_set,'(a5,a,2(/))') dummy,statpath
+read(id_set,'(a10,e22.15)') dummy,dens_err
 
 close(id_set)
 

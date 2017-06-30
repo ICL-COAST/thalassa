@@ -57,7 +57,7 @@ sun_moon.o: ./model/sun_moon.f90 kinds.o phys_const.o settings.o auxiliaries.o
 drag_exponential.o: ./model/drag_exponential.f90 kinds.o
 	$(FC) $(FCFLAGS) ./model/drag_exponential.f90
 
-atmos76_kinds.o: ./model/atmos76_kinds.f90 kinds.o
+atmos76_kinds.o: ./model/atmos76_kinds.f90 kinds.o settings.o
 	$(FC) $(FCFLAGS) ./model/atmos76_kinds.f90
 
 perturbations.o: ./model/perturbations.f90 kinds.o nsgrav.o sun_moon.o \

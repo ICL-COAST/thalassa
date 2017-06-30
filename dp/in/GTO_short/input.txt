@@ -38,8 +38,8 @@ mxstep:    1.0E+05
 eqs:       3
 
 # OUTPUT DIRECTORY
-out: /home/davide/Documents/PhD/02.Progetti/THESS/data/Asperger/Thalassa/GTO_short/EDrc_t23_quad_denserr_-4E-3/
-stat: /home/davide/Documents/PhD/02.Progetti/THESS/data/Asperger/Thalassa/GTO_short/EDrc_t23_quad_denserr_-4E-3/
+out: /home/davide/Documents/PhD/02.Progetti/THESS/data/Asperger/Thalassa/GTO_short/EDrc_t23/
+stat: /home/davide/Documents/PhD/02.Progetti/THESS/data/Asperger/Thalassa/GTO_short/EDrc_t23/
 
 # DENSITY ERROR
-dens_err:  -0.4E-02
+dens_err:  +0.2E-02
