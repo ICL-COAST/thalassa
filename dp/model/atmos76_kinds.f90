@@ -205,8 +205,10 @@ SUBROUTINE UpperAtmosphere(alt, sigma, delta, theta)
 !----------------------------------------------------------------------------
 
   IF (alt >= Z(SIZE(Z))) THEN          ! trap altitudes greater than 1000 km.
-    delta=1.E-20_dk
-    sigma=1.E-21_dk
+    ! delta=1.E-20_dk
+    ! sigma=1.E-21_dk
+    delta=0._dk
+    sigma=0._dk
     theta=1000.0_dk/TZERO
     RETURN
   END IF
