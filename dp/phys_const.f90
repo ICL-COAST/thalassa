@@ -53,8 +53,14 @@ real(dk)  ::  RE_nd,GE_nd       ! Earth
 ! Spherical harmonics (not normalized)
 real(dk),allocatable  ::  Clm(:,:),Slm(:,:)
 
-! Drag: CD and Area-to-mass ratio (kg/m^2)
-real(dk)  ::  CD,A2M
+! Mass (kg)
+real(dk)  ::  SCMass
+
+! Drag: CD, drag area (m^2), drag area-to-mass ratio (m^2/kg)
+real(dk)  ::  CD,ADrag,A2M_Drag
+
+! SRP: CR, reflective area (m^2), SRP @ 1 au (N/m^2), SRP area-to-mass ratio (m^2/kg)
+real(dk)  ::  CR,ASRP,pSRP,A2M_SRP
 
 
 
@@ -81,13 +87,7 @@ integer,parameter    ::  hlines = 7
 integer              ::  i,j,l,m
 
 ! Set file path
-if (model == 1) then
-    filepath = './phys/STELA_physical_parameters.txt'
-else if (model == 2) then
-    filepath = './phys/SWIFT_physical_parameters.txt'
-else if (model == 3) then
-    filepath = './phys/custom_physical_parameters.txt'
-end if
+filepath = './in/physical_constants.txt'
 
 ! Open and skip lines
 open(unit=id_val,file=trim(filepath),status='old',action='read')
@@ -99,9 +99,7 @@ read(id_val,'(3(e20.13,/))') GS,GE,GM
 read(id_val,'(e20.13,/)') RE
 read(id_val,'(e20.13)') secsPerDay
 read(id_val,'(e20.13,/)') secsPerSidDay
-! read(id_val,'(e20.13,/)') CD    !! OBSOLETE
-! read(id_val,'(e20.13,/)') A2M   !! OBSOLETE
-read(id_val,'(a)') (dummy, i=1,4)
+read(id_val,'(e20.13,/)') pSRP
 read(id_val,'(e20.13)') reentry_height
 
 ! Compute Earth Rotation Rate (rounds per tropical day)

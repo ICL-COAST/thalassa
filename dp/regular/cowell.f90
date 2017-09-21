@@ -25,7 +25,7 @@ subroutine COWELL_RHS(neq,t,y,ydot)
 
 ! MODULES
 use AUXILIARIES,   only: DU,TU
-use SETTINGS,      only: insgrav,isun,imoon,idrag
+use SETTINGS,      only: insgrav,isun,imoon,idrag,iSRP
 use PERTURBATIONS, only: PACC_EJ2K
 
 ! VARIABLES
@@ -50,7 +50,7 @@ rMag = sqrt(dot_product(y(1:3),y(1:3)))
 ! ==============================================================================
 
 p_EJ2K = 0._dk
-p_EJ2K = PACC_EJ2K(insgrav,isun,imoon,idrag,0,y(1:3),y(4:6),rMag,t)
+p_EJ2K = PACC_EJ2K(insgrav,isun,imoon,idrag,iSRP,y(1:3),y(4:6),rMag,t)
 
 ! ==============================================================================
 ! 02. EVALUATE RIGHT-HAND SIDE

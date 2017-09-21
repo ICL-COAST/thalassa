@@ -15,6 +15,7 @@ use NSGRAV
 use SUN_MOON
 use DRAG_EXPONENTIAL
 use Atmosphere1976, only: ATMOS76 => Atmosphere,dens_SL => RHOZERO
+use SRP
 use PHYS_CONST,  only: Clm,Slm
 use AUXILIARIES, only: DU,TU
 implicit none
@@ -56,7 +57,7 @@ end function
 
 
 
-function PACC_EJ2K(insgrav,isun,imoon,idrag,isrp,r,v,rm,t,gradU_sph_out)
+function PACC_EJ2K(insgrav,isun,imoon,idrag,iSRP,r,v,rm,t,gradU_sph_out)
 ! Description:
 !    Computes the perturbing acceleration in the EMEJ2000 frame due to a non-sph
 !    gravity field, Sun and Moon, drag and solar radiation pressure.
@@ -66,7 +67,7 @@ function PACC_EJ2K(insgrav,isun,imoon,idrag,isrp,r,v,rm,t,gradU_sph_out)
 
 ! MODULES
 use PHYS_CONST,  only: GE,GE_nd,GS,GM,RE_nd,ERR_constant,secsPerDay,twopi,RE,&
-&CD,A2M
+&CD,A2M_Drag,pSRP,CR,A2M_SRP
 use AUXILIARIES, only: DU,TU
 
 ! VARIABLES
@@ -76,7 +77,7 @@ real(dk),intent(in)  ::  r(1:3),rm           ! Radius vector and its magnitude
 real(dk),intent(in)  ::  v(1:3)              ! Velocity vector
 real(dk),intent(in)  ::  t                   ! Time (dimensionless)
 integer,intent(in)   ::  insgrav,isun        ! Perturbation flags
-integer,intent(in)   ::  imoon,idrag,isrp    ! More perturbation flags
+integer,intent(in)   ::  imoon,idrag,iSRP    ! More perturbation flags
 ! OPTIONAL OUTPUT: gradient of potential in sph. coordinates, used by
 ! EDromo right-hand-side.
 real(dk),optional,intent(out)  ::  gradU_sph_out(1:3)
@@ -98,6 +99,8 @@ real(dk)  ::  v_rel(1:3),v_atm(1:3),v_relNorm
 ! Dimensional quantities for drag computation
 real(dk)  ::  r_D(1:3),v_D(1:3),h_D
 real(dk)  ::  wE_D
+! Solar radiation pressure
+real(dk)  ::  p_SRP(1:3)
 
 
 ! ==============================================================================
@@ -157,7 +160,7 @@ if (idrag == 1) then
   wE_D = ERR_constant*twopi/secsPerDay
 
   ! Compute drag and non-dimensionalize
-  p_drag = DRAG_ACC([r_D,v_D],wE_D,RE,CD,A2M)
+  p_drag = DRAG_ACC([r_D,v_D],wE_D,RE,CD,A2M_Drag)
   p_drag = p_drag/(DU*TU**2)
 
 else if (idrag == 2) then
@@ -177,7 +180,7 @@ else if (idrag == 2) then
   v_relNorm = sqrt(dot_product(v_rel,v_rel))
 
   ! Acceleration (in km/s^2)
-  drag_term = -0.5_dk*1.E3_dk*CD*A2M*density
+  drag_term = -0.5_dk*1.E3_dk*CD*A2M_Drag*density
   p_drag    = drag_term*v_relNorm*v_rel
 
   ! Acceleration (non-dimensionalized)
@@ -186,6 +189,24 @@ else if (idrag == 2) then
 end if
 
 PACC_EJ2K = p_drag + PACC_EJ2K
+
+! ==============================================================================
+! 04. SOLAR RADIATION PRESSURE
+! ==============================================================================
+
+p_SRP = 0._dk
+if (iSRP == 1) then
+  ! If the Sun gravitational perturbation is disabled, get its ephemerides
+  if (isun == 0) then
+    call EPHEM(1,DU,TU,t,r_sun,v_sun)
+
+  end if
+  ! Computation is in dimensional units.
+  p_SRP = SRP_ACC(pSRP,CR,A2M_SRP,r*DU,r_sun*DU)
+  p_SRP = p_SRP/(DU*TU**2)
+
+end if
+PACC_EJ2K = p_SRP + PACC_EJ2K
 
 end function PACC_EJ2K
 

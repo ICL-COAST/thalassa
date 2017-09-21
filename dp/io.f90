@@ -24,7 +24,7 @@ contains
 subroutine READ_IC(MJD,COE)
 
 ! MODULES
-use PHYS_CONST, only: CD,A2M
+use PHYS_CONST, only: SCMass,ADrag,ASRP,CD,CR,A2M_Drag,A2M_SRP
 
 ! VARIABLES
 implicit none
@@ -32,14 +32,14 @@ implicit none
 real(dk),intent(out)  ::  MJD,COE(1:6)
 
 ! Locals
-integer,parameter     ::  hlines = 2
+integer,parameter     ::  hlines = 3
 character(len=64)     ::  dummy
 integer               ::  i
 
 
 ! ==============================================================================
 
-open(unit=id_ic,file='./in/oels_ic.txt',status='old',action='read')
+open(unit=id_ic,file='./in/object.txt',status='old',action='read')
 
 ! Skip header lines
 read(id_ic,'(a)') (dummy, i=1,hlines)
@@ -51,10 +51,17 @@ do i=1,6
 end do
 
 ! CD and A/m
+read(id_ic,'(/,e22.15,a)') SCMass
+read(id_ic,'(e22.15,a)') ADrag
+read(id_ic,'(e22.15,a)') ASRP
 read(id_ic,'(e22.15,a)') CD
-read(id_ic,'(e22.15,a)') A2M
+read(id_ic,'(e22.15,a)') CR
 
 close(id_ic)
+
+! Area-to-mass ratios
+A2M_Drag = ADrag/SCMass
+A2M_SRP  = ASRP/SCmass
 
 end subroutine READ_IC
 
