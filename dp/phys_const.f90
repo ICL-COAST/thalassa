@@ -60,7 +60,7 @@ real(dk)  ::  SCMass
 real(dk)  ::  CD,ADrag,A2M_Drag
 
 ! SRP: CR, reflective area (m^2), SRP @ 1 au (N/m^2), SRP area-to-mass ratio (m^2/kg)
-real(dk)  ::  CR,ASRP,pSRP,A2M_SRP
+real(dk)  ::  CR,ASRP,pSRP_1au,A2M_SRP
 
 
 
@@ -99,7 +99,7 @@ read(id_val,'(3(e20.13,/))') GS,GE,GM
 read(id_val,'(e20.13,/)') RE
 read(id_val,'(e20.13)') secsPerDay
 read(id_val,'(e20.13,/)') secsPerSidDay
-read(id_val,'(e20.13,/)') pSRP
+read(id_val,'(e20.13,/)') pSRP_1au
 read(id_val,'(e20.13)') reentry_height
 
 ! Compute Earth Rotation Rate (rounds per tropical day)

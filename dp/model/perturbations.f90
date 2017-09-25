@@ -67,7 +67,7 @@ function PACC_EJ2K(insgrav,isun,imoon,idrag,iSRP,r,v,rm,t,gradU_sph_out)
 
 ! MODULES
 use PHYS_CONST,  only: GE,GE_nd,GS,GM,RE_nd,ERR_constant,secsPerDay,twopi,RE,&
-&CD,A2M_Drag,pSRP,CR,A2M_SRP
+&CD,A2M_Drag,pSRP_1au,au,CR,A2M_SRP
 use AUXILIARIES, only: DU,TU
 
 ! VARIABLES
@@ -201,9 +201,9 @@ if (iSRP == 1) then
     call EPHEM(1,DU,TU,t,r_sun,v_sun)
 
   end if
-  ! Computation is in dimensional units.
-  p_SRP = SRP_ACC(pSRP,CR,A2M_SRP,r*DU,r_sun*DU)
-  p_SRP = p_SRP/(DU*TU**2)
+  ! Computation is in dimensional units (m/s^2).
+  p_SRP = SRP_ACC(pSRP_1au,au,CR,A2M_SRP,r*DU,r_sun*DU)
+  p_SRP = p_SRP/((DU*1.E3_dk)*TU**2)
 
 end if
 PACC_EJ2K = p_SRP + PACC_EJ2K
