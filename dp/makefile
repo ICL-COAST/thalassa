@@ -5,13 +5,13 @@ FC = gfortran
 FCFLAGS = -c -O -g
 FLFLAGS = -g -O -o
 # Link flags
-LIBS = /home/davide/sofa/lib/libsofa.a \
-/home/davide/SPICE/toolkit/lib/spicelib.a
+LIBS = ~/SPICE/toolkit/lib/spicelib.a
 
 # Numerical integrators
 SLSODAR = opksa1.o opksa2.o opksmain.o
 DLSODAR = opkda1.o opkda2.o opkdmain.o
 FORMUL  = cowell.o edromo.o regular_aux.o
+J77     = atsu.o soflud.o ja77.o
 
 # Source and object files
 OBJECTS = kinds.o phys_const.o settings.o io.o kepler.o cart_coe.o nsgrav.o \
@@ -64,7 +64,7 @@ srp.o: ./model/srp.f90 kinds.o
 	$(FC) $(FCFLAGS) ./model/srp.f90
 
 perturbations.o: ./model/perturbations.f90 kinds.o nsgrav.o sun_moon.o \
-drag_exponential.o srp.o atmos76_kinds.o phys_const.o auxiliaries.o
+drag_exponential.o srp.o atmos76_kinds.o ja77.o phys_const.o auxiliaries.o
 	$(FC) $(FCFLAGS) ./model/perturbations.f90
 
 initialize.o: initialize.f90 kinds.o settings.o auxiliaries.o edromo.o \
@@ -81,6 +81,16 @@ $(FORMUL) integrate.o initialize.o
 thalassa_main.o: thalassa_main.f90 kinds.o io.o phys_const.o settings.o \
 cart_coe.o propagate.o
 	$(FC) $(FCFLAGS) thalassa_main.f90
+
+# Atmospheric model
+atsu.o: ./model/J77/atsu.for
+	$(FC) $(FCFLAGS) -std=legacy ./model/J77/atsu.for
+
+soflud.o: ./model/J77/soflud.for
+	$(FC) $(FCFLAGS) -std=legacy ./model/J77/soflud.for
+
+ja77.o: ./model/J77/ja77.for atsu.o soflud.o
+	$(FC) $(FCFLAGS) -std=legacy ./model/J77/ja77.for
 
 # Integrators
 # SLSODAR

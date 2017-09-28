@@ -94,6 +94,8 @@ real(dk)  ::  r_moon(1:3),v_moon(1:3),p_moon(1:3)
 real(dk)  ::  p_drag(1:3)
 real(dk)  ::  drag_term
 real(dk)  ::  density,temp1,temp2
+! Drag and associated q.ties (J77, NRLMSISE-00)
+real(dk)  ::  RA,DEC
 ! Velocity wrt atmosphere (km/s)
 real(dk)  ::  v_rel(1:3),v_atm(1:3),v_relNorm
 ! Dimensional quantities for drag computation
@@ -185,6 +187,18 @@ else if (idrag == 2) then
 
   ! Acceleration (non-dimensionalized)
   p_drag = p_drag/(DU*TU**2)
+
+else if (idrag == 3 .and. rm*DU <= 2000._dk) then
+  ! Jacchia 77 atmosphere (code by V. Carrara - INPE)
+  ! Right ascension and declination
+  RA  = atan2(r(2),r(1))
+  DEC = asin(r(3)/rm)
+  
+  !!! TODO
+
+  ! call IDYMOS(SA,SU,RJUD,DAFR,GSTI,TE,AD,WMOL,RHOD) 
+  
+  !!! TODO
 
 end if
 
