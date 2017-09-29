@@ -4,20 +4,24 @@
 # model.
 # ==============================================================================
 
-# Astronomical unit (km)
+# Astronomical unit [km]
 1.49598022291E+08
-# Gravitational parameters of the Sun, Earth, Moon. (km^3/s^2)
+# Gravitational parameters of the Sun, Earth, Moon. [km^3/s^2]
 1.3271244001800E+11
 3.9860044144982E+05
 4.9027779000000E+03
-# Earth radius (reference semi major axis of Earth ellipsoid) (km)
+# Earth radius (reference semi major axis of Earth ellipsoid) [km]
 6.37813646E+03
 # Seconds per tropical day, sidereal day
 8.6400000000000E+04
 8.6164090530833E+04
 # Solar radiation pressure at 1 au [N/m^2]
 0.4560500000000E-05
-# Re-entry height (km)
+# Observed solar flux @ 10.7cm (F10.7, constant) [SFU]
+140.00000000000E+00
+# Geomagnetic planetary index Kp (constant)
+3.0000000000000E+00
+# Re-entry height [km]
 8.0000000000000E+01
 # Gravitational potential - spherical harmonics
 # n m                       Cnm                      Snm

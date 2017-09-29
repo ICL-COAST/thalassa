@@ -15,7 +15,7 @@ J77     = atsu.o soflud.o ja77.o
 
 # Source and object files
 OBJECTS = kinds.o phys_const.o settings.o io.o kepler.o cart_coe.o nsgrav.o \
-sun_moon.o drag_exponential.o atmos76_kinds.o srp.o perturbations.o \
+sun_moon.o drag_exponential.o atmos76_kinds.o $(J77) srp.o perturbations.o \
 initialize.o integrate.o $(SLSODAR) $(DLSODAR) $(FORMUL) propagate.o \
 auxiliaries.o thalassa_main.o
 

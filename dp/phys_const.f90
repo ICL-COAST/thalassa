@@ -36,8 +36,9 @@ real(dk)  ::  secsPerSidDay
 real(dk)  ::  reentry_height,reentry_radius_nd
 ! Difference (JD - MJD)
 real(dk),parameter  ::  delta_JD_MJD = 2400000.5_dk
-! MJD of epoch J2000.0
+! MJD of epochs J2000.0, J1950.0
 real(dk),parameter  ::  MJD_J2000    = 51544.5_dk
+real(dk),parameter  ::  MJD_J1950    = 33282.0_dk
 ! More conversions
 real(dk),parameter  ::  hoursToSeconds = 3600._dk
 real(dk),parameter  ::  secondsToDegrees = 1._dk/240._dk
@@ -58,6 +59,9 @@ real(dk)  ::  SCMass
 
 ! Drag: CD, drag area (m^2), drag area-to-mass ratio (m^2/kg)
 real(dk)  ::  CD,ADrag,A2M_Drag
+
+! Drag: observed solar flux @ 10.7cm (SFU), geomagnetic planetary index Kp
+real(dk)  ::  F107,Kp
 
 ! SRP: CR, reflective area (m^2), SRP @ 1 au (N/m^2), SRP area-to-mass ratio (m^2/kg)
 real(dk)  ::  CR,ASRP,pSRP_1au,A2M_SRP
@@ -100,6 +104,8 @@ read(id_val,'(e20.13,/)') RE
 read(id_val,'(e20.13)') secsPerDay
 read(id_val,'(e20.13,/)') secsPerSidDay
 read(id_val,'(e20.13,/)') pSRP_1au
+read(id_val,'(e20.13,/)') F107
+read(id_val,'(e20.13,/)') Kp
 read(id_val,'(e20.13)') reentry_height
 
 ! Compute Earth Rotation Rate (rounds per tropical day)
@@ -134,7 +140,6 @@ function GMST_UNIFORM(MJD_UT1)
 !    Compute the Greenwich Mean Sidereal Time in radians from the Mean Julian
 !    Day (UT1). Considers the Earth rotation rate to be constant and does not
 !    take into account long-term tidal effects.
-!    13/2/17: Modification to take into account
 !
 ! Reference:
 !    Vallado D.A. et al, Fundamentals of Astrodynamics (4th Ed.), pp. 187-188,

@@ -20,6 +20,11 @@ use PHYS_CONST,  only: Clm,Slm
 use AUXILIARIES, only: DU,TU
 implicit none
 
+! Jacchia 77 dynamical atmospheric model
+external ISDAMO
+
+
+
 
 contains
 
@@ -67,8 +72,8 @@ function PACC_EJ2K(insgrav,isun,imoon,idrag,iSRP,r,v,rm,t,gradU_sph_out)
 
 ! MODULES
 use PHYS_CONST,  only: GE,GE_nd,GS,GM,RE_nd,ERR_constant,secsPerDay,twopi,RE,&
-&CD,A2M_Drag,pSRP_1au,au,CR,A2M_SRP
-use AUXILIARIES, only: DU,TU
+&CD,A2M_Drag,pSRP_1au,au,CR,A2M_SRP,MJD_J1950,GMST_UNIFORM,F107,Kp
+use AUXILIARIES, only: DU,TU,MJD0
 
 ! VARIABLES
 implicit none
@@ -96,6 +101,9 @@ real(dk)  ::  drag_term
 real(dk)  ::  density,temp1,temp2
 ! Drag and associated q.ties (J77, NRLMSISE-00)
 real(dk)  ::  RA,DEC
+real(dk)  ::  RA_sun,DEC_sun,r_sun_m
+real(dk)  ::  MJD_UT1,RJUD,DAFR,GMST
+real(dk)  ::  tempK(1:2),nDens(1:6),wMol
 ! Velocity wrt atmosphere (km/s)
 real(dk)  ::  v_rel(1:3),v_atm(1:3),v_relNorm
 ! Dimensional quantities for drag computation
@@ -155,50 +163,60 @@ PACC_EJ2K = p_sun + p_moon + PACC_EJ2K
 ! ==============================================================================
 
 p_drag = 0._dk
-if (idrag == 1) then
-  ! Exponential density model (Vallado)
-  ! Make quantities dimensional
-  r_D = r*DU; v_D = v*DU*TU
-  wE_D = ERR_constant*twopi/secsPerDay
-
-  ! Compute drag and non-dimensionalize
-  p_drag = DRAG_ACC([r_D,v_D],wE_D,RE,CD,A2M_Drag)
-  p_drag = p_drag/(DU*TU**2)
-
-else if (idrag == 2) then
-  ! US76 Atmosphere (code by R. Carmichael)
+if (idrag /= 0) then
   ! Make quantities dimensional
   r_D = r*DU; v_D = v*DU*TU
   h_D = sqrt(dot_product(r_D,r_D)) - RE
-
-  ! Get density
-  call ATMOS76(h_D,density,temp1,temp2)
-  density = density*dens_SL                ! Dimensionalize to kg/m^3
   
-  ! The following is taken from DRAG_ACC. Relative velocity wrt atmosphere
-  wE_D = ERR_constant*twopi/secsPerDay
-  v_atm = wE_D*[-r_D(2),r_D(1),0._dk]
-  v_rel = v_D - v_atm
-  v_relNorm = sqrt(dot_product(v_rel,v_rel))
-
-  ! Acceleration (in km/s^2)
-  drag_term = -0.5_dk*1.E3_dk*CD*A2M_Drag*density
-  p_drag    = drag_term*v_relNorm*v_rel
-
-  ! Acceleration (non-dimensionalized)
-  p_drag = p_drag/(DU*TU**2)
-
-else if (idrag == 3 .and. rm*DU <= 2000._dk) then
-  ! Jacchia 77 atmosphere (code by V. Carrara - INPE)
-  ! Right ascension and declination
-  RA  = atan2(r(2),r(1))
-  DEC = asin(r(3)/rm)
-  
-  !!! TODO
-
-  ! call IDYMOS(SA,SU,RJUD,DAFR,GSTI,TE,AD,WMOL,RHOD) 
-  
-  !!! TODO
+  select case (idrag)
+    case (1)
+      ! Piecewise exponential density model (Vallado)
+      density = ATMOS_VALLADO(h_D)
+    
+    case (2)
+      ! US76 Atmosphere (code by R. Carmichael)
+      call ATMOS76(h_D,density,temp1,temp2)
+      density = density*dens_SL                ! Dimensionalize to kg/m^3
+    
+    case (3)
+      density = 0._dk
+      if (h_D <= 2000._dk) then ! Check on max altitude for J77
+        ! Jacchia 77 atmosphere (code by V. Carrara - INPE)
+        ! Right ascension and declination
+        RA  = atan2(r(2),r(1))
+        DEC = asin(r(3)/rm)
+        
+        ! Ephemerides of the Sun (if they haven't been computed earlier)
+        if (isun == 0) then
+          call EPHEM(1,DU,TU,t,r_sun,v_sun)
+        
+        end if
+        r_sun_m = sqrt(dot_product(r_sun,r_sun))
+        RA_sun  = atan2(r_sun(2),r_sun(1))
+        DEC_sun = asin(r_sun(3)/r_sun_m)
+        MJD_UT1 = MJD0 + t/TU/secsPerDay
+        RJUD    = MJD_UT1 - MJD_J1950
+        DAFR    = RJUD - int(RJUD)
+        GMST    = GMST_UNIFORM(MJD_UT1)
+        call ISDAMO([RA,DEC,h_D*1.E3_dk],[RA_sun,DEC_sun],&
+        & [F107,F107,Kp],RJUD,DAFR,GMST,tempK,nDens,wMol,density)
+        
+      end if
+    
+    end select
+    
+    ! Velocity wrt atmosphere
+    wE_D = ERR_constant*twopi/secsPerDay
+    v_atm = wE_D*[-r_D(2),r_D(1),0._dk]
+    v_rel = v_D - v_atm
+    v_relNorm = sqrt(dot_product(v_rel,v_rel))
+    
+    ! Acceleration (in km/s^2)
+    drag_term = -0.5_dk*1.E3_dk*CD*A2M_Drag*density
+    p_drag    = drag_term*v_relNorm*v_rel
+    
+    ! Acceleration (non-dimensionalized)
+    p_drag = p_drag/(DU*TU**2)
 
 end if
 
