@@ -2,8 +2,8 @@
 FC = gfortran
 
 # Compile flags
-FCFLAGS = -c -O -g
-FLFLAGS = -g -O -o
+FCFLAGS = -c -g
+FLFLAGS = -g -o
 # Link flags
 LIBS = ~/SPICE/toolkit/lib/spicelib.a
 
@@ -84,13 +84,13 @@ cart_coe.o propagate.o
 
 # Atmospheric model
 atsu.o: ./model/J77/atsu.for
-	$(FC) $(FCFLAGS) -std=legacy ./model/J77/atsu.for
+	$(FC) $(FCFLAGS) -fdefault-real-8 -std=legacy ./model/J77/atsu.for
 
 soflud.o: ./model/J77/soflud.for
-	$(FC) $(FCFLAGS) -std=legacy ./model/J77/soflud.for
+	$(FC) $(FCFLAGS) -fdefault-real-8 -std=legacy ./model/J77/soflud.for
 
 ja77.o: ./model/J77/ja77.for atsu.o soflud.o
-	$(FC) $(FCFLAGS) -std=legacy ./model/J77/ja77.for
+	$(FC) $(FCFLAGS) -fdefault-real-8 -std=legacy ./model/J77/ja77.for
 
 # Integrators
 # SLSODAR

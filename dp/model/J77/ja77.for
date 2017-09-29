@@ -444,7 +444,7 @@ C
   
       POTE   = 0.0045D0*(THAF - TO)
       ARGU   = POTE/DSQRT(1.D0 + POTE*POTE)
-      TX     = TO + 110.5D0*DATANH(ARGU)
+      TX     = TO + 110.5D0*ATANH(ARGU)
       GX     = 1.9D0*(TX - TO)/(ZX - ZO)
   
       CP(1)  = 2.D0*(TX - TO)/PI
@@ -564,22 +564,22 @@ C
       SOAN   = SA(1) - SU(1)
       ALTU   = SA(3)/1.D3
       ARGU   = RLAT*RLAT/1.5707963D0
-      COAR   = DCOS(ARGU)
-      COLA   = DCOS(RLAT)
+      COAR   = COS(ARGU)
+      COLA   = COS(RLAT)
       E1     = 2.D0 + COAR*COAR
-      TEAU   = 1.D0 + 0.3666069D0*DELT*DSIN(RLAT)
+      TEAU   = 1.D0 + 0.3666069D0*DELT*SIN(RLAT)
   
       DO   I = 1, 5
        BISH  = RAD*(27.D0*(WMOL/WM(I) - 1.D0) - 35.D0)
        ARGU  = SOAN + BISH
-       FHAG  = 0.08D0*DCOS(3.D0*ARGU - 1.3089969D0) +
-     1         DABS(DCOS(0.5D0*ARGU))**E1
+       FHAG  = 0.08D0*COS(3.D0*ARGU - 1.3089969D0) +
+     1         DABS(COS(0.5D0*ARGU))**E1
        TH(I) = (0.24D0*COLA*(FHAG - 0.5D0) + TEAU)*TEXO
       ENDDO
   
       ARGU   = SOAN - 1.0471976D0
-      FHAG   = 0.08D0*DCOS(3.D0*ARGU - 1.3089969D0) +
-     1         DABS(DCOS(0.5D0*ARGU))**E1
+      FHAG   = 0.08D0*COS(3.D0*ARGU - 1.3089969D0) +
+     1         DABS(COS(0.5D0*ARGU))**E1
       TH(6)  = TEXO*(TEAU + 0.24*COLA*(FHAG - 0.5D0))
   
       DO   I = 1, 6
@@ -660,9 +660,9 @@ C
      1          0.D0/
   
       AUXI   = 57.5D0*GEAC*(1.D0 + 0.027D0*DEXP(0.4D0*GEAC))
-      SILA   = DSIN(RLAT)
+      SILA   = SIN(RLAT)
       SENO   = 0.9792*SILA +
-     1         0.2028*DCOS(RLAT)*DCOS(RLON - 5.0789081D0)
+     1         0.2028*COS(RLAT)*COS(RLON - 5.0789081D0)
       SEN2   = SENO*SENO
       COL2   = 1.D0 - SEN2
       DELT   = AUXI*SEN2*SEN2
@@ -763,7 +763,7 @@ C
 
       POTE    = 0.0045*(TEXO - TO)
       AUXI    = POTE/SQRT(1. + POTE*POTE)
-      TX      = TO + 110.5*DATANH(AUXI)
+      TX      = TO + 110.5*ATANH(AUXI)
       AA(1)   = 2.*(TX - TO)/PI
       AA(4)   = 2.*(TEXO - TX)/PI
       GX      = 1.9*(TX - TO)/(ZX - ZO)

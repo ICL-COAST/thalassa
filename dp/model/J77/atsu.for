@@ -43,11 +43,11 @@ C
   
       IF(HIGX.GT.0.D0) THEN
        TEMLO = C(7) +
-     1         C(4)*DATAN(C(5)*HIGX + C(6)*HIGX*HIGX*HIGX)
+     1         C(4)*ATAN(C(5)*HIGX + C(6)*HIGX*HIGX*HIGX)
       ELSE
        AUXI  = HIGX/HIGO
        TEMLO = C(7) +
-     1         C(1)*DATAN(C(2)*HIGX + C(3)*HIGX*AUXI*AUXI)
+     1         C(1)*ATAN(C(2)*HIGX + C(3)*HIGX*AUXI*AUXI)
       ENDIF
 
       RETURN
@@ -107,12 +107,12 @@ C
   
       DATA CR   /-0.79D0,0.D0,0.D0,0.D0,-.16D0,0.D0/
   
-      SILA   = DSIN(RLAT)
+      SILA   = SIN(RLAT)
       DSLT   = SUDC*SILA/0.409157536545D0
       DELZ   = ALTU - 91.D0
       ESSE   = 0.014D0*DELZ*DEXP(-0.0013D0*DELZ*DELZ)
       PCAP   = DSIN(PITW*TYFR + 1.72D0)
-      DSLM   = DSIGN(SILA*SILA*ESSE*PCAP,RLAT)
+      DSLM   = SIGN(SILA*SILA*ESSE*PCAP,RLAT)
   
       DO   I = 1, 6
        AL(I) = DSLT*CR(I) + DSLM
@@ -196,7 +196,7 @@ C
 C
 C------
 C
-      IF(DABS(X).GT.1.D0) THEN
+      IF(ABS(X).GT.1.D0) THEN
         WRITE(*) 'INVALID HYPERBOLIC TANGENT ARC ARGUMENT'
         STOP
       END IF

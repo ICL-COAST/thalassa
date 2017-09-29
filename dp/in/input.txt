@@ -15,7 +15,7 @@ model:     1
 insgrav:   0
 isun:      0
 imoon:     0
-idrag:     2
+idrag:     3
 iSRP:      0
 iephem:    1
 gdeg:      1

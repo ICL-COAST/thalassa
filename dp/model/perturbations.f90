@@ -184,6 +184,7 @@ if (idrag /= 0) then
         ! Jacchia 77 atmosphere (code by V. Carrara - INPE)
         ! Right ascension and declination
         RA  = atan2(r(2),r(1))
+        RA  = mod(RA + twopi,twopi)
         DEC = asin(r(3)/rm)
         
         ! Ephemerides of the Sun (if they haven't been computed earlier)
@@ -193,6 +194,7 @@ if (idrag /= 0) then
         end if
         r_sun_m = sqrt(dot_product(r_sun,r_sun))
         RA_sun  = atan2(r_sun(2),r_sun(1))
+        RA_sun  = mod(RA_sun +twopi,twopi)
         DEC_sun = asin(r_sun(3)/r_sun_m)
         MJD_UT1 = MJD0 + t/TU/secsPerDay
         RJUD    = MJD_UT1 - MJD_J1950
