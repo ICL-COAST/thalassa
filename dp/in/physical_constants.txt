@@ -22,7 +22,7 @@
 # Geomagnetic planetary index Kp (constant)
 9.0000000000000E+00
 # Re-entry height [km]
-8.0000000000000E+01
+120.00000000000E+00
 # Gravitational potential - spherical harmonics
 # n m                       Cnm                      Snm
   1  0  0.00000000000000000E+00  0.00000000000000000E+00

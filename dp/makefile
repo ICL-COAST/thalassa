@@ -15,7 +15,7 @@ J77     = atsu.o soflud.o ja77.o
 
 # Source and object files
 OBJECTS = kinds.o phys_const.o settings.o io.o kepler.o cart_coe.o nsgrav.o \
-sun_moon.o drag_exponential.o atmos76_kinds.o $(J77) srp.o perturbations.o \
+sun_moon.o drag_exponential.o US76_PATRIUS.o $(J77) srp.o perturbations.o \
 initialize.o integrate.o $(SLSODAR) $(DLSODAR) $(FORMUL) propagate.o \
 auxiliaries.o thalassa_main.o
 
@@ -57,14 +57,14 @@ sun_moon.o: ./model/sun_moon.f90 kinds.o phys_const.o settings.o auxiliaries.o
 drag_exponential.o: ./model/drag_exponential.f90 kinds.o
 	$(FC) $(FCFLAGS) ./model/drag_exponential.f90
 
-atmos76_kinds.o: ./model/atmos76_kinds.f90 kinds.o
-	$(FC) $(FCFLAGS) ./model/atmos76_kinds.f90
+US76_PATRIUS.o: ./model/US76_PATRIUS.f90 kinds.o
+	$(FC) $(FCFLAGS) ./model/US76_PATRIUS.f90
 
 srp.o: ./model/srp.f90 kinds.o
 	$(FC) $(FCFLAGS) ./model/srp.f90
 
 perturbations.o: ./model/perturbations.f90 kinds.o nsgrav.o sun_moon.o \
-drag_exponential.o srp.o atmos76_kinds.o ja77.o phys_const.o auxiliaries.o
+drag_exponential.o srp.o US76_PATRIUS.o ja77.o phys_const.o auxiliaries.o
 	$(FC) $(FCFLAGS) ./model/perturbations.f90
 
 initialize.o: initialize.f90 kinds.o settings.o auxiliaries.o edromo.o \

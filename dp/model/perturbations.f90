@@ -14,7 +14,7 @@ use KINDS,       only: dk
 use NSGRAV
 use SUN_MOON
 use DRAG_EXPONENTIAL
-use Atmosphere1976, only: ATMOS76 => Atmosphere,dens_SL => RHOZERO
+use US76_PATRIUS
 use SRP
 use PHYS_CONST,  only: Clm,Slm
 use AUXILIARIES, only: DU,TU
@@ -98,7 +98,7 @@ real(dk)  ::  r_moon(1:3),v_moon(1:3),p_moon(1:3)
 ! Drag, density (US76)
 real(dk)  ::  p_drag(1:3)
 real(dk)  ::  drag_term
-real(dk)  ::  density,temp1,temp2
+real(dk)  ::  density,pressure,temperature
 ! Drag and associated q.ties (J77, NRLMSISE-00)
 real(dk)  ::  RA,DEC
 real(dk)  ::  RA_sun,DEC_sun,r_sun_m
@@ -174,9 +174,8 @@ if (idrag /= 0) then
       density = ATMOS_VALLADO(h_D)
     
     case (2)
-      ! US76 Atmosphere (code by R. Carmichael)
-      call ATMOS76(h_D,density,temp1,temp2)
-      density = density*dens_SL                ! Dimensionalize to kg/m^3
+      ! US76 Atmosphere (Fortran porting of the PATRIUS 3.4.1 code)
+      call US76_UPPER(h_D,temperature,pressure,density)
     
     case (3)
       density = 0._dk
