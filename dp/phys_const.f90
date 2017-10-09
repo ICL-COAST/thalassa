@@ -304,4 +304,91 @@ write(*,*) ERA_IERS10*r2d
 end function ERA_IERS10
 !!! DEPRECATED
 
+
+
+subroutine JD2CAL(JD,year,month,dayOfMonth,dayOfYear)
+! Description:
+!    Converts from Julian Day to year-month-day, the latter real. Only valid
+!    for JD > 0. Also gives the day number of the year as an additional output.
+! 
+! Reference:
+!    [1] Ch. 7 of J. Meeus, "Astronomical Algorithms", Willmann-Bell, 1998.
+! 
+! ==============================================================================
+
+! VARIABLES
+implicit none
+! Inputs
+real(dk),intent(in)   ::  JD
+! Outputs
+integer,intent(out)   ::  year,month
+real(dk),intent(out)  ::  dayOfMonth,dayOfYear
+
+! Locals
+integer   ::  Z,A,alpha,C,D,E
+real(dk)  ::  F,B
+integer   ::  K
+
+! ==============================================================================
+
+! Integer and fractional parts
+Z = int(JD + 0.5_dk)
+F = JD + 0.5_dk - Z
+
+if (Z < 2299161) then
+  ! Earlier than 1582-Oct-15 00:00:00
+  A = Z
+
+else
+  alpha = int((Z - 1867216.25_dk)/36524.25_dk)
+  A     = Z + 1 + alpha - int(real(alpha,dk)/4._dk)
+
+end if
+
+! Day of the month
+B = A + 1524._dk
+C = int((B - 122.1_dk)/365.25_dk)
+D = int(365.25_dk*real(C,dk))
+E = int((B - D)/30.6001_dk)
+dayOfMonth = B - D - int(30.6001_dk*real(E,dk)) + F
+
+! Month
+if (E < 14) then
+  month = E - 1
+
+else
+  month = E - 13
+
+end if
+
+! Year
+if (month > 2) then
+  year = C - 4716
+
+else
+  year = C - 4715
+
+end if
+
+! Detect leap year (K = 1) vs. common year (K = 2)
+if (mod(year,4) /= 0) then
+  K = 2
+
+else if (mod(year,100) /= 0) then
+  K = 1
+
+else if (mod(year,400) /= 0) then
+  K = 2
+
+else
+  K = 1
+
+end if
+
+! Day of year
+dayOfYear = int((275._dk*real(month,dk)) / 9._dk) - &
+&           K * int((real(month,dk) + 9._dk)/12._dk ) + dayofMonth - 30._dk
+
+end subroutine JD2CAL
+
 end module PHYS_CONST
