@@ -74,7 +74,8 @@ function PACC_EJ2K(insgrav,isun,imoon,idrag,iSRP,r,v,rm,t,gradU_sph_out)
 
 ! MODULES
 use PHYS_CONST,  only: GE,GE_nd,GS,GM,RE_nd,ERR_constant,secsPerDay,twopi,RE,&
-&CD,A2M_Drag,pSRP_1au,au,CR,A2M_SRP,MJD_J1950,GMST_UNIFORM,F107,Kp,Ap,JD2CAL,r2d
+&CD,A2M_Drag,pSRP_1au,au,CR,A2M_SRP,MJD_J1950,GMST_UNIFORM,F107,Kp,Ap,JD2CAL,&
+&r2d,cutoff_height
 use AUXILIARIES, only: DU,TU,MJD0
 
 ! VARIABLES
@@ -180,11 +181,11 @@ PACC_EJ2K = p_sun + p_moon + PACC_EJ2K
 !   neglected.
 
 p_drag = 0._dk
-if (idrag /= 0) then
+h_D = sqrt(dot_product(r_D,r_D)) - RE
+if (idrag /= 0 .and. h_D <= cutoff_height) then
   ! Make quantities dimensional
   r_D = r*DU; v_D = v*DU*TU
-  h_D = sqrt(dot_product(r_D,r_D)) - RE
-  
+    
   select case (idrag)
     case (1)
       ! Piecewise exponential density model (Vallado)
