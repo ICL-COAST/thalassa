@@ -273,7 +273,7 @@ C
    10 CONTINUE
       GOTO 90
    50 CONTINUE
-      DD=DENSM(ALT,1.,0,TZ,MN3,ZN3,TN3,TGN3,MN2,ZN2,TN2,TGN2)                
+      DD=DENSM(ALT,1.,0.,TZ,MN3,ZN3,TN3,TGN3,MN2,ZN2,TN2,TGN2)                
       T(2)=TZ
    90 CONTINUE
       ALAST=ALT
@@ -1651,6 +1651,10 @@ C       O&O2 CHEMISTRY/DISSOCIATION CORRECTION FOR MSIS MODELS
 C-----------------------------------------------------------------------
       BLOCK DATA GTD7BK
 C          MSISE-00 01-FEB-02   
+C     Modification: 10/10/2017
+C     Author:       Davide Amato, d.amato@upm.es
+C     Description:  Declare character arrays ISDATE, ISTIME, NAME before COMMON.
+      CHARACTER(LEN=4) ISDATE(3),ISTIME(2),NAME(2)
       COMMON/PARM7/PT1(50),PT2(50),PT3(50),PA1(50),PA2(50),PA3(50),
      $ PB1(50),PB2(50),PB3(50),PC1(50),PC2(50),PC3(50),
      $ PD1(50),PD2(50),PD3(50),PE1(50),PE2(50),PE3(50),
@@ -1664,7 +1668,7 @@ C          MSISE-00 01-FEB-02
      $ PZ1(50),PZ2(50),PAA1(50),PAA2(50)
       COMMON/LOWER7/PTM(10),PDM(10,8)
       COMMON/MAVG7/PAVGM(10)
-      COMMON/DATIM7/ISDATE(3),ISTIME(2),NAME(2)
+      COMMON/DATIM7/ISDATE,ISTIME,NAME
       COMMON/METSEL/IMR
       DATA IMR/0/
       DATA ISDATE/'01-F','EB-0','2   '/,ISTIME/'15:4','9:27'/

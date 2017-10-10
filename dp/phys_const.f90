@@ -60,8 +60,8 @@ real(dk)  ::  SCMass
 ! Drag: CD, drag area (m^2), drag area-to-mass ratio (m^2/kg)
 real(dk)  ::  CD,ADrag,A2M_Drag
 
-! Drag: observed solar flux @ 10.7cm (SFU), geomagnetic planetary index Kp
-real(dk)  ::  F107,Kp
+! Drag: observed solar flux @ 10.7cm (SFU), geomagnetic planetary index Kp, planetary amplitude Ap
+real(dk)  ::  F107,Kp,Ap
 
 ! SRP: CR, reflective area (m^2), SRP @ 1 au (N/m^2), SRP area-to-mass ratio (m^2/kg)
 real(dk)  ::  CR,ASRP,pSRP_1au,A2M_SRP
@@ -106,6 +106,7 @@ read(id_val,'(e20.13,/)') secsPerSidDay
 read(id_val,'(e20.13,/)') pSRP_1au
 read(id_val,'(e20.13,/)') F107
 read(id_val,'(e20.13,/)') Kp
+read(id_val,'(e20.13,/)') Ap
 read(id_val,'(e20.13)') reentry_height
 
 ! Compute Earth Rotation Rate (rounds per tropical day)

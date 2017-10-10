@@ -20,7 +20,9 @@
 # Observed solar flux @ 10.7cm (F10.7, constant) [SFU]
 140.00000000000E+00
 # Geomagnetic planetary index Kp (constant)
-9.0000000000000E+00
+3.0000000000000E+00
+# Geomagnetic planetary amplitude Ap (constant, has to be consistent w/ Kp)
+1.5000000000000E+01
 # Re-entry height [km]
 120.00000000000E+00
 # Gravitational potential - spherical harmonics

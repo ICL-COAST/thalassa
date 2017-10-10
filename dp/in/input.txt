@@ -6,7 +6,7 @@
 # insgrav:   0 = sph. grav. field, 1 = non-spherical grav. field.
 # isun:      0 = no Sun perturbation, 1 = otherwise.
 # imoon:     0 = no Moon perturbation, 1 = otherwise.
-# idrag:     0 = no atmospheric drag, 1 = Vallado model, 2 = US76 (PATRIUS), 3 = J77 (Carrara - INPE)
+# idrag:     0 = no atmospheric drag, 1 = Vallado model, 2 = US76 (PATRIUS), 3 = J77 (Carrara - INPE), 4 = NRLMSISE-00 (Picone - NRL)
 # iSRP:      0 = no SRP perturbation, 1 = otherwise.
 # iephem:    Ephemerides source. 1 = DE431 ephemerides. 2 = Simpl. Meeus & Brown
 # gdeg:      Maximum degree of the gravitational potential.
@@ -15,7 +15,7 @@ model:     1
 insgrav:   0
 isun:      0
 imoon:     0
-idrag:     2
+idrag:     4
 iSRP:      0
 iephem:    1
 gdeg:      1
@@ -40,5 +40,5 @@ mxstep:    1.0E+05
 eqs:       4
 
 # OUTPUT DIRECTORY
-out: /home/davide/Documents/PhD/02.Progetti/THESS/Thalassa_val/US76_val_171006/
-stat: /home/davide/Documents/PhD/02.Progetti/THESS/Thalassa_val/US76_val_171006/
+out: /home/davide/Documents/PhD/02.Progetti/THESS/Thalassa_val/NRLMSISE-00_val_171010/
+stat: /home/davide/Documents/PhD/02.Progetti/THESS/Thalassa_val/NRLMSISE-00_val_171010/

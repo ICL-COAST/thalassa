@@ -22,6 +22,8 @@ implicit none
 
 ! Jacchia 77 dynamical atmospheric model
 external ISDAMO
+! NRLMSISE-00 atmospheric model
+external GTD7,GTD7D,METERS
 
 
 
@@ -72,7 +74,7 @@ function PACC_EJ2K(insgrav,isun,imoon,idrag,iSRP,r,v,rm,t,gradU_sph_out)
 
 ! MODULES
 use PHYS_CONST,  only: GE,GE_nd,GS,GM,RE_nd,ERR_constant,secsPerDay,twopi,RE,&
-&CD,A2M_Drag,pSRP_1au,au,CR,A2M_SRP,MJD_J1950,GMST_UNIFORM,F107,Kp
+&CD,A2M_Drag,pSRP_1au,au,CR,A2M_SRP,MJD_J1950,GMST_UNIFORM,F107,Kp,Ap,JD2CAL,r2d
 use AUXILIARIES, only: DU,TU,MJD0
 
 ! VARIABLES
@@ -102,8 +104,15 @@ real(dk)  ::  density,pressure,temperature
 ! Drag and associated q.ties (J77, NRLMSISE-00)
 real(dk)  ::  RA,DEC
 real(dk)  ::  RA_sun,DEC_sun,r_sun_m
-real(dk)  ::  MJD_UT1,RJUD,DAFR,GMST
+real(dk)  ::  JD_UT1,MJD_UT1,RJUD,DAFR,GMST,GMST_deg
 real(dk)  ::  tempK(1:2),nDens(1:6),wMol
+real(dk)  ::  SEC
+real(dk)  ::  GLAT_deg,GLONG_deg,RA_deg,STL_hrs
+real(dk)  ::  dens_MSIS00(1:6),temp_MSIS00(1:2)
+integer   ::  IYD
+! Time and date
+integer   ::  year,month
+real(dk)  ::  dayOfMonth,dayOfYear
 ! Velocity wrt atmosphere (km/s)
 real(dk)  ::  v_rel(1:3),v_atm(1:3),v_relNorm
 ! Dimensional quantities for drag computation
@@ -161,6 +170,14 @@ PACC_EJ2K = p_sun + p_moon + PACC_EJ2K
 ! ==============================================================================
 ! 03. ATMOSPHERIC DRAG
 ! ==============================================================================
+! NOTE:
+! Currently, the following approximations are made in the computation of the
+! atmospheric drag:
+! - Solar flux and geomagnetic activity are both constant (their values are
+!   specified in ./in/physical_constants.txt)
+! - Geodetic height is assumed = geometric height and geodetic
+!   latitude/longitude = geometric, i.e. the ellipticity of the Earth is
+!   neglected.
 
 p_drag = 0._dk
 if (idrag /= 0) then
@@ -178,9 +195,9 @@ if (idrag /= 0) then
       call US76_UPPER(h_D,temperature,pressure,density)
     
     case (3)
+      ! Jacchia 77 atmosphere (code by V. Carrara - INPE)
       density = 0._dk
       if (h_D <= 2000._dk) then ! Check on max altitude for J77
-        ! Jacchia 77 atmosphere (code by V. Carrara - INPE)
         ! Right ascension and declination
         RA  = atan2(r(2),r(1))
         RA  = mod(RA + twopi,twopi)
@@ -201,9 +218,39 @@ if (idrag /= 0) then
         GMST    = GMST_UNIFORM(MJD_UT1)
         call ISDAMO([RA,DEC,h_D*1.E3_dk],[RA_sun,DEC_sun],&
         & [F107,F107,Kp],RJUD,DAFR,GMST,tempK,nDens,wMol,density)
-        
+      
       end if
     
+    case (4)
+      ! NRLMSISE-00 atmospheric model
+      density = 0._dk
+      ! Get date and year
+      MJD_UT1 = MJD0 + t/TU/secsPerDay
+      JD_UT1  = MJD_UT1 + 2400000.5_dk
+      call JD2CAL(JD_UT1,year,month,dayOfMonth,dayOfYear)
+      
+      ! Note: year number is ignored in NRLMSISE-00.
+      IYD       = int(dayOfYear)
+      SEC       = (dayOfYear - IYD)*secsPerDay
+      GMST_deg  = GMST_UNIFORM(MJD_UT1)*r2d
+      GLAT_deg  = asin(r(3)/rm)*r2d
+      RA_deg    = mod(atan2(r(2),r(1)) + twopi, twopi)*r2d
+      GLONG_deg = mod(RA_deg - GMST_deg + 360._dk,360._dk)
+      STL_hrs  = SEC/3600._dk + GLONG_deg/15._dk
+      ! Compute density
+      call METERS(.true.)
+      if (h_D <= 500._dk) then
+        call GTD7(IYD,SEC,h_D,GLAT_deg,GLONG_deg,STL_hrs,F107,F107,Ap,48,&
+        &dens_MSIS00,temp_MSIS00)
+      
+      else
+        ! Do not neglect contribution from anomalous oxygen
+        call GTD7D(IYD,SEC,h_D,GLAT_deg,GLONG_deg,STL_hrs,F107,F107,Ap,48,&
+        &dens_MSIS00,temp_MSIS00)
+      
+      end if
+      density = dens_MSIS00(6)
+
     end select
     
     ! Velocity wrt atmosphere
