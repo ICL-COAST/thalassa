@@ -48,7 +48,7 @@ kepler.o: kepler.f90 kinds.o
 cart_coe.o: cart_coe.f90 phys_const.o kepler.o kinds.o
 	$(FC) $(FCFLAGS) cart_coe.f90
 
-nsgrav.o: ./model/nsgrav.f90 kinds.o settings.o phys_const.o
+nsgrav.o: ./model/nsgrav.f90 kinds.o settings.o phys_const.o auxiliaries.o
 	$(FC) $(FCFLAGS) ./model/nsgrav.f90
 
 sun_moon.o: ./model/sun_moon.f90 kinds.o phys_const.o settings.o auxiliaries.o
