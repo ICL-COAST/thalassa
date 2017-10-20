@@ -184,14 +184,14 @@ select case (integ)
               ! For Cowell, let the solver estimate the step size.
               rwork(5) = 0._dk
 
-          case(2:4)
+          case(2:6)
               ! For regularized formulations using angle-like fictitious times,
               ! estimate the step size as ~100th of a period, and scale according
               ! to tolerance.
               rwork(5) = -0.01_dk*twopi/log10(tol)
 
               ! For EDromo(c), set only absolute tolerance for the time element.
-              rtols(8) = 1._dk
+              if (eqs == 5) rtols(8) = 1._dk
 
       end select
 
@@ -222,7 +222,7 @@ select case (eqs)
         ! For Cowell, the step size is simply the step size in days, non-dimensionalized.
         SET_DX = tstep*secsPerDay*TU
 
-    case (2:4) ! EDromo
+    case (2:6) ! EDromo, KS
         ! For regularized formulations, set the step size to +inf since they are
         ! to be stopped by event location.
         SET_DX = (tstep/abs(tstep))*huge(0._dk)

@@ -110,8 +110,8 @@ read(id_val,'(e20.13,/)') pSRP_1au
 read(id_val,'(e20.13,/)') F107
 read(id_val,'(e20.13,/)') Kp
 read(id_val,'(e20.13,/)') Ap
-read(id_val,'(e20.13,/)') cutoff_height
-read(id_val,'(e20.13)') reentry_height
+read(id_val,'(e20.13,/)') reentry_height
+read(id_val,'(e20.13)') cutoff_height
 
 ! Compute Earth Rotation Rate (rounds per tropical day)
 ERR_constant = secsPerDay/secsPerSidDay

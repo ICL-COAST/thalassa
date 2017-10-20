@@ -71,7 +71,7 @@ drag_exponential.o srp.o US76_PATRIUS.o nrlmsise00_sub.o ja77.o phys_const.o \
 auxiliaries.o
 	$(FC) $(FCFLAGS) ./model/perturbations.f90
 
-initialize.o: initialize.f90 kinds.o settings.o auxiliaries.o edromo.o \
+initialize.o: initialize.f90 kinds.o settings.o auxiliaries.o $(FORMUL) \
 phys_const.o perturbations.o
 	$(FC) $(FCFLAGS) initialize.f90
 
@@ -118,7 +118,7 @@ opkdmain.o: ./integ/DLSODAR/opkdmain.f kinds.o
 	$(FC) $(FCFLAGS) -fdefault-real-8 -std=legacy ./integ/DLSODAR/opkdmain.f
 
 # Formulations
-regular_aux.o: ./regular/regular_aux.f90 perturbations.o edromo.o kinds.o
+regular_aux.o: ./regular/regular_aux.f90 perturbations.o edromo.o ks.o kinds.o
 	$(FC) $(FCFLAGS) ./regular/regular_aux.f90
 
 cowell.o: ./regular/cowell.f90 perturbations.o auxiliaries.o kinds.o

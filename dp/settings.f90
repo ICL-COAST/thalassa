@@ -67,7 +67,7 @@ read(id_set,'(a11,i3)') dummy, integ
 read(id_set,'(a11,e22.15)') dummy, tol
 read(id_set,'(a11,e22.15)') dummy, tspan
 read(id_set,'(a11,e22.15)') dummy, tstep
-read(id_set,'(a11,e10.1,4(/))') dummy, rmxstep
+read(id_set,'(a11,e10.1,5(/))') dummy, rmxstep
 read(id_set,'(a11,i3,2(/))') dummy, eqs
 read(id_set,'(a4,a)') dummy,outpath
 read(id_set,'(a5,a)') dummy,statpath

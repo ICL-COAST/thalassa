@@ -12,14 +12,14 @@
 # gdeg:      Maximum degree of the gravitational potential.
 # gord:      Maximum order of the gravitational potential.
 model:     1
-insgrav:   0
-isun:      0
-imoon:     0
-idrag:     4
-iSRP:      0
-iephem:    1
-gdeg:      1
-gord:      0
+insgrav:   1
+isun:      1
+imoon:     1
+idrag:     1
+iSRP:      1
+iephem:    2
+gdeg:      2
+gord:      2
 
 # INTEGRATION
 # integ:     Integrator flag. 1 = LSODAR, 2 = CVODE (TBD).
@@ -29,16 +29,17 @@ gord:      0
 # tstep:     Step size (solar days).
 # mxstep:    Maximum number of integration/output steps.
 integ:     1
-tol:       1.000000000000000E-08
-tspan:     73050.00000000000E+00
-tstep:     10.00000000000000E+00
-mxstep:    1.0E+05
+tol:       1.000000000000000E-20
+tspan:     30.00000000000000E+00
+tstep:     0.100000000000000E+00
+mxstep:    1.0E+06
 
 # EQUATIONS OF MOTION
 # eqs:       Type of the equations of motion.
-#            1 = Cowell, 2 = EDromo(t), 3 = EDromo(c), 4 = EDromo(l)
-eqs:       4
+#            1 = Cowell, 2 = EDromo(t), 3 = EDromo(c), 4 = EDromo(l),
+#            5 = KS (t)
+eqs:       5
 
 # OUTPUT DIRECTORY
-out: /home/davide/Documents/PhD/02.Progetti/THESS/Thalassa_val/NRLMSISE-00_val_171010/
-stat: /home/davide/Documents/PhD/02.Progetti/THESS/Thalassa_val/NRLMSISE-00_val_171010/
+out: /home/davide/Documents/PhD/02.Progetti/THESS/Thalassa_val/LEO_KS_full/
+stat: /home/davide/Documents/PhD/02.Progetti/THESS/Thalassa_val/LEO_KS_full/

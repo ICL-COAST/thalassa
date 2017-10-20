@@ -63,6 +63,7 @@ use INITIALIZE,  only: INIT_STATE
 use INTEGRATE,   only: SET_SOLV,SET_DX
 use COWELL,      only: COWELL_RHS,COWELL_EVT
 use EDROMO,      only: EDROMO_RHS,EDROMO_EVT
+use KUST_STI,    only: KS_RHS,KS_EVT
 use REGULAR_AUX, only: PHYSICAL_TIME,CARTESIAN
 use AUXILIARIES, only: MJD0,MJDnext,MJDf,DU,TU
 use PHYS_CONST,  only: GE,secsPerDay,GE,RE,GE_nd,RE_nd,ERR_constant,&
@@ -135,7 +136,11 @@ select case (eqs)
     case(2:4) ! EDromo
         call INTLOOP(EDROMO_RHS,EDROMO_EVT,integ,eqs,neq,y0,x0,dx,tstep,yx,rtols,&
         &atols,isett,liw,iwork,lrw,rwork)
-
+    
+    case(5:6) ! KS
+        call INTLOOP(KS_RHS,KS_EVT,integ,eqs,neq,y0,x0,dx,tstep,yx,rtols,&
+        &atols,isett,liw,iwork,lrw,rwork)
+    
 end select
 
 ! ==============================================================================
@@ -147,20 +152,12 @@ nels = size(yx,2)
 if (allocated(cart)) deallocate(cart)
 allocate(cart(1:npts,1:7))
 
-!! DEBUG
-! open(unit=20,file='phi22.dat',status='replace')
-!! DEBUG
-
 do ip=1,npts
     t = PHYSICAL_TIME(eqs,neq,yx(ip,1),yx(ip,2:nels))
     cart(ip,1)   = MJD0 + t/TU/secsPerDay
     cart(ip,2:7) = CARTESIAN(eqs,neq,DU,TU,yx(ip,1),yx(ip,2:nels))
 
 end do
-
-!! DEBUG
-! close(20)
-!! DEBUG
 
 ! Save total number of function calls and number of steps taken
 int_steps = iwork(11)

@@ -23,7 +23,7 @@
 3.0000000000000E+00
 # Geomagnetic planetary amplitude Ap (constant, has to be consistent w/ Kp)
 1.5000000000000E+01
-# Re-entry height [km]
+# Re-entry altitude [km]
 120.00000000000E+00
 # Cut-off altitude for drag [km]
 1000.0000000000E+00

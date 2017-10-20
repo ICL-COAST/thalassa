@@ -13,6 +13,8 @@ module REGULAR_AUX
 ! MODULES
 use KINDS, only: dk
 use EDROMO
+use KUST_STI
+
 ! VARIABLES
 implicit none
 
@@ -44,6 +46,10 @@ select case (eqs)
     case(2:4)  ! EDromo
         ftime = eqs - 2
         PHYSICAL_TIME = EDROMO_TE2TIME(y,x,ftime)
+    
+    case(5:6)  ! KS
+        ftime = eqs - 5
+        PHYSICAL_TIME = KS_TE2TIME(y,x,ftime)
 
 end select
 
@@ -78,6 +84,10 @@ select case (eqs)
 
     case(2:4) ! EDromo
         call EDROMO2CART(x,y,R,V)
+        CARTESIAN = [R*DU,V*DU*TU]
+    
+    case(5:6) ! KS
+        call KS2CART(y,R,V)
         CARTESIAN = [R*DU,V*DU*TU]
 
 end select

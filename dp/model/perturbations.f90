@@ -181,11 +181,10 @@ PACC_EJ2K = p_sun + p_moon + PACC_EJ2K
 !   neglected.
 
 p_drag = 0._dk
+! Make quantities dimensional
+r_D = r*DU; v_D = v*DU*TU
 h_D = sqrt(dot_product(r_D,r_D)) - RE
 if (idrag /= 0 .and. h_D <= cutoff_height) then
-  ! Make quantities dimensional
-  r_D = r*DU; v_D = v*DU*TU
-    
   select case (idrag)
     case (1)
       ! Piecewise exponential density model (Vallado)
@@ -253,7 +252,7 @@ if (idrag /= 0 .and. h_D <= cutoff_height) then
       density = dens_MSIS00(6)
 
     end select
-    
+
     ! Velocity wrt atmosphere
     wE_D = ERR_constant*twopi/secsPerDay
     v_atm = wE_D*[-r_D(2),r_D(1),0._dk]

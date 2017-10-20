@@ -29,6 +29,7 @@ use PHYS_CONST,    only: GE,RE,Clm,Slm
 use SETTINGS,      only: insgrav
 use PERTURBATIONS, only: PPOTENTIAL
 use EDROMO,        only: EDROMO_PHI0,CART2EDROMO
+use KUST_STI,      only: CART2KS
 
 ! VARIABLES
 implicit none
@@ -70,6 +71,14 @@ select case (eqs)
         ! As before, set initial physical time to 0. The actual MJD will be
         ! recovered later.
         call CART2EDROMO(R0,V0,0._dk,DU,TU,y0,x0,U0,ftime)
+    
+    case(5:6) ! KS
+        neq = 10
+        ftime = eqs - 5
+        allocate(y0(1:neq))
+        Rm = sqrt(dot_product(R0,R0))
+        U0 = PPOTENTIAL(insgrav,GE,RE,R0,Rm,0._dk)
+        call CART2KS(R0,V0,0._dk,GE,DU,TU,y0,U0)
 
 end select
 

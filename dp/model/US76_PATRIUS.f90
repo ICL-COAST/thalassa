@@ -1,9 +1,10 @@
 module US76_PATRIUS
 
+! MODULES
+use KINDS, only: dk
+
 implicit none
 private
-! Kind parameter (to be removed)
-integer,parameter  ::  dk = selected_real_kind(15)
 
 ! Earth radius from [1] [km]
 real(dk),parameter  ::  AE            = 6356.766_dk
