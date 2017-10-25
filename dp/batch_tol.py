@@ -15,7 +15,7 @@ import numpy as np
 def generateTolVec(tolMax,tolMin,ntol):
   # Generates the tolerance vector, logarithmically spaced from 'tolmax' to
   # tolmin.
-  tolVec = np.logspace(tolMax,tolMin,num=ntol)
+  tolVec = np.logspace(float(tolMax),float(tolMin),num=ntol)
   return tolVec
 
 def modifyInput(inpPath,lineN,tol,outPath):
@@ -50,11 +50,29 @@ def main():
   args = sys.argv[1:]
   
   if not args:
-    print 'Usage: ./batch_tol.py MASTER_DIRECTORY'
+    print ('Usage: ./batch_tol.py MASTER_DIRECTORY [--tmax log10(tolmax)]'
+           '[--tmin log10(tolmin)] [--ntol ntol]')
     sys.exit(1)
-
-  tolVec  = generateTolVec(-5.,-10.,6)
-  masterPath = os.path.abspath(args[0])
+  
+  masterPath = os.path.abspath(args[0]); del args[0]
+  l10tMax = -4.
+  l10tMin = -15.
+  ntol    = 12
+  
+  # Command line parsing
+  if args[0] == '--tmax':
+    l10tMax = args[1]
+    del args[0:2]
+  
+  if args[0] == '--tmin':
+    l10tMin = args[1]
+    del args[0:2]
+  
+  if args[0] == '--ntol':
+    ntol = args[1]
+    del args[0:2]
+  
+  tolVec  = generateTolVec(l10tMax,l10tMin,ntol)
   
   # Initializations
   rep_time = 3
