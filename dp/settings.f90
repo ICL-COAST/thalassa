@@ -33,7 +33,6 @@ integer  ::  eqs                ! Equations of motion type. 1 = Cowell,
 !                                 2 = EDromo(t), 3 = EDromo(c), 4 = EDromo(l)
 ! Output directories
 character(len=512)  ::  outpath
-character(len=512)  ::  statpath
 
 contains
 
@@ -70,7 +69,6 @@ read(id_set,'(a11,e22.15)') dummy, tstep
 read(id_set,'(a11,e10.1,5(/))') dummy, rmxstep
 read(id_set,'(a11,i3,2(/))') dummy, eqs
 read(id_set,'(a4,a)') dummy,outpath
-read(id_set,'(a5,a)') dummy,statpath
 
 close(id_set)
 

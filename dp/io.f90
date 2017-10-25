@@ -11,7 +11,7 @@ module IO
 
 ! MODULES
 use KINDS, only: dk
-use SETTINGS, only: outpath,statpath
+use SETTINGS, only: outpath
 
 ! VARIABLES
 implicit none
@@ -102,7 +102,7 @@ select case (fid)
         write(fid,'(a200)') header
 
     case(14) ! Integration statistics file, id_stat = 14 (see module preamble)
-        filepath = adjustl(trim(statpath)//'stats.dat')
+        filepath = adjustl(trim(outpath)//'stats.dat')
         header(1) = '# THALASSA - STATISTICS'
         write(header(2),'(''#'',195(''=''))')
         write(header(3),'(''#'',a9,1x,a9,8(a22))')&
