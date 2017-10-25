@@ -29,7 +29,7 @@ gord:      2
 # tstep:     Step size (solar days).
 # mxstep:    Maximum number of integration/output steps.
 integ:     1
-tol:       1.000000000000000E-10
+tol:       1.000000000000000E-20
 tspan:     30.00000000000000E+00
 tstep:     0.100000000000000E+00
 mxstep:    1.0E+06
@@ -41,4 +41,5 @@ mxstep:    1.0E+06
 eqs:       5
 
 # OUTPUT DIRECTORY
-out: /home/davide/Documents/PhD/02.Progetti/THESS/Thalassa_val/LEO_batch_val/tol-10/
+out: /home/davide/Documents/PhD/02.Progetti/THESS/Thalassa_val/LEO_KS_full/
+stat: /home/davide/Documents/PhD/02.Progetti/THESS/Thalassa_val/LEO_KS_full/

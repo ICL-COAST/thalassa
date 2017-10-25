@@ -139,5 +139,5 @@ call DUMP_TRAJ(id_orb,npts,orb)
 ! Write statistics line: calls, steps, CPU time, final time and orbital elements
 write(id_stat,100) tot_calls, int_steps, cputime, orb(npts,:)
 
-100 format((2(i10,'',''),8(es22.15,'','')))
+100 format((2(i10,1x),8(es22.15,1x)))
 end program THALASSA
