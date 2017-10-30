@@ -32,9 +32,9 @@ use IO,          only: READ_IC,CREATE_OUT,DUMP_TRAJ
 use CART_COE,    only: COE2CART,CART2COE
 use PHYS_CONST,  only: READ_PHYS,GMST_UNIFORM
 use PROPAGATE,   only: DPROP_REGULAR
-use SETTINGS,    only: READ_SETTINGS
-use IO,          only: id_cart,id_orb,id_stat
-use SETTINGS,    only: model,gdeg,gord,outpath
+use SETTINGS,    only: READ_SETTINGS,input_path
+use IO,          only: id_cart,id_orb,id_stat,object_path
+use SETTINGS,    only: model,gdeg,gord,outpath,tol,eqs
 use PHYS_CONST,  only: GE,d2r,r2d,secsPerDay,secsPerSidDay,twopi
 implicit none
 
@@ -55,13 +55,24 @@ integer  ::  rate,tic,toc
 real(dk) ::  cputime
 ! Function calls and integration steps
 integer  ::  int_steps,tot_calls
+! Command arguments
+integer  ::  command_arguments
 
 
 ! ==============================================================================
 
+! ==============================================================================
+! 01. COMMAND LINE PARSING
+! ==============================================================================
+
+command_arguments = COMMAND_ARGUMENT_COUNT()
+input_path  = './in/input.txt'
+object_path = './in/object.txt'
+if (command_arguments > 0) call GET_COMMAND_ARGUMENT(1,input_path)
+if (command_arguments > 1) call GET_COMMAND_ARGUMENT(2,object_path)
 
 ! ==============================================================================
-! 01. INITIALIZATIONS
+! 02. INITIALIZATIONS
 ! ==============================================================================
 
 ! Start clock
@@ -76,7 +87,7 @@ call READ_PHYS(model,gdeg,gord)
 call FURNSH('in/kernels_to_load.furnsh')
 
 ! ==============================================================================
-! 02. TEST PROPAGATION
+! 03. TEST PROPAGATION
 ! ==============================================================================
 
 ! Convert to Cartesian coordinates
@@ -88,20 +99,13 @@ GMST0 = GMST_UNIFORM(MJD0)
 aGEO  = (GE*(secsPerSidDay/twopi)**2)**(1._dk/3._dk)
 period = twopi*sqrt(COE0(1)**3/GE)/secsPerSidDay
 
-write(*,'(a)') 'INITIAL COORDINATES (aGEO, aGEO/sidDay):'
-write(*,'(a,g22.15)') 'X = ',R0(1)/aGEO
-write(*,'(a,g22.15)') 'Y = ',R0(2)/aGEO
-write(*,'(a,g22.15)') 'Z = ',R0(3)/aGEO
-write(*,'(a,g22.15)') 'VX = ',V0(1)/aGEO*(secsPerDay/1.0027379093508_dk)
-write(*,'(a,g22.15)') 'VY = ',V0(2)/aGEO*(secsPerDay/1.0027379093508_dk)
-write(*,'(a,g22.15)') 'VZ = ',V0(3)/aGEO*(secsPerDay/1.0027379093508_dk)
-write(*,'(a,g22.15)') 'Initial GMST (deg): ',GMST0*r2d
-write(*,'(a,g22.15)') 'Initial orbital period (sid. days): ',period
+write(*,'(a,g15.8)') 'Tolerance: ',tol
+write(*,'(a,i2)') 'Equations: ',eqs
 
 call DPROP_REGULAR(R0,V0,tspan,tstep,cart,int_steps,tot_calls)
 
 ! ==============================================================================
-! 03. PROCESSING AND OUTPUT
+! 04. PROCESSING AND OUTPUT
 ! ==============================================================================
 
 ! Initialize orbital elements array
@@ -129,7 +133,7 @@ end do
 
 ! Dump output and copy input files to the output directory
 call SYSTEM('mkdir -p '//trim(outpath))
-call SYSTEM('cp in/*.txt '//trim(outpath))
+call SYSTEM('cp in/object.txt in/physical_constants.txt '//trim(outpath))
 call CREATE_OUT(id_cart)
 call CREATE_OUT(id_orb)
 call CREATE_OUT(id_stat)

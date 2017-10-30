@@ -2,7 +2,7 @@
 # ==============================================================================
 
 # PHYSICAL MODEL
-# model:     1 = STELA model, 2 = SWIFT-SAT model, 3 = custom (TBD).
+# model:     1 = STELA model, 2 = SWIFT-SAT model, 3 = custom (TBD). ONLY AFFECTS COMPUTATION OF GMST
 # insgrav:   0 = sph. grav. field, 1 = non-spherical grav. field.
 # isun:      0 = no Sun perturbation, 1 = otherwise.
 # imoon:     0 = no Moon perturbation, 1 = otherwise.
@@ -15,8 +15,8 @@ model:     1
 insgrav:   1
 isun:      1
 imoon:     1
-idrag:     1
-iSRP:      1
+idrag:     0
+iSRP:      0
 iephem:    2
 gdeg:      2
 gord:      2
@@ -29,16 +29,16 @@ gord:      2
 # tstep:     Step size (solar days).
 # mxstep:    Maximum number of integration/output steps.
 integ:     1
-tol:       1.000000000000000E-05
-tspan:     30.00000000000000E+00
-tstep:     0.100000000000000E+00
+tol:       1.000000000000000E-06
+tspan:     2.739000000000000E+04
+tstep:     1.000000000000000E+01
 mxstep:    1.0E+06
 
 # EQUATIONS OF MOTION
 # eqs:       Type of the equations of motion.
 #            1 = Cowell, 2 = EDromo(t), 3 = EDromo(c), 4 = EDromo(l),
 #            5 = KS (t)
-eqs:       5
+eqs:       1
 
 # OUTPUT DIRECTORY
-out: /home/davide/Documents/PhD/02.Progetti/THESS/Thalassa_val/LEO_batch_val/tol-5/
+out: /home/davide/Documents/PhD/02.Progetti/THESS/data/Asperger/Thalassa/Galileo/eff_Cow/tol-13/
