@@ -191,7 +191,7 @@ select case (integ)
               rwork(5) = -0.01_dk*twopi/log10(tol)
 
               ! For EDromo(c), set only absolute tolerance for the time element.
-              if (eqs == 5) rtols(8) = 1._dk
+              if (eqs == 3) rtols(8) = 1._dk
 
       end select
 
