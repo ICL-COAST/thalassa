@@ -396,4 +396,31 @@ dayOfYear = int((275._dk*real(month,dk)) / 9._dk) - &
 
 end subroutine JD2CAL
 
+
+function CURRENT_MU(coordSyst)
+! Description:
+!    Selects the gravitational parameter according to the origin of the current
+!    coordinate system, i.e.
+!    CURRENT_MU = GE for coordSyst = ICRF
+!    CURRENT_MU = GM for coordSyst = MMEIAUE
+! 
+! ==============================================================================
+
+! DECLARATIONS
+character(len=*),intent(in)  ::  coordSyst
+real(dk)                     ::  CURRENT_MU
+
+! ==============================================================================
+
+select case (trim(coordSyst))
+  case ('ICRF')
+    CURRENT_MU = GE
+  
+  case ('MMEIAUE')
+    CURRENT_MU = GM
+  
+end select
+
+end function CURRENT_MU
+
 end module PHYS_CONST

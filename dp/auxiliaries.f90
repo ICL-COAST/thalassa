@@ -17,6 +17,8 @@ implicit none
 real(dk)  ::  DU,TU
 ! Initial epoch, next epoch during integration, and final epoch (MJD-UT1)
 real(dk)  ::  MJD0,MJDnext,MJDf
+! Current coordinate frame and center
+character(len=12)  :: coordSyst
 
 
 
@@ -25,18 +27,24 @@ contains
 
 
 
-subroutine SET_UNITS(R,GM)
+subroutine SET_UNITS(R)
 ! Description:
 !    Contains reference units for non-dimensionalization. DU is a unit of
 !    distance, while TU is a unit of frequency. With this choice of reference
 !    units, GM = 1 (DU^3)*(TU^2).
 
+! MODULES
+use PHYS_CONST, only: CURRENT_MU
 implicit none
 real(dk),intent(in)  :: R(1:3)
-real(dk),intent(in)  :: GM
+real(dk)             :: mu
+
+! ==============================================================================
+
+mu = CURRENT_MU(coordSyst)
 
 DU = sqrt(dot_product(R,R))
-TU = sqrt(GM/DU**3)
+TU = sqrt(mu/DU**3)
 
 end subroutine SET_UNITS
 

@@ -21,7 +21,7 @@ integer,parameter  ::  id_stat = 14
 contains
 
 
-subroutine READ_IC(MJD,COE)
+subroutine READ_IC(MJD,COE,coordSyst)
 
 ! MODULES
 use PHYS_CONST, only: SCMass,ADrag,ASRP,CD,CR,A2M_Drag,A2M_SRP
@@ -30,6 +30,7 @@ use PHYS_CONST, only: SCMass,ADrag,ASRP,CD,CR,A2M_Drag,A2M_SRP
 implicit none
 ! Arguments
 real(dk),intent(out)  ::  MJD,COE(1:6)
+character(len=12)     ::  coordSyst
 
 ! Locals
 integer,parameter     ::  hlines = 3
@@ -43,6 +44,9 @@ open(unit=id_ic,file='./in/object.txt',status='old',action='read')
 
 ! Skip header lines
 read(id_ic,'(a)') (dummy, i=1,hlines)
+
+! Read reference frame
+read(id_ic,'(a12,/)') coordSyst
 
 ! Orbital elements: a [km], e, i [deg], Om [deg], w [deg], M [deg]
 read(id_ic,'(e22.15,a)') MJD, dummy

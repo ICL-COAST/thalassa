@@ -31,8 +31,11 @@ real(dk) ::  tol                ! Integrator tolerance.
 ! Equations of motion settings
 integer  ::  eqs                ! Equations of motion type. 1 = Cowell,
 !                                 2 = EDromo(t), 3 = EDromo(c), 4 = EDromo(l)
+! Switch of reference frames
+integer  ::  iswitch
 ! Output directories
 character(len=512)  ::  outpath
+
 
 contains
 
@@ -61,12 +64,13 @@ read(id_set,'(a11,i3)') dummy, idrag
 read(id_set,'(a11,i3)') dummy, iSRP
 read(id_set,'(a11,i3)') dummy, iephem
 read(id_set,'(a11,i3)') dummy, gdeg
-read(id_set,'(a11,i3,8(/))') dummy, gord
+read(id_set,'(a11,i3,9(/))') dummy, gord
 read(id_set,'(a11,i3)') dummy, integ
 read(id_set,'(a11,e22.15)') dummy, tol
 read(id_set,'(a11,e22.15)') dummy, tspan
 read(id_set,'(a11,e22.15)') dummy, tstep
-read(id_set,'(a11,e10.1,5(/))') dummy, rmxstep
+read(id_set,'(a11,e10.1)') dummy, rmxstep
+read(id_set,'(a11,i3,5(/))') dummy, iswitch
 read(id_set,'(a11,i3,2(/))') dummy, eqs
 read(id_set,'(a4,a)') dummy,outpath
 

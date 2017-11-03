@@ -50,10 +50,11 @@ end interface
 contains
 
 
-subroutine DPROP_REGULAR(R0,V0,tspan,tstep,cart,int_steps,tot_calls)
+subroutine DPROP_REGULAR(coordSyst,R0,V0,tspan,tstep,cart,int_steps,tot_calls)
 ! Description:
 !    Propagates an orbit for "tspan" days, starting from MJD0. The propagation
 !    is performed using either regularized formulations or unregularized Cowell.
+!    The switch between reference frames is also handled by this routine.
 !
 ! ==============================================================================
 
@@ -73,6 +74,7 @@ use SETTINGS,    only: integ,eqs,tol
 ! VARIABLES
 implicit none
 ! ARGUMENTS
+character(len=*),intent(in)  ::  coordSyst
 real(dk),intent(in)  ::  R0(1:3),V0(1:3)
 real(dk),intent(in)  ::  tspan,tstep
 real(dk),intent(out),allocatable  ::  cart(:,:)
@@ -105,7 +107,7 @@ real(dk),allocatable  ::  rtols(:)
 ! ==============================================================================
 
 ! Set reference units and non-dimensionalizations
-call SET_UNITS(R0,GE)
+call SET_UNITS(R0)
 GE_nd = GE/(DU**3*TU**2)
 RE_nd = RE/DU
 ERR_constant_nd = 2._dk*pi*ERR_constant/secsPerDay/TU

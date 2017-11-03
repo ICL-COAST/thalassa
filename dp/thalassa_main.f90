@@ -27,10 +27,10 @@ program THALASSA
 
 ! MODULES
 use KINDS,       only: dk
-use AUXILIARIES, only: MJD0
+use AUXILIARIES, only: MJD0,coordSyst
 use IO,          only: READ_IC,CREATE_OUT,DUMP_TRAJ
 use CART_COE,    only: COE2CART,CART2COE
-use PHYS_CONST,  only: READ_PHYS,GMST_UNIFORM
+use PHYS_CONST,  only: READ_PHYS,GMST_UNIFORM,CURRENT_MU
 use PROPAGATE,   only: DPROP_REGULAR
 use SETTINGS,    only: READ_SETTINGS
 use IO,          only: id_cart,id_orb,id_stat
@@ -50,6 +50,8 @@ real(dk)  ::  tspan,tstep
 integer               ::  npts,ipt
 real(dk),allocatable  ::  cart(:,:),orb(:,:)
 real(dk)              ::  R(1:3),V(1:3)
+! Current gravitational parameter
+real(dk)              ::  mu
 ! Measurement of CPU time
 integer  ::  rate,tic,toc
 real(dk) ::  cputime
@@ -68,7 +70,7 @@ integer  ::  int_steps,tot_calls
 call SYSTEM_CLOCK(tic,rate)
 
 ! Read initial conditions, settings and physical model data.
-call READ_IC(MJD0,COE0)
+call READ_IC(MJD0,COE0,coordSyst)
 call READ_SETTINGS(tspan,tstep)
 call READ_PHYS(model,gdeg,gord)
 
@@ -79,11 +81,14 @@ call FURNSH('in/kernels_to_load.furnsh')
 ! 02. TEST PROPAGATION
 ! ==============================================================================
 
+! Select gravitational parameter
+mu = CURRENT_MU(coordSyst)
+
 ! Convert to Cartesian coordinates
 COE0_rad = [COE0(1:2),COE0(3:6)*real(d2r,dk)]
-call COE2CART(COE0_rad,R0,V0,GE)
+call COE2CART(COE0_rad,R0,V0,mu)
 
-! Output to user
+! Output to user (TBD)
 GMST0 = GMST_UNIFORM(MJD0)
 aGEO  = (GE*(secsPerSidDay/twopi)**2)**(1._dk/3._dk)
 period = twopi*sqrt(COE0(1)**3/GE)/secsPerSidDay
@@ -98,7 +103,7 @@ write(*,'(a,g22.15)') 'VZ = ',V0(3)/aGEO*(secsPerDay/1.0027379093508_dk)
 write(*,'(a,g22.15)') 'Initial GMST (deg): ',GMST0*r2d
 write(*,'(a,g22.15)') 'Initial orbital period (sid. days): ',period
 
-call DPROP_REGULAR(R0,V0,tspan,tstep,cart,int_steps,tot_calls)
+call DPROP_REGULAR(coordSyst,R0,V0,tspan,tstep,cart,int_steps,tot_calls)
 
 ! ==============================================================================
 ! 03. PROCESSING AND OUTPUT
