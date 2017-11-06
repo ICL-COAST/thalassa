@@ -12,14 +12,14 @@
 # gdeg:      Maximum degree of the gravitational potential.
 # gord:      Maximum order of the gravitational potential.
 model:     1
-insgrav:   1
-isun:      1
+insgrav:   0
+isun:      0
 imoon:     1
-idrag:     1
-iSRP:      1
-iephem:    2
-gdeg:      2
-gord:      2
+idrag:     0
+iSRP:      0
+iephem:    3
+gdeg:      1
+gord:      0
 
 # INTEGRATION
 # integ:     Integrator flag. 1 = LSODAR, 2 = CVODE (TBD).
@@ -30,7 +30,7 @@ gord:      2
 # mxstep:    Maximum number of integration/output steps.
 # switch:    0 = do not switch coordinate systems, 1 = otherwise
 integ:     1
-tol:       1.000000000000000E-20
+tol:       1.000000000000000E-13
 tspan:     30.00000000000000E+00
 tstep:     0.100000000000000E+00
 mxstep:    1.0E+06
@@ -43,4 +43,4 @@ switch:    1
 eqs:       5
 
 # OUTPUT DIRECTORY
-out: /home/davide/Documents/PhD/02.Progetti/THESS/Thalassa_val/LEO_KS_full/
+out: /home/davide/Documents/PhD/02.Progetti/THESS/data/Davidson/val/

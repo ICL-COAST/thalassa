@@ -154,14 +154,14 @@ end if
 p_sun = 0._dk; p_moon = 0._dk
 if (isun /= 0) then
   ! SUN
-  call EPHEM(1,DU,TU,t,r_sun,v_sun)
+  call EPHEM_ICRF(1,DU,TU,t,r_sun,v_sun)
   p_sun = ACC_THBOD_EJ2K_ND(r,r_sun,GE,GS)
 
 end if
 
 if (imoon /= 0 ) then
   ! MOON
-  call EPHEM(2,DU,TU,t,r_moon,v_moon)
+  call EPHEM_ICRF(2,DU,TU,t,r_moon,v_moon)
   p_moon = ACC_THBOD_EJ2K_ND(r,r_moon,GE,GM)
 
 end if
@@ -205,7 +205,7 @@ if (idrag /= 0 .and. h_D <= cutoff_height) then
         
         ! Ephemerides of the Sun (if they haven't been computed earlier)
         if (isun == 0) then
-          call EPHEM(1,DU,TU,t,r_sun,v_sun)
+          call EPHEM_ICRF(1,DU,TU,t,r_sun,v_sun)
         
         end if
         r_sun_m = sqrt(dot_product(r_sun,r_sun))
@@ -278,7 +278,7 @@ p_SRP = 0._dk
 if (iSRP == 1) then
   ! If the Sun gravitational perturbation is disabled, get its ephemerides
   if (isun == 0) then
-    call EPHEM(1,DU,TU,t,r_sun,v_sun)
+    call EPHEM_ICRF(1,DU,TU,t,r_sun,v_sun)
 
   end if
   ! Computation is in dimensional units (m/s^2).

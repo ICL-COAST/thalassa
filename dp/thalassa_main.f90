@@ -70,7 +70,7 @@ integer  ::  int_steps,tot_calls
 call SYSTEM_CLOCK(tic,rate)
 
 ! Read initial conditions, settings and physical model data.
-call READ_IC(MJD0,COE0,coordSyst)
+call READ_IC(MJD0,R0,V0,coordSyst)
 call READ_SETTINGS(tspan,tstep)
 call READ_PHYS(model,gdeg,gord)
 
@@ -84,24 +84,20 @@ call FURNSH('in/kernels_to_load.furnsh')
 ! Select gravitational parameter
 mu = CURRENT_MU(coordSyst)
 
-! Convert to Cartesian coordinates
-COE0_rad = [COE0(1:2),COE0(3:6)*real(d2r,dk)]
-call COE2CART(COE0_rad,R0,V0,mu)
+! ! Output to user (TBD)
+! GMST0 = GMST_UNIFORM(MJD0)
+! aGEO  = (GE*(secsPerSidDay/twopi)**2)**(1._dk/3._dk)
+! period = twopi*sqrt(COE0(1)**3/GE)/secsPerSidDay
 
-! Output to user (TBD)
-GMST0 = GMST_UNIFORM(MJD0)
-aGEO  = (GE*(secsPerSidDay/twopi)**2)**(1._dk/3._dk)
-period = twopi*sqrt(COE0(1)**3/GE)/secsPerSidDay
-
-write(*,'(a)') 'INITIAL COORDINATES (aGEO, aGEO/sidDay):'
-write(*,'(a,g22.15)') 'X = ',R0(1)/aGEO
-write(*,'(a,g22.15)') 'Y = ',R0(2)/aGEO
-write(*,'(a,g22.15)') 'Z = ',R0(3)/aGEO
-write(*,'(a,g22.15)') 'VX = ',V0(1)/aGEO*(secsPerDay/1.0027379093508_dk)
-write(*,'(a,g22.15)') 'VY = ',V0(2)/aGEO*(secsPerDay/1.0027379093508_dk)
-write(*,'(a,g22.15)') 'VZ = ',V0(3)/aGEO*(secsPerDay/1.0027379093508_dk)
-write(*,'(a,g22.15)') 'Initial GMST (deg): ',GMST0*r2d
-write(*,'(a,g22.15)') 'Initial orbital period (sid. days): ',period
+! write(*,'(a)') 'INITIAL COORDINATES (aGEO, aGEO/sidDay):'
+! write(*,'(a,g22.15)') 'X = ',R0(1)/aGEO
+! write(*,'(a,g22.15)') 'Y = ',R0(2)/aGEO
+! write(*,'(a,g22.15)') 'Z = ',R0(3)/aGEO
+! write(*,'(a,g22.15)') 'VX = ',V0(1)/aGEO*(secsPerDay/1.0027379093508_dk)
+! write(*,'(a,g22.15)') 'VY = ',V0(2)/aGEO*(secsPerDay/1.0027379093508_dk)
+! write(*,'(a,g22.15)') 'VZ = ',V0(3)/aGEO*(secsPerDay/1.0027379093508_dk)
+! write(*,'(a,g22.15)') 'Initial GMST (deg): ',GMST0*r2d
+! write(*,'(a,g22.15)') 'Initial orbital period (sid. days): ',period
 
 call DPROP_REGULAR(coordSyst,R0,V0,tspan,tstep,cart,int_steps,tot_calls)
 

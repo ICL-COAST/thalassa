@@ -9,7 +9,7 @@
 # Gravitational parameters of the Sun, Earth, Moon. [km^3/s^2]
 1.3271244001800E+11
 3.9860044144982E+05
-4.9027779000000E+03
+4954.6357573133E+00
 # Earth radius (reference semi major axis of Earth ellipsoid) [km]
 6.37813646E+03
 # Seconds per tropical day, sidereal day

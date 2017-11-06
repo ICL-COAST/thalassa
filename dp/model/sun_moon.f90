@@ -21,6 +21,8 @@ module SUN_MOON
 use KINDS, only: dk
 implicit none
 
+! Moon SMA for the Keplerian case
+real(dk),parameter  ::  aMoon_Kep = 384400._dk  ! [km]
 
 contains
 
@@ -62,20 +64,23 @@ end function ACC_THBOD_EJ2K_ND
 
 
 
-subroutine EPHEM(ibody,DU,TU,t,r,v)
+subroutine EPHEM_ICRF(ibody,DU,TU,t,r,v)
 ! Description:
 !    Computes position and velocity of the body "ibody" from the ephemerides
-!    source specified in "iephem".
+!    source specified in "iephem", in the ICRF.
 !    The output is non-dimensionalized with the reference length DU and the
 !    reference frequency TU. Use 1 for both to obtain output in KM, KM/S.
 !    The input time "t" is dimensionless.
+!    
+!    History:
+!    6/11/17: Add Keplerian ephemerides for the Moon
 !
 ! ==============================================================================
 
 ! MODULES
 use SETTINGS,    only: iephem
 use AUXILIARIES, only: T2MJD
-use PHYS_CONST,  only: secsPerDay,MJD_J2000
+use PHYS_CONST,  only: secsPerDay,MJD_J2000,GE,GM,twopi
 
 ! VARIABLES
 implicit none   ! <-- Lucky charm
@@ -92,6 +97,8 @@ real(dk)  ::  secs_J2000
 real(dk)  ::  lt
 ! Ephemerides
 real(dk)  ::  y(1:6)
+! Moon mean motion and mean anomaly [rad/s,rad] (Keplerian case)
+real(dk)  ::  nMoon_Kep,MMoon_Kep
 
 ! ==============================================================================
 
@@ -129,6 +136,14 @@ case(2)
     ! MOON (Meeus and Brown)
     ! NOTE: the Meeus and Brown ephemerides don't provide the velocity.
     y(1:3) = MOON_POS_MEEUS(MJD_UT1,1._dk)
+  
+  case(3)
+    ! MOON (Keplerian)
+    ! **NOTE**: At t = 0 the Moon is on the x-axis ALWAYS.
+    nMoon_Kep = sqrt((GE + GM)/aMoon_Kep**3)
+    MMoon_Kep = mod(nMoon_Kep*t,twopi)
+    y(1:3) = aMoon_Kep*[cos(MMoon_Kep),sin(MMoon_Kep),0._dk]
+    y(4:6) = aMoon_Kep*nMoon_Kep*[-sin(MMoon_Kep),cos(MMoon_Kep),0._dk]
 
   end select
 
@@ -137,7 +152,7 @@ end select
 r = y(1:3)/DU
 v = y(4:6)/(DU*TU)
 
-end subroutine EPHEM
+end subroutine EPHEM_ICRF
 
 
 

@@ -16,6 +16,12 @@ module PROPAGATE
 ! ==============================================================================
 
 use KINDS, only: dk
+
+! Formulations
+use COWELL,      only: COWELL_RHS,COWELL_EVT
+use EDROMO,      only: EDROMO_RHS,EDROMO_EVT
+use KUST_STI,    only: KS_RHS,KS_EVT
+
 implicit none
 abstract interface
   subroutine FTYPE1(neq,t,y,ydot)
@@ -62,10 +68,8 @@ subroutine DPROP_REGULAR(coordSyst,R0,V0,tspan,tstep,cart,int_steps,tot_calls)
 use AUXILIARIES, only: SET_UNITS
 use INITIALIZE,  only: INIT_STATE
 use INTEGRATE,   only: SET_SOLV,SET_DX
-use COWELL,      only: COWELL_RHS,COWELL_EVT
-use EDROMO,      only: EDROMO_RHS,EDROMO_EVT
-use KUST_STI,    only: KS_RHS,KS_EVT
 use REGULAR_AUX, only: PHYSICAL_TIME,CARTESIAN
+use COORD_SYST,  only: SWITCH_CS
 use AUXILIARIES, only: MJD0,MJDnext,MJDf,DU,TU
 use PHYS_CONST,  only: GE,secsPerDay,GE,RE,GE_nd,RE_nd,ERR_constant,&
 &ERR_constant_nd,pi,reentry_height,reentry_radius_nd
@@ -74,7 +78,7 @@ use SETTINGS,    only: integ,eqs,tol
 ! VARIABLES
 implicit none
 ! ARGUMENTS
-character(len=*),intent(in)  ::  coordSyst
+character(len=*),intent(inout)  ::  coordSyst
 real(dk),intent(in)  ::  R0(1:3),V0(1:3)
 real(dk),intent(in)  ::  tspan,tstep
 real(dk),intent(out),allocatable  ::  cart(:,:)
@@ -99,6 +103,11 @@ real(dk)              ::  t
 ! LSODAR - individual tolerances
 real(dk),allocatable  ::  atols(:)
 real(dk),allocatable  ::  rtols(:)
+
+! Loop control flags and switch algorithm variables
+real(dk)  ::  RVSwitch(1:6),tSwitch,RSwNew(1:3),VSwNew(1:3)
+integer   ::  len_yx
+integer   ::  switchCS,finTime,reentry
 
 ! ==============================================================================
 
@@ -129,21 +138,31 @@ call SET_SOLV(integ,eqs,neq,tol,isett,iwork,rwork,rtols,atols)
 
 dx = SET_DX(eqs,tstep,TU)
 
-! Choose equations of motion and start MAIN INTEGRATION LOOP
-select case (eqs)
-    case(1)   ! Cowell, 1st order
-        call INTLOOP(COWELL_RHS,COWELL_EVT,integ,eqs,neq,y0,x0,dx,tstep,yx,rtols,&
-        &atols,isett,liw,iwork,lrw,rwork)
+! Choose equations of motion and start MAIN INTEGRATION LOOP. Switch reference
+! frames until reaching final time.
+do
+  call INTLOOP(integ,eqs,neq,y0,x0,dx,tstep,yx,rtols,atols,isett,liw,iwork,lrw,&
+  rwork)
+  
+  finTime  = isett(8); reentry = isett(9); switchCS = isett(10)
+  if (finTime == 1 .or. reentry == 1) then
+    exit
 
-    case(2:4) ! EDromo
-        call INTLOOP(EDROMO_RHS,EDROMO_EVT,integ,eqs,neq,y0,x0,dx,tstep,yx,rtols,&
-        &atols,isett,liw,iwork,lrw,rwork)
+  else if (switchCS == 1) then
+    ! Convert last point of the trajectory to Cartesian
+    len_yx  = size(yx,1)
+    tSwitch = PHYSICAL_TIME(eqs,neq,yx(len_yx,1),yx(len_yx,2:nels))
+    RVSwitch = CARTESIAN(eqs,neq,DU,TU,yx(len_yx,1),yx(len_yx,2:nels))
     
-    case(5:6) ! KS
-        call INTLOOP(KS_RHS,KS_EVT,integ,eqs,neq,y0,x0,dx,tstep,yx,rtols,&
-        &atols,isett,liw,iwork,lrw,rwork)
+    ! Switch coordinate system
+    call SWITCH_CS(coordSyst,tSwitch,RVSwitch(1:3),RVSwitch(4:6),RSwNew,VSwNew)
     
-end select
+    ! Re-initialize state vector
+
+  end if
+  
+
+end do
 
 ! ==============================================================================
 ! 03. OFFLINE PROCESSING
@@ -168,7 +187,7 @@ tot_calls = iwork(12)
 end subroutine DPROP_REGULAR
 
 
-subroutine INTLOOP(EOM,EVT,integ,eqs,neq,y0,x0,dx,tstep,yx,rtol,atol,isett,liw,&
+subroutine INTLOOP(integ,eqs,neq,y0,x0,dx,tstep,yx,rtols,atols,isett,liw,&
 &iwork,lrw,rwork)
 ! Description:
 !    Performs the integration loop for the equations of motion specified through
@@ -190,7 +209,7 @@ integer,intent(in)   ::  neq                   ! Number of equations
 integer,intent(in)   ::  liw,lrw               ! Length of work arrays
 real(dk),intent(in)  ::  y0(1:neq),x0,dx       ! Initial values and step size in independent var.
 real(dk),intent(in)  ::  tstep                 ! Step size in phys. time (days)
-real(dk),intent(in)  ::  rtol(:),atol(:)       ! Integration tolerances
+real(dk),intent(in)  ::  rtols(:),atols(:)       ! Integration tolerances
 integer,intent(inout)   ::  isett(:)           ! Integrator settings
 integer,intent(inout)   ::  iwork(1:liw)       ! Integer work array
 real(dk),intent(inout)  ::  rwork(1:lrw)       ! Real work array
@@ -227,9 +246,21 @@ do
     !   write(*,'(a,f9.2,a)') 'Progress: ',real(iint)/real(nsteps)*100.,'%'
     !   i_print = 0
     ! end if
+    
+    select case (eqs)
+      case(1) ! Cowell, 1st order
+        call INTSTEP(COWELL_RHS,COWELL_EVT,integ,eqs,neq,xprev,yprev,dx,xcur,&
+        ycur,rtols,atols,isett,lrw,rwork,liw,iwork)
 
-    call INTSTEP(EOM,EVT,integ,eqs,neq,xprev,yprev,dx,xcur,ycur,rtol,atol,isett,&
-    &lrw,rwork,liw,iwork)
+      case(2:4) ! EDromo
+        call INTSTEP(EDROMO_RHS,EDROMO_EVT,integ,eqs,neq,xprev,yprev,dx,xcur,&
+        ycur,rtols,atols,isett,lrw,rwork,liw,iwork)
+      
+      case(5:6) ! KS
+        call INTSTEP(KS_RHS,KS_EVT,integ,eqs,neq,xprev,yprev,dx,xcur,&
+        ycur,rtols,atols,isett,lrw,rwork,liw,iwork)
+    
+    end select
 
     ! Save to output
     auxy(iint+1,1:neq+1) = [xcur,ycur]
@@ -299,8 +330,11 @@ select case (integ)
         ! Unpack jroot
         jroot = isett(7:16)
 
-        ! Nominal exit conditions.
-        if (jroot(2) == 1 .or. jroot(3) == 1) then
+        ! Nominal exit conditions:
+        ! jroot(2): Reached final time
+        ! jroot(3): Re-entry
+        ! jroot(4): Switch reference frames
+        if (jroot(2) == 1 .or. jroot(3) == 1 .or. jroot(4) == 1) then
             QUIT_LOOP = .true.
             if (jroot(3) == 1) then
               tcur = PHYSICAL_TIME(eqs,neq,x,y)

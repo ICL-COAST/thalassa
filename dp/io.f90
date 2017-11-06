@@ -21,7 +21,7 @@ integer,parameter  ::  id_stat = 14
 contains
 
 
-subroutine READ_IC(MJD,COE,coordSyst)
+subroutine READ_IC(MJD,R,V,coordSyst)
 
 ! MODULES
 use PHYS_CONST, only: SCMass,ADrag,ASRP,CD,CR,A2M_Drag,A2M_SRP
@@ -29,7 +29,7 @@ use PHYS_CONST, only: SCMass,ADrag,ASRP,CD,CR,A2M_Drag,A2M_SRP
 ! VARIABLES
 implicit none
 ! Arguments
-real(dk),intent(out)  ::  MJD,COE(1:6)
+real(dk),intent(out)  ::  MJD,R(1:3),V(1:3)
 character(len=12)     ::  coordSyst
 
 ! Locals
@@ -48,24 +48,26 @@ read(id_ic,'(a)') (dummy, i=1,hlines)
 ! Read reference frame
 read(id_ic,'(a12,/)') coordSyst
 
-! Orbital elements: a [km], e, i [deg], Om [deg], w [deg], M [deg]
 read(id_ic,'(e22.15,a)') MJD, dummy
-do i=1,6
-    read(id_ic,'(e22.15,a)') COE(i), dummy
+do i=1,3
+    read(id_ic,'(e22.15,a)') R(i), dummy
+end do
+do i=1,3
+    read(id_ic,'(e22.15,a)') V(i), dummy
 end do
 
 ! CD and A/m
-read(id_ic,'(/,e22.15,a)') SCMass
-read(id_ic,'(e22.15,a)') ADrag
-read(id_ic,'(e22.15,a)') ASRP
-read(id_ic,'(e22.15,a)') CD
-read(id_ic,'(e22.15,a)') CR
+SCMass = 0._dk
+ADrag = 0._dk
+ASRP = 0._dk
+CD = 0._dk
+CR = 0._dk
 
 close(id_ic)
 
 ! Area-to-mass ratios
-A2M_Drag = ADrag/SCMass
-A2M_SRP  = ASRP/SCmass
+A2M_Drag = 0._dk
+A2M_SRP  = 0._dk
 
 end subroutine READ_IC
 

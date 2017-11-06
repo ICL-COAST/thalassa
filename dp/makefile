@@ -17,7 +17,7 @@ J77     = atsu.o soflud.o ja77.o
 OBJECTS = kinds.o phys_const.o settings.o io.o kepler.o cart_coe.o nsgrav.o \
 sun_moon.o drag_exponential.o US76_PATRIUS.o $(J77) nrlmsise00_sub.o srp.o \
 perturbations.o initialize.o integrate.o $(SLSODAR) $(DLSODAR) $(FORMUL) \
-propagate.o auxiliaries.o thalassa_main.o
+coord_syst.o propagate.o auxiliaries.o thalassa_main.o
 
 # Binaries
 thalassa.x: thalassa_main.o
@@ -47,6 +47,9 @@ kepler.o: kepler.f90 kinds.o
 
 cart_coe.o: cart_coe.f90 phys_const.o kepler.o kinds.o
 	$(FC) $(FCFLAGS) cart_coe.f90
+
+coord_syst.o: coord_syst.f90 sun_moon.o kinds.o
+	$(FC) $(FCFLAGS) coord_syst.f90
 
 nsgrav.o: ./model/nsgrav.f90 kinds.o settings.o phys_const.o auxiliaries.o
 	$(FC) $(FCFLAGS) ./model/nsgrav.f90
@@ -79,7 +82,7 @@ integrate.o: ./integ/integrate.f90 kinds.o phys_const.o $(SLSODAR) $(DLSODAR)
 	$(FC) $(FCFLAGS) ./integ/integrate.f90
 
 propagate.o: propagate.f90 kinds.o settings.o auxiliaries.o phys_const.o \
-$(FORMUL) integrate.o initialize.o
+$(FORMUL) integrate.o initialize.o coord_syst.o
 	$(FC) $(FCFLAGS) propagate.f90
 
 thalassa_main.o: thalassa_main.f90 kinds.o io.o phys_const.o settings.o \
