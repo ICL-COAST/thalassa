@@ -64,4 +64,65 @@ end select
 
 end subroutine SWITCH_CS
 
+
+
+
+function R_SOI(a_sat,mu_main,mu_sat)
+! Description:
+!    Computes the radius of the sphere of influence of the body of semi-major
+!    axis 'a_sat' and gravitational parameter 'mu_sat', orbiting around the
+!    body of mass 'mu_main'.
+!    Units have to be consistent.
+! 
+! ==============================================================================
+
+! VARIABLES
+implicit none
+real(dk),intent(in)  ::  a_sat    ! Semi-major axis of the satellite
+real(dk),intent(in)  ::  mu_sat   ! Gravitational parameter of the satellite
+real(dk),intent(in)  ::  mu_main  ! Gravitational parameter of the main body
+real(dk)             ::  R_SOI
+
+! ==============================================================================
+
+R_SOI = a_sat * (mu_sat / mu_main)**(2._dk/5._dk)
+
+end function R_SOI
+
+
+subroutine POS_VEL_ICRF(coordSyst,t,DU,TU,rCurr,vCurr,rICRF,vICRF)
+! Description:
+!    Computes the position and velocity in the ICRF coordinate system, starting
+!    from position and velocity in the coordinate system specified by
+!    'coordSyst'.
+! 
+! ==============================================================================
+
+use SUN_MOON, only: EPHEM_ICRF
+
+! VARIABLES
+implicit none
+character(len=12),intent(in)  ::  coordSyst
+real(dk),intent(in)           ::  t,DU,TU,rCurr(1:3),vCurr(1:3)
+real(dk),intent(out)          ::  rICRF(1:3),vICRF(1:3)
+
+! LOCALS
+real(dk)  ::  rMoon_ICRF(1:3),vMoon_ICRF(1:3)
+
+! ==============================================================================
+
+select case(trim(coordSyst))
+  case ('ICRF')
+    rICRF = rCurr
+    vICRF = vCurr
+  
+  case ('MMEIAUE')
+    call EPHEM_ICRF(2,DU,TU,t,rMoon_ICRF,vMoon_ICRF)
+    rICRF = rMoon_ICRF + rCurr
+    vICRF = vMoon_ICRF + vCurr
+
+end select
+
+end subroutine POS_VEL_ICRF
+
 end module COORD_SYST

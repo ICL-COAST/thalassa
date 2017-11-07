@@ -276,9 +276,12 @@ end subroutine CART2KS
 subroutine KS_EVT(neq,phi,u,ng,roots)
 
 ! MODULES
-use AUXILIARIES, only: MJD0,MJDnext,MJDf,DU,TU
-use PHYS_CONST,  only: secsPerDay,RE,reentry_radius_nd
-use SETTINGS,    only: eqs
+use AUXILIARIES, only: MJD0,MJDnext,MJDf,DU,TU,coordSyst
+use PHYS_CONST,  only: secsPerDay,RE,reentry_radius_nd,GE,GM
+use SETTINGS,    only: eqs,iswitch
+use SUN_MOON,    only: aMoon_Kep
+use SUN_MOON,    only: EPHEM_ICRF
+use COORD_SYST,  only: R_SOI,POS_VEL_ICRF
 
 ! VARIABLES
 implicit none
@@ -292,7 +295,11 @@ real(dk),intent(out)  ::  roots(1:ng)
 
 ! Locals
 real(dk)  ::  t         ! Current time [-]
-real(dk)  ::  rmag
+real(dk)  ::  rmag,x(1:3),xdot(1:3)
+real(dk)  ::  RSw
+real(dk)  ::  r_ICRF(1:3),v_ICRF(1:3)
+real(dk)  ::  rMoon_ICRF(1:3),vMoon_ICRF(1:3)
+real(dk)  ::  d(1:3),dmag
 
 ! ==============================================================================
 
@@ -301,6 +308,8 @@ roots = 1._dk
 ! Get time
 !flag_time = eqs - 2
 t = u(10)
+call KS2CART(u,x,xdot)
+rmag  = dot_product(u(1:4),u(1:4))
 
 ! ==============================================================================
 ! 01. Next timestep
@@ -318,9 +327,31 @@ roots(2) = t - (MJDf - MJD0)*secsPerDay*TU
 ! 03. Re-entry
 ! ==============================================================================
 
-rmag  = dot_product(u(1:4),u(1:4))
+! rmag  = dot_product(u(1:4),u(1:4))
 
-roots(3) = rmag - reentry_radius_nd
+! roots(3) = rmag - reentry_radius_nd
+roots(3) = 1._dk
+
+! ==============================================================================
+! 04. Distance-based switch of coordinate system
+! ==============================================================================
+
+if (iswitch == 1) then
+  RSw = R_SoI(aMoon_Kep,GE,GM); RSw = RSw/DU
+  
+  ! Position of the particle in ICRF
+  call POS_VEL_ICRF(coordSyst,t,DU,TU,x,xdot,r_ICRF,v_ICRF)
+  call EPHEM_ICRF(2,DU,TU,t,rMoon_ICRF,vMoon_ICRF)
+  
+  ! Position of the particle wrt Moon
+  d = r_ICRF - rMoon_ICRF
+  dmag = sqrt(dot_product(d,d))
+  roots(4) = dmag - RSw
+
+else
+  roots(4) = 1._dk
+
+end if
 
 end subroutine KS_EVT
 

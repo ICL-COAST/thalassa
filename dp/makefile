@@ -124,15 +124,16 @@ opkdmain.o: ./integ/DLSODAR/opkdmain.f kinds.o
 regular_aux.o: ./regular/regular_aux.f90 perturbations.o edromo.o ks.o kinds.o
 	$(FC) $(FCFLAGS) ./regular/regular_aux.f90
 
-cowell.o: ./regular/cowell.f90 perturbations.o auxiliaries.o kinds.o
+cowell.o: ./regular/cowell.f90 perturbations.o auxiliaries.o coord_syst.o \
+sun_moon.o kinds.o
 	$(FC) $(FCFLAGS) ./regular/cowell.f90
 
 edromo.o: ./regular/edromo.f90 perturbations.o settings.o auxiliaries.o \
-phys_const.o kinds.o
+coord_syst.o sun_moon.o phys_const.o kinds.o
 	$(FC) $(FCFLAGS) ./regular/edromo.f90
 
-ks.o: ./regular/ks.f90 perturbations.o settings.o auxiliaries.o phys_const.o \
-kinds.o
+ks.o: ./regular/ks.f90 perturbations.o settings.o auxiliaries.o coord_syst.o \
+sun_moon.o phys_const.o kinds.o
 	$(FC) $(FCFLAGS) ./regular/ks.f90
 
 .PHONY: clean

@@ -77,8 +77,12 @@ subroutine COWELL_EVT(neq,t,y,ng,roots)
 ! ==============================================================================
 
 ! MODULES
-use AUXILIARIES, only: MJD0,MJDnext,MJDf,TU,DU
-use PHYS_CONST,  only: secsPerDay,reentry_radius_nd
+use AUXILIARIES, only: MJD0,MJDnext,MJDf,TU,DU,coordSyst
+use PHYS_CONST,  only: secsPerDay,reentry_radius_nd,GE,GM
+use SETTINGS,    only: iswitch
+use SUN_MOON,    only: aMoon_Kep
+use SUN_MOON,    only: EPHEM_ICRF
+use COORD_SYST,  only: R_SOI,POS_VEL_ICRF
 
 ! VARIABLES
 implicit none
@@ -91,6 +95,10 @@ real(dk),intent(in)      ::  y(1:neq)
 real(dk),intent(out)     ::  roots(1:ng)
 ! Locals
 real(dk)  ::  rmag
+real(dk)  ::  RSw
+real(dk)  ::  r_ICRF(1:3),v_ICRF(1:3)
+real(dk)  ::  rMoon_ICRF(1:3),vMoon_ICRF(1:3)
+real(dk)  ::  d(1:3),dmag
 
 ! ==============================================================================
 
@@ -110,11 +118,32 @@ roots(2) = t - (MJDf-MJD0)*secsPerDay*TU
 !roots(2) = 1._dk
 
 ! ==============================================================================
-! 03. Re-entry
+! 03. Re-entry (temporarily disabled)
 ! ==============================================================================
 
-rmag = sqrt(dot_product(y(1:3),y(1:3)))
-roots(3) = rmag - reentry_radius_nd
+! rmag = sqrt(dot_product(y(1:3),y(1:3)))
+! roots(3) = rmag - reentry_radius_nd
+roots(3) = 1._dk
+
+! ==============================================================================
+! 04. Distance-based switch of coordinate system
+! ==============================================================================
+
+if (iswitch == 1) then
+  RSw = R_SoI(aMoon_Kep,GE,GM); RSw = RSw/DU
+  
+  ! Position of the particle in ICRF
+  call POS_VEL_ICRF(coordSyst,t,DU,TU,y(1:3),y(4:6),r_ICRF,v_ICRF)
+  call EPHEM_ICRF(2,DU,TU,t,rMoon_ICRF,vMoon_ICRF)
+  
+  ! Position of the particle wrt Moon
+  d = r_ICRF - rMoon_ICRF
+  dmag = sqrt(dot_product(d,d))
+  
+else
+  roots(4) = dmag - RSw
+  
+end if
 
 end subroutine COWELL_EVT
 

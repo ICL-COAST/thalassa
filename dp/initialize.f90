@@ -16,7 +16,7 @@ implicit none
 contains
 
 
-subroutine INIT_STATE(eqs,R0,V0,MJD0,neq,y0,x0)
+subroutine INIT_STATE(eqs,R0,V0,MJD0,neq,y0,x0,mu)
 ! Description:
 !    Initializes the state vector "y0" and the independent variable "x0" from
 !    Cartesian coordinates and initial epoch.
@@ -36,6 +36,7 @@ implicit none
 ! Arguments
 integer,intent(in)               ::  eqs
 real(dk),intent(in)              ::  R0(1:3),V0(1:3),MJD0
+real(dk),intent(in)              ::  mu     ! Grav parameter [km^3/s^2]
 integer,intent(out)              ::  neq
 real(dk),intent(out),allocatable ::  y0(:)
 real(dk),intent(out)             ::  x0
@@ -65,8 +66,8 @@ select case (eqs)
         ftime = eqs - 2
         allocate(y0(1:neq))
         Rm = sqrt(dot_product(R0,R0))
-        U0 = PPOTENTIAL(insgrav,GE,RE,R0,Rm,0._dk)
-        x0 = EDROMO_PHI0(R0,V0,U0,GE,DU,TU)
+        U0 = PPOTENTIAL(insgrav,GE,RE,R0,Rm,0._dk)  ! TBD
+        x0 = EDROMO_PHI0(R0,V0,U0,mu,DU,TU)
 
         ! As before, set initial physical time to 0. The actual MJD will be
         ! recovered later.
@@ -77,8 +78,8 @@ select case (eqs)
         ftime = eqs - 5
         allocate(y0(1:neq))
         Rm = sqrt(dot_product(R0,R0))
-        U0 = PPOTENTIAL(insgrav,GE,RE,R0,Rm,0._dk)
-        call CART2KS(R0,V0,0._dk,GE,DU,TU,y0,U0)
+        U0 = PPOTENTIAL(insgrav,mu,RE,R0,Rm,0._dk)
+        call CART2KS(R0,V0,0._dk,mu,DU,TU,y0,U0)
 
 end select
 

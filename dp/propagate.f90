@@ -70,10 +70,11 @@ use INITIALIZE,  only: INIT_STATE
 use INTEGRATE,   only: SET_SOLV,SET_DX
 use REGULAR_AUX, only: PHYSICAL_TIME,CARTESIAN
 use COORD_SYST,  only: SWITCH_CS
+use PHYS_CONST,  only: CURRENT_MU
 use AUXILIARIES, only: MJD0,MJDnext,MJDf,DU,TU
 use PHYS_CONST,  only: GE,secsPerDay,GE,RE,GE_nd,RE_nd,ERR_constant,&
 &ERR_constant_nd,pi,reentry_height,reentry_radius_nd
-use SETTINGS,    only: integ,eqs,tol
+use SETTINGS,    only: integ,eqs,tol,iswitch
 
 ! VARIABLES
 implicit none
@@ -105,7 +106,7 @@ real(dk),allocatable  ::  atols(:)
 real(dk),allocatable  ::  rtols(:)
 
 ! Loop control flags and switch algorithm variables
-real(dk)  ::  RVSwitch(1:6),tSwitch,RSwNew(1:3),VSwNew(1:3)
+real(dk)  ::  RVSwitch(1:6),tSwitch,RSwNew(1:3),VSwNew(1:3),MJDSwitch
 integer   ::  len_yx
 integer   ::  switchCS,finTime,reentry
 
@@ -127,7 +128,7 @@ MJDf = MJD0 + tspan
 MJDnext = MJD0 + tstep
 
 ! Initialize state vector and independent variable
-call INIT_STATE(eqs,R0,V0,MJD0,neq,y0,x0)
+call INIT_STATE(eqs,R0,V0,MJD0,neq,y0,x0,CURRENT_MU(coordSyst))
 
 ! ==============================================================================
 ! 02. INTEGRATION LOOP
@@ -148,7 +149,7 @@ do
   if (finTime == 1 .or. reentry == 1) then
     exit
 
-  else if (switchCS == 1) then
+  else if ((switchCS == 1) .and. (iswitch /= 0) ) then
     ! Convert last point of the trajectory to Cartesian
     len_yx  = size(yx,1)
     tSwitch = PHYSICAL_TIME(eqs,neq,yx(len_yx,1),yx(len_yx,2:nels))
@@ -156,8 +157,10 @@ do
     
     ! Switch coordinate system
     call SWITCH_CS(coordSyst,tSwitch,RVSwitch(1:3),RVSwitch(4:6),RSwNew,VSwNew)
+    MJDSwitch = MJD0 + tSwitch/TU/secsPerDay
     
     ! Re-initialize state vector
+    call INIT_STATE(eqs,RSwNew,VSwNew,MJDSwitch,neq,y0,x0,CURRENT_MU(coordSyst))
 
   end if
   

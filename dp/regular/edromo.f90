@@ -270,10 +270,11 @@ roots(2) = t - (MJDf - MJD0)*secsPerDay*TU
 ! 03. Re-entry
 ! ==============================================================================
 
-rho   = 1._dk - z(1)*cos(phi) - z(2)*sin(phi)
-rmag  = z(3)*rho
+! rho   = 1._dk - z(1)*cos(phi) - z(2)*sin(phi)
+! rmag  = z(3)*rho
 
-roots(3) = rmag - reentry_radius_nd
+! roots(3) = rmag - reentry_radius_nd
+roots(3) = 1._dk
 
 end subroutine EDROMO_EVT
 
