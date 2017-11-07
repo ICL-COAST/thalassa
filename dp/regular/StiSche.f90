@@ -34,7 +34,7 @@ subroutine STISCHE_RHS(neq,phi,z,zdot)
 ! MODULES
 use SETTINGS,      only: eqs,insgrav,isun,imoon,idrag
 use PHYS_CONST,    only: GE_nd,RE_nd,ERR_constant_nd
-use PERTURBATIONS, only: PPOTENTIAL,PACC_EJ2K
+use PERTURBATIONS, only: PPOTENTIAL,PACC_ICRF
 
 ! VARIABLES
 implicit none
@@ -141,7 +141,7 @@ Upot = 0._dk; dUdt = 0._dk; dUdr = 0._dk
 ! Evaluate potential
 Upot = PPOTENTIAL(insgrav,GE_nd,RE_nd,rV,rmag,t)
 ! Evaluate time and spatial derivatives (note that velocity is not needed here)
-dUdr = PACC_EJ2K(insgrav,0,0,0,0,rV,vV,rmag,t,gradU_sph)
+dUdr = PACC_ICRF(insgrav,0,0,0,0,rV,vV,rmag,t,gradU_sph)
 dUdt = gradU_sph(3)*ERR_constant_nd
 
 ! ==============================================================================
@@ -160,7 +160,7 @@ vmag = sqrt(vsq)
 
 ! Initializations
 p = 0._dk; f = 0._dk
-p = PACC_EJ2K(0,isun,imoon,idrag,0,rV,vV,rmag,t)
+p = PACC_ICRF(0,isun,imoon,idrag,0,rV,vV,rmag,t)
 
 ! ==============================================================================
 ! 06. COMPUTE AUXILIARY QUANTITIES (2)

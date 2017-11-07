@@ -41,7 +41,7 @@ subroutine KS_RHS(neq,s,u,udot)
 ! MODULES
 use PHYS_CONST,    only: GE_nd,RE_nd,ERR_constant_nd
 use SETTINGS,      only: eqs,insgrav,isun,imoon,idrag,iSRP
-use PERTURBATIONS, only: PPOTENTIAL,PACC_EJ2K
+use PERTURBATIONS, only: PPOTENTIAL,PACC_ICRF
 
 ! VARIABLES
 implicit none
@@ -88,7 +88,7 @@ t = u(10)
 
 Vpot = 0._dk; mdVdr = 0._dk; dVdt = 0._dk
 Vpot = PPOTENTIAL(insgrav,GE_nd,RE_nd,x(1:3),rmag,t)
-mdVdr(1:3) = PACC_EJ2K(insgrav,0,0,0,0,x(1:3),xdot(1:3),rmag,t,gradV_sph)
+mdVdr(1:3) = PACC_ICRF(insgrav,0,0,0,0,x(1:3),xdot(1:3),rmag,t,gradV_sph)
 dVdt = gradV_sph(3) * ERR_constant_nd
 
 ! ==============================================================================
@@ -96,7 +96,7 @@ dVdt = gradV_sph(3) * ERR_constant_nd
 ! ==============================================================================
 
 P = 0._dk
-P(1:3) = PACC_EJ2K(0,isun,imoon,idrag,iSRP,x(1:3),xdot(1:3),rmag,t)
+P(1:3) = PACC_ICRF(0,isun,imoon,idrag,iSRP,x(1:3),xdot(1:3),rmag,t)
 F = mdVdr + P; 
 
 ! ==============================================================================

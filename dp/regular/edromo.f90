@@ -36,7 +36,7 @@ subroutine EDROMO_RHS(neq,phi,z,zdot)
 ! MODULES
 use SETTINGS,      only: eqs,insgrav,isun,imoon,idrag,iSRP
 use PHYS_CONST,    only: GE_nd,RE_nd,ERR_constant_nd
-use PERTURBATIONS, only: PPOTENTIAL,PACC_EJ2K
+use PERTURBATIONS, only: PPOTENTIAL,PACC_ICRF
 
 ! VARIABLES
 implicit none
@@ -144,7 +144,7 @@ Upot = 0._dk; dUdt = 0._dk; dUdr = 0._dk
 ! Evaluate potential
 Upot = PPOTENTIAL(insgrav,GE_nd,RE_nd,rV,rmag,t)
 ! Evaluate time and spatial derivatives (note that velocity is not needed here)
-dUdr = PACC_EJ2K(insgrav,0,0,0,0,rV,vV,rmag,t,gradU_sph)
+dUdr = PACC_ICRF(insgrav,0,0,0,0,rV,vV,rmag,t,gradU_sph)
 dUdr = INERT2ORB_EDROMO(dUdr,z,cnu,snu)
 dUdt = gradU_sph(3)*ERR_constant_nd
 
@@ -167,7 +167,7 @@ cosg = v_rad/vmag; sing = v_tan/vmag
 
 ! Initializations
 p = 0._dk; f = 0._dk
-p = PACC_EJ2K(0,isun,imoon,idrag,iSRP,rV,vV,rmag,t)
+p = PACC_ICRF(0,isun,imoon,idrag,iSRP,rV,vV,rmag,t)
 p = INERT2ORB_EDROMO(p,z,cnu,snu)
 
 ! ==============================================================================

@@ -64,9 +64,9 @@ end function
 
 
 
-function PACC_EJ2K(insgrav,isun,imoon,idrag,iSRP,r,v,rm,t,gradU_sph_out)
+function PACC_ICRF(insgrav,isun,imoon,idrag,iSRP,r,v,rm,t,gradU_sph_out)
 ! Description:
-!    Computes the perturbing acceleration in the EMEJ2000 frame due to a non-sph
+!    Computes the perturbing acceleration in the ICRF frame due to a non-sph
 !    gravity field, Sun and Moon, drag and solar radiation pressure.
 !    Units are DIMENSIONLESS.
 !
@@ -90,7 +90,7 @@ integer,intent(in)   ::  imoon,idrag,iSRP    ! More perturbation flags
 ! EDromo right-hand-side.
 real(dk),optional,intent(out)  ::  gradU_sph_out(1:3)
 ! Function definition
-real(dk)            ::  PACC_EJ2K(1:3)
+real(dk)            ::  PACC_ICRF(1:3)
 ! LOCALS
 ! Non-spherical gravity
 real(dk)  ::  gradU_sph(1:3)
@@ -125,7 +125,7 @@ real(dk)  ::  p_SRP(1:3)
 
 ! ==============================================================================
 
-PACC_EJ2K = 0._dk
+PACC_ICRF = 0._dk
 
 ! ==============================================================================
 ! 01. NON-SPHERICAL GRAVITY
@@ -140,7 +140,7 @@ if (insgrav /= 0) then
 
 end if
 
-PACC_EJ2K = p_nsg + PACC_EJ2K
+PACC_ICRF = p_nsg + PACC_ICRF
 if (present(gradU_sph_out)) then
   ! Save gradient of U in spherical coordinates if present
   gradU_sph_out = gradU_sph
@@ -166,7 +166,7 @@ if (imoon /= 0 ) then
 
 end if
 
-PACC_EJ2K = p_sun + p_moon + PACC_EJ2K
+PACC_ICRF = p_sun + p_moon + PACC_ICRF
 
 ! ==============================================================================
 ! 03. ATMOSPHERIC DRAG
@@ -268,7 +268,7 @@ if (idrag /= 0 .and. h_D <= cutoff_height) then
 
 end if
 
-PACC_EJ2K = p_drag + PACC_EJ2K
+PACC_ICRF = p_drag + PACC_ICRF
 
 ! ==============================================================================
 ! 04. SOLAR RADIATION PRESSURE
@@ -286,9 +286,9 @@ if (iSRP == 1) then
   p_SRP = p_SRP/((DU*1.E3_dk)*TU**2)
 
 end if
-PACC_EJ2K = p_SRP + PACC_EJ2K
+PACC_ICRF = p_SRP + PACC_ICRF
 
-end function PACC_EJ2K
+end function PACC_ICRF
 
 
 
