@@ -293,4 +293,91 @@ end function PACC_ICRF
 
 
 
+function PACC_MMEIAUE(insgrav,isun,iearth,iSRP,r,v,rm,t,gradU_sph_out)
+! Description:
+!    Computes the perturbing acceleration in the MMEIAUE frame due to a non-sph
+!    gravity field (TO DO), Sun (TO DO) and Earth, and solar radiation pressure
+!    (TO DO).
+!    Units are DIMENSIONLESS.
+!
+! ==============================================================================
+
+! MODULES
+use PHYS_CONST,  only: GM,GE,GS
+use AUXILIARIES, only: DU,TU
+
+! VARIABLES
+implicit none
+! Arguments IN
+real(dk),intent(in)  ::  r(1:3),rm           ! Radius vector and its magnitude
+real(dk),intent(in)  ::  v(1:3)              ! Velocity vector
+real(dk),intent(in)  ::  t                   ! Time (dimensionless)
+integer,intent(in)   ::  insgrav,isun        ! Perturbation flags
+integer,intent(in)   ::  iearth,iSRP         ! More perturbation flags
+! OPTIONAL OUTPUT: gradient of potential in sph. coordinates, used by
+! EDromo right-hand-side.
+real(dk),optional,intent(out)  ::  gradU_sph_out(1:3)
+! Function definition
+real(dk)            ::  PACC_MMEIAUE(1:3)
+
+! LOCALS
+! Non-spherical gravity
+real(dk)  ::  p_nsg(1:3)
+! Third-body perturbations
+real(dk)  ::  p_sun(1:3),p_earth(1:3)
+real(dk)  ::  r_sun(1:3),v_sun(1:3),r_earth(1:3),v_earth(1:3)
+! Solar radiation pressure
+real(dk)  ::  p_SRP(1:3)
+
+! ==============================================================================
+
+PACC_MMEIAUE = 0._dk
+
+! ==============================================================================
+! 01. NON-SPHERICAL GRAVITY (TO DO)
+! ==============================================================================
+
+p_nsg = 0._dk
+! Insert computation of non-spherical gravity field of the Moon here
+PACC_MMEIAUE = p_nsg + PACC_MMEIAUE
+
+! ==============================================================================
+! 02. THIRD-BODY PERTURBATIONS
+! ==============================================================================
+
+p_sun = 0._dk; p_earth = 0._dk
+if (isun /= 0) then
+  ! SUN
+  call EPHEM_ICRF(1,DU,TU,t,r_sun,v_sun)
+
+  ! Convert to MMEIAUE CS (TBD)
+
+  p_sun = ACC_THBOD_EJ2K_ND(r,r_sun,GE,GS)
+
+end if
+
+if (iearth /= 0 ) then
+  ! EARTH
+  ! Position and velocity of the Earth in MMEIAUE are opposite of position and
+  ! velocity of the Moon in ICRF.
+  call EPHEM_ICRF(2,DU,TU,t,r_earth,v_earth)
+  r_earth = -r_earth; v_earth = -v_earth
+  p_earth = ACC_THBOD_EJ2K_ND(r,r_earth,GM,GE)
+
+end if
+
+PACC_MMEIAUE = p_sun + p_earth + PACC_MMEIAUE
+
+! ==============================================================================
+! 03. SOLAR RADIATION PRESSURE (TBD)
+! ==============================================================================
+
+p_SRP = 0._dk
+
+PACC_MMEIAUE = p_SRP + PACC_MMEIAUE
+
+
+end function PACC_MMEIAUE
+
+
 end module PERTURBATIONS

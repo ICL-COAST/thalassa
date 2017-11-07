@@ -24,9 +24,9 @@ subroutine COWELL_RHS(neq,t,y,ydot)
 ! ==============================================================================
 
 ! MODULES
-use AUXILIARIES,   only: DU,TU
+use AUXILIARIES,   only: DU,TU,coordSyst
 use SETTINGS,      only: insgrav,isun,imoon,idrag,iSRP
-use PERTURBATIONS, only: PACC_ICRF
+use PERTURBATIONS, only: PACC_ICRF,PACC_MMEIAUE
 
 ! VARIABLES
 implicit none
@@ -38,26 +38,33 @@ real(dk),intent(in)    ::  y(1:neq)        ! Cartesian state vector, ND.
 real(dk),intent(out)   ::  ydot(1:neq)     ! RHS of EoM's, ND.
 
 ! Local variables
-real(dk)          ::  rMag                     ! Magnitude of position vector. [-]
-real(dk)          ::  p_EJ2K(1:3)              ! Perturbation acceleration in the inertial frame. [-]
+real(dk)          ::  rMag                 ! Magnitude of position vector. [-]
+real(dk)          ::  p(1:3)          ! Perturbation acceleration. [-]
 
 ! ==============================================================================
 
 rMag = sqrt(dot_product(y(1:3),y(1:3)))
 
 ! ==============================================================================
-! 01. COMPUTE PERTURBATIONS IN THE EMEJ2000 FRAME
+! 01. COMPUTE PERTURBATIONS
 ! ==============================================================================
 
-p_EJ2K = 0._dk
-p_EJ2K = PACC_ICRF(insgrav,isun,imoon,idrag,iSRP,y(1:3),y(4:6),rMag,t)
+p = 0._dk
+select case(trim(coordSyst))
+  case('ICRF')
+    p = PACC_ICRF(insgrav,isun,imoon,idrag,iSRP,y(1:3),y(4:6),rMag,t)
+  
+  case('MMEIAUE')
+    p = PACC_MMEIAUE(insgrav,isun,imoon,iSRP,y(1:3),y(4:6),rMag,t)
+
+end select
 
 ! ==============================================================================
 ! 02. EVALUATE RIGHT-HAND SIDE
 ! ==============================================================================
 
 ydot(1:3) = y(4:6)
-ydot(4:6) = -y(1:3)/rMag**3 + p_EJ2K
+ydot(4:6) = -y(1:3)/rMag**3 + p
 
 end subroutine COWELL_RHS
 

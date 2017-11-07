@@ -41,7 +41,8 @@ subroutine KS_RHS(neq,s,u,udot)
 ! MODULES
 use PHYS_CONST,    only: GE_nd,RE_nd,ERR_constant_nd
 use SETTINGS,      only: eqs,insgrav,isun,imoon,idrag,iSRP
-use PERTURBATIONS, only: PPOTENTIAL,PACC_ICRF
+use PERTURBATIONS, only: PPOTENTIAL,PACC_ICRF,PACC_MMEIAUE
+use AUXILIARIES,   only: coordSyst
 
 ! VARIABLES
 implicit none
@@ -96,8 +97,15 @@ dVdt = gradV_sph(3) * ERR_constant_nd
 ! ==============================================================================
 
 P = 0._dk
-P(1:3) = PACC_ICRF(0,isun,imoon,idrag,iSRP,x(1:3),xdot(1:3),rmag,t)
-F = mdVdr + P; 
+select case(trim(coordSyst))
+  case('ICRF')
+    P(1:3) = PACC_ICRF(0,isun,imoon,idrag,iSRP,x(1:3),xdot(1:3),rmag,t)
+  
+  case('MMEIAUE')
+    P(1:3) = PACC_MMEIAUE(0,isun,imoon,iSRP,x(1:3),xdot(1:3),rmag,t)
+
+end select
+F = mdVdr + P
 
 ! ==============================================================================
 ! 04. EVALUATE RIGHT-HAND SIDE

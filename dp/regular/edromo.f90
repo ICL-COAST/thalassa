@@ -36,7 +36,8 @@ subroutine EDROMO_RHS(neq,phi,z,zdot)
 ! MODULES
 use SETTINGS,      only: eqs,insgrav,isun,imoon,idrag,iSRP
 use PHYS_CONST,    only: GE_nd,RE_nd,ERR_constant_nd
-use PERTURBATIONS, only: PPOTENTIAL,PACC_ICRF
+use PERTURBATIONS, only: PPOTENTIAL,PACC_ICRF,PACC_MMEIAUE
+use AUXILIARIES,   only: coordSyst
 
 ! VARIABLES
 implicit none
@@ -167,7 +168,14 @@ cosg = v_rad/vmag; sing = v_tan/vmag
 
 ! Initializations
 p = 0._dk; f = 0._dk
-p = PACC_ICRF(0,isun,imoon,idrag,iSRP,rV,vV,rmag,t)
+select case(trim(coordSyst))
+  case('ICRF')
+    p = PACC_ICRF(0,isun,imoon,idrag,iSRP,rV,vV,rmag,t)
+  
+  case('MMEIAUE')
+    p = PACC_MMEIAUE(0,isun,imoon,iSRP,rV,vV,rmag,t)
+
+end select
 p = INERT2ORB_EDROMO(p,z,cnu,snu)
 
 ! ==============================================================================
