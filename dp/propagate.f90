@@ -53,6 +53,9 @@ abstract interface
 
 end interface
 
+! Max number of coordinate system switches
+integer,parameter  ::  maxswitch = 50
+
 contains
 
 
@@ -74,7 +77,7 @@ use PHYS_CONST,  only: CURRENT_MU
 use AUXILIARIES, only: MJD0,MJDnext,MJDf,DU,TU
 use PHYS_CONST,  only: GE,secsPerDay,GE,RE,GE_nd,RE_nd,ERR_constant,&
 &ERR_constant_nd,pi,reentry_height,reentry_radius_nd
-use SETTINGS,    only: integ,eqs,tol,iswitch
+use SETTINGS,    only: integ,eqs,tol,iswitch,mxstep
 
 ! VARIABLES
 implicit none
@@ -110,6 +113,17 @@ real(dk)  ::  RVSwitch(1:6),tSwitch,RSwNew(1:3),VSwNew(1:3),MJDSwitch
 integer   ::  len_yx
 integer   ::  switchCS,finTime,reentry
 
+! Derived data type 'trajectory'
+type trajectory
+  character(len=12)  ::  CS
+  real(dk)           ::  MJD
+  real(dk)           ::  RV(1:6)
+
+end type trajectory
+
+type(trajectory)     ::  traj_save(1:mxstep)
+integer              ::  ptr
+
 ! ==============================================================================
 
 ! ==============================================================================
@@ -138,12 +152,24 @@ call INIT_STATE(eqs,R0,V0,MJD0,neq,y0,x0,CURRENT_MU(coordSyst))
 call SET_SOLV(integ,eqs,neq,tol,isett,iwork,rwork,rtols,atols)
 
 dx = SET_DX(eqs,tstep,TU)
+ptr = 1
 
 ! Choose equations of motion and start MAIN INTEGRATION LOOP. Switch reference
 ! frames until reaching final time.
 do
   call INTLOOP(integ,eqs,neq,y0,x0,dx,tstep,yx,rtols,atols,isett,liw,iwork,lrw,&
   rwork)
+
+  ! Save trajectory
+  npts = size(yx,1)
+  nels = size(yx,2)
+  do ip=1,npts
+      t = PHYSICAL_TIME(eqs,neq,yx(ip,1),yx(ip,2:nels))
+      traj_save(ip)%CS  = coordSyst
+      traj_save(ip)%MJD = MJD0 + t/TU/secsPerDay
+      traj_save(ip)%RV  = CARTESIAN(eqs,neq,DU,TU,yx(ip,1),yx(ip,2:nels))
+  
+  end do
   
   finTime  = isett(8); reentry = isett(9); switchCS = isett(10)
   if (finTime == 1 .or. reentry == 1) then
@@ -171,17 +197,17 @@ end do
 ! 03. OFFLINE PROCESSING
 ! ==============================================================================
 
-npts = size(yx,1)
-nels = size(yx,2)
-if (allocated(cart)) deallocate(cart)
-allocate(cart(1:npts,1:7))
+! npts = size(yx,1)
+! nels = size(yx,2)
+! if (allocated(cart)) deallocate(cart)
+! allocate(cart(1:npts,1:7))
 
-do ip=1,npts
-    t = PHYSICAL_TIME(eqs,neq,yx(ip,1),yx(ip,2:nels))
-    cart(ip,1)   = MJD0 + t/TU/secsPerDay
-    cart(ip,2:7) = CARTESIAN(eqs,neq,DU,TU,yx(ip,1),yx(ip,2:nels))
+! do ip=1,npts
+!     t = PHYSICAL_TIME(eqs,neq,yx(ip,1),yx(ip,2:nels))
+!     cart(ip,1)   = MJD0 + t/TU/secsPerDay
+!     cart(ip,2:7) = CARTESIAN(eqs,neq,DU,TU,yx(ip,1),yx(ip,2:nels))
 
-end do
+! end do
 
 ! Save total number of function calls and number of steps taken
 int_steps = iwork(11)
