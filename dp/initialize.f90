@@ -79,7 +79,8 @@ select case (eqs)
         Rm = sqrt(dot_product(R0,R0))
         U0 = PPOTENTIAL(insgrav,GE,RE,R0,Rm,0._dk)
         call CART2KS(R0,V0,0._dk,GE,DU,TU,y0,U0)
-
+        x0 = EDROMO_PHI0(R0,V0,U0,GE,DU,TU)
+        
 end select
 
 end subroutine INIT_STATE
