@@ -80,7 +80,7 @@ use AUXILIARIES, only: SET_UNITS
 use INITIALIZE,  only: INIT_STATE
 use INTEGRATE,   only: SET_SOLV,SET_DX
 use REGULAR_AUX, only: PHYSICAL_TIME,CARTESIAN
-use COORD_SYST,  only: SWITCH_CS
+use COORD_SYST,  only: SWITCH_CS,POS_VEL_ICRF
 use PHYS_CONST,  only: CURRENT_MU
 use AUXILIARIES, only: MJD0,MJDnext,MJDf,DU,TU
 use PHYS_CONST,  only: GE,secsPerDay,GE,RE,GE_nd,RE_nd,ERR_constant,&
@@ -111,6 +111,7 @@ integer               ::  ip
 integer               ::  npts,nels
 real(dk),allocatable  ::  yx(:,:)
 real(dk)              ::  t              ! Physical time (dimensionless)
+real(dk)              ::  MJD
 
 ! LSODAR - individual tolerances
 real(dk),allocatable  ::  atols(:)
@@ -202,14 +203,16 @@ end do
 ! ==============================================================================
 
 ! Convert saved trajectory into output frames ICRF, MMEIAUE, SYN
-! do ip=1,npts
-!   MJD = traj_save(ip)%MJD
-!   traj_ICRF(ip)%t = t
-!   call POS_VEL_ICRF(traj_save(ip)%CS,t,1._dk,1._dk,traj_save(ip)%RV(1:3),&
-!   &traj_save(ip)%RV(4:6),traj_ICRF(ip)%RV(1:3),traj_ICRF(ip)%RV(4:6))
+do ip=1,npts
+  MJD = traj_save(ip)%MJD
+  traj_ICRF(ip)%MJD = MJD
+  call POS_VEL_ICRF(traj_save(ip)%CS,t,1._dk,1._dk,traj_save(ip)%RV(1:3),&
+  &traj_save(ip)%RV(4:6),traj_ICRF(ip)%RV(1:3),traj_ICRF(ip)%RV(4:6))
 
-! end do
+end do
 
+write(*,'(7(e23.15,1x))') ( traj_ICRF(ip)%MJD, traj_ICRF(ip)%RV, ip = 1,50 )
+stop
 ! Save total number of function calls and number of steps taken
 int_steps = iwork(11)
 tot_calls = iwork(12)
