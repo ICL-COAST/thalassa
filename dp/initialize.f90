@@ -16,7 +16,7 @@ implicit none
 contains
 
 
-subroutine INIT_STATE(eqs,R0,V0,MJD0,neq,y0,x0,mu)
+subroutine INIT_STATE(eqs,R0,V0,t0,neq,y0,x0,mu)
 ! Description:
 !    Initializes the state vector "y0" and the independent variable "x0" from
 !    Cartesian coordinates and initial epoch.
@@ -35,7 +35,8 @@ use KUST_STI,      only: CART2KS
 implicit none
 ! Arguments
 integer,intent(in)               ::  eqs
-real(dk),intent(in)              ::  R0(1:3),V0(1:3),MJD0
+real(dk),intent(in)              ::  R0(1:3),V0(1:3)
+real(dk),intent(in)              ::  t0     ! Initial time [s]
 real(dk),intent(in)              ::  mu     ! Grav parameter [km^3/s^2]
 integer,intent(out)              ::  neq
 real(dk),intent(out),allocatable ::  y0(:)
@@ -57,29 +58,25 @@ select case (eqs)
         allocate(y0(1:neq))
         y0(1:3) = R0/DU
         y0(4:6) = V0/(DU*TU)
-        ! Set initial value of physical time to 0 always, as to reduce round-off
-        ! problems.
-        x0 = 0._dk
+        x0 = t0*TU
 
     case(2:4) ! EDromo
         neq = 8
         ftime = eqs - 2
         allocate(y0(1:neq))
         Rm = sqrt(dot_product(R0,R0))
-        U0 = PPOTENTIAL(insgrav,GE,RE,R0,Rm,0._dk)  ! TBD
+        U0 = PPOTENTIAL(insgrav,GE,RE,R0,Rm,t0*TU)  ! TBD
         x0 = EDROMO_PHI0(R0,V0,U0,mu,DU,TU)
 
-        ! As before, set initial physical time to 0. The actual MJD will be
-        ! recovered later.
-        call CART2EDROMO(R0,V0,0._dk,DU,TU,y0,x0,U0,ftime)
+        call CART2EDROMO(R0,V0,t0,DU,TU,y0,x0,U0,ftime)
     
     case(5:6) ! KS
         neq = 10
         ftime = eqs - 5
         allocate(y0(1:neq))
         Rm = sqrt(dot_product(R0,R0))
-        U0 = PPOTENTIAL(insgrav,mu,RE,R0,Rm,0._dk)
-        call CART2KS(R0,V0,0._dk,mu,DU,TU,y0,U0)
+        U0 = PPOTENTIAL(insgrav,mu,RE,R0,Rm,t0*TU)  ! TBD
+        call CART2KS(R0,V0,t0,mu,DU,TU,y0,U0)
 
 end select
 

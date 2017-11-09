@@ -31,7 +31,8 @@ subroutine SWITCH_CS(coordSyst,t,R_from,V_from,R_to,V_to)
 ! 
 ! ==============================================================================
 
-use SUN_MOON, only: EPHEM_ICRF
+use SUN_MOON,    only: EPHEM_ICRF
+use AUXILIARIES, only: DU,TU,SET_UNITS
 implicit none
 ! VARIABLES
 character(len=12),intent(inout)  ::  coordSyst
@@ -53,13 +54,15 @@ select case (trim(coordSyst))
     R_to = real(R_from,qk) - real(rMoon,qk)
     V_to = real(V_from,qk) - real(vMoon,qk)
     coordSyst = 'MMEIAUE'
+    call SET_UNITS(R_to)
   
   case ('MMEIAUE')
     ! Switch to ICRF.
     R_to = real(R_from,qk) + real(rMoon,qk)
     V_to = real(V_from,qk) + real(vMoon,qk)
     coordSyst = 'ICRF'
-  
+    call SET_UNITS(R_to)
+    
 end select
 
 end subroutine SWITCH_CS
@@ -124,5 +127,119 @@ select case(trim(coordSyst))
 end select
 
 end subroutine POS_VEL_ICRF
+
+
+
+
+function ICRF2SYN(rICRF,vICRF,r2,v2,m2,m1,n)
+! Description:
+!     Transforms from ICRF coordinates rICRF,vICRF [km,km/s] to synodic
+!     coordinates.
+!
+! ==============================================================================
+
+! MODULES
+use SUN_MOON, only: EPHEM_ICRF
+
+! VARIABLES
+implicit none
+! Arguments
+real(dk),intent(in)  ::  rICRF(1:3),vICRF(1:3)    ! ICRF state [km,km/s].
+real(dk),intent(in)  ::  r2(1:3),v2(1:3)          ! State of secondary body (Moon) [km,km/s].
+real(dk),intent(in)  ::  m2,m1,n
+! Function definition
+real(dk)  ::  ICRF2SYN(1:6)             ! Synodic state [km,km/s]
+! Locals
+real(dk)  ::  CM(1:6)                   ! CM position and velocity [km,km/s]
+real(dk)  ::  m2_red                    ! Reduced mass of secondary
+real(dk)  ::  y_CM(1:6)                 ! Position and velocity wrt CM [km,km/s]
+real(dk)  ::  theta                     ! Secondary's true longitude
+real(dk)  ::  Rot(3,3),dRot(3,3)        ! Rotation matrices
+
+! ==============================================================================
+
+m2_red = m2/(m2+m1)
+! Compute position and velocity of the CM
+CM = m2_red*[r2,v2]
+
+! Compute position and velocity WRT CM in helio coord.
+y_CM(1:3) = rICRF - CM(1:3)
+y_CM(4:6) = vICRF - CM(4:6)
+
+! Secondary's true longitude theta
+theta = atan2(r2(2),r2(1))
+
+! Rotation matrices
+Rot  = RESHAPE([cos(theta),-sin(theta),0._dk&   ! 1st col
+             &,sin(theta),cos(theta),0._dk&     ! 2nd col
+             &,0._dk,0._dk,1._dk],[3,3])        ! 3rd col
+
+dRot = RESHAPE([-sin(theta),-cos(theta),0._dk&  ! 1st col
+             &,cos(theta),-sin(theta),0._dk&    ! 2nd col
+             &,0._dk,0._dk,0._dk],[3,3])        ! 3rd col
+
+! Synodic position
+ICRF2SYN(1:3) = MATMUL(Rot,y_CM(1:3))
+! Synodic velocity
+ICRF2SYN(4:6) = MATMUL(Rot,y_CM(4:6)) + n*MATMUL(dRot,y_CM(1:3))
+
+end function ICRF2SYN
+
+
+
+function SYN2ICRF(rSYN,vSYN,r2,v2,m2,m1,n)
+! Description:
+!     Transforms from synodic coordinates rSYN,vSYN [km,km/s] to synodic
+!     coordinates.
+!
+! ==============================================================================
+
+! MODULES
+use SUN_MOON, only: EPHEM_ICRF
+
+! VARIABLES
+implicit none
+! Arguments
+real(dk),intent(in)  ::  rSYN(1:3),vSYN(1:3)    ! ICRF state [km,km/s].
+real(dk),intent(in)  ::  r2(1:3),v2(1:3)          ! State of secondary body (Moon) [km,km/s].
+real(dk),intent(in)  ::  m2,m1,n
+! Function definition
+real(dk)  ::  SYN2ICRF(1:6)             ! Synodic state [km,km/s]
+! Locals
+real(dk)  ::  CM(1:6)                   ! CM position and velocity [km,km/s]
+real(dk)  ::  m2_red                    ! Reduced mass of secondary
+real(dk)  ::  y_CM(1:6)                 ! Position and velocity wrt CM [km,km/s]
+real(dk)  ::  theta                     ! Secondary's true longitude
+real(dk)  ::  Rot(3,3),dRot(3,3)        ! Rotation matrices
+
+! ==============================================================================
+
+! Secondary's true longitude theta
+theta = atan2(r2(2),r2(1))
+
+! Rotation matrices
+Rot  = RESHAPE([cos(theta),sin(theta),0._dk&   ! 1st col
+             &,-sin(theta),cos(theta),0._dk&     ! 2nd col
+             &,0._dk,0._dk,1._dk],[3,3])        ! 3rd col
+
+dRot = RESHAPE([-sin(theta),cos(theta),0._dk&  ! 1st col
+             &,-cos(theta),-sin(theta),0._dk&    ! 2nd col
+             &,0._dk,0._dk,0._dk],[3,3])        ! 3rd col
+
+! Barycentric coordinates
+y_CM(1:3)  =  MATMUL(Rot,rSYN)
+y_CM(4:6)  =  MATMUL(Rot,vSyn) + n*MATMUL(dRot,rSyn)
+
+! CM position and velocity in ICRF
+m2_red = m2/(m2+m1)
+CM = m2_red*[r2,v2]
+
+! ICRF position and velocity
+SYN2ICRF = y_CM + CM
+
+end function SYN2ICRF
+
+
+
 
 end module COORD_SYST

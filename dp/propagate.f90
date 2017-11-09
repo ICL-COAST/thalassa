@@ -56,6 +56,14 @@ end interface
 ! Max number of coordinate system switches
 integer,parameter  ::  maxswitch = 50
 
+! Derived data types
+type trajectory
+  character(len=12)  ::  CS
+  real(dk)           ::  MJD
+  real(dk)           ::  RV(1:6)
+
+end type trajectory
+
 contains
 
 
@@ -102,7 +110,7 @@ integer   ::  isett(1:20)                ! Solver option flags. Increase size if
 integer               ::  ip
 integer               ::  npts,nels
 real(dk),allocatable  ::  yx(:,:)
-real(dk)              ::  t
+real(dk)              ::  t              ! Physical time (dimensionless)
 
 ! LSODAR - individual tolerances
 real(dk),allocatable  ::  atols(:)
@@ -113,15 +121,10 @@ real(dk)  ::  RVSwitch(1:6),tSwitch,RSwNew(1:3),VSwNew(1:3),MJDSwitch
 integer   ::  len_yx
 integer   ::  switchCS,finTime,reentry
 
-! Derived data type 'trajectory'
-type trajectory
-  character(len=12)  ::  CS
-  real(dk)           ::  MJD
-  real(dk)           ::  RV(1:6)
-
-end type trajectory
-
 type(trajectory)     ::  traj_save(1:mxstep)
+type(trajectory)     ::  traj_ICRF(1:mxstep)
+type(trajectory)     ::  traj_MMEIAUE(1:mxstep)
+type(trajectory)     ::  traj_SYN(1:mxstep)
 integer              ::  ptr
 
 ! ==============================================================================
@@ -141,8 +144,8 @@ reentry_radius_nd = (reentry_height + RE)/DU
 MJDf = MJD0 + tspan
 MJDnext = MJD0 + tstep
 
-! Initialize state vector and independent variable
-call INIT_STATE(eqs,R0,V0,MJD0,neq,y0,x0,CURRENT_MU(coordSyst))
+! Initialize state vector and independent variable. Initial time = 0 s
+call INIT_STATE(eqs,R0,V0,0._dk,neq,y0,x0,CURRENT_MU(coordSyst))
 
 ! ==============================================================================
 ! 02. INTEGRATION LOOP
@@ -186,8 +189,9 @@ do
     MJDSwitch = MJD0 + tSwitch/TU/secsPerDay
     
     ! Re-initialize state vector
-    call INIT_STATE(eqs,RSwNew,VSwNew,MJDSwitch,neq,y0,x0,CURRENT_MU(coordSyst))
-
+    call INIT_STATE(eqs,RSwNew,VSwNew,tSwitch/TU,neq,y0,x0,CURRENT_MU(coordSyst))
+    
+    
   end if
   
 
@@ -197,15 +201,12 @@ end do
 ! 03. OFFLINE PROCESSING
 ! ==============================================================================
 
-! npts = size(yx,1)
-! nels = size(yx,2)
-! if (allocated(cart)) deallocate(cart)
-! allocate(cart(1:npts,1:7))
-
+! Convert saved trajectory into output frames ICRF, MMEIAUE, SYN
 ! do ip=1,npts
-!     t = PHYSICAL_TIME(eqs,neq,yx(ip,1),yx(ip,2:nels))
-!     cart(ip,1)   = MJD0 + t/TU/secsPerDay
-!     cart(ip,2:7) = CARTESIAN(eqs,neq,DU,TU,yx(ip,1),yx(ip,2:nels))
+!   MJD = traj_save(ip)%MJD
+!   traj_ICRF(ip)%t = t
+!   call POS_VEL_ICRF(traj_save(ip)%CS,t,1._dk,1._dk,traj_save(ip)%RV(1:3),&
+!   &traj_save(ip)%RV(4:6),traj_ICRF(ip)%RV(1:3),traj_ICRF(ip)%RV(4:6))
 
 ! end do
 

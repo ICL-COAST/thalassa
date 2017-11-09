@@ -31,10 +31,10 @@ gord:      0
 # switch:    0 = do not switch coordinate systems, 1 = otherwise
 integ:     1
 tol:       1.000000000000000E-14
-tspan:     27.28285322100239E+02
-tstep:     27.28285322100239E-02
+tspan:     20.94589686316457E+00
+tstep:     20.94589686316457E-02
 mxstep:    1.0E+06
-switch:    1
+switch:    0
 
 # EQUATIONS OF MOTION
 # eqs:       Type of the equations of motion.

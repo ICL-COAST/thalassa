@@ -105,6 +105,9 @@ select case(trim(coordSyst))
     P(1:3) = PACC_MMEIAUE(0,isun,imoon,iSRP,x(1:3),xdot(1:3),rmag,t)
 
 end select
+!!! DEBUG
+P = 0._dk
+!!! DEBUG
 F = mdVdr + P
 
 ! ==============================================================================
