@@ -31,8 +31,8 @@ gord:      0
 # switch:    0 = do not switch coordinate systems, 1 = otherwise
 integ:     1
 tol:       1.000000000000000E-14
-tspan:     20.94589686316457E+00
-tstep:     20.94589686316457E-02
+tspan:     28.53005425918177E+00
+tstep:     3.566256782397721E+00
 mxstep:    1.0E+06
 switch:    0
 
@@ -43,4 +43,4 @@ switch:    0
 eqs:       5
 
 # OUTPUT DIRECTORY
-out: /home/davide/Documents/PhD/02.Progetti/THESS/data/Davidson/val/
+out: /home/davide/Documents/PhD/02.Progetti/THESS/Thalassa_val/Davidson_val/

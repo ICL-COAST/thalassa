@@ -34,8 +34,9 @@ use PHYS_CONST,  only: READ_PHYS,GMST_UNIFORM,CURRENT_MU
 use PROPAGATE,   only: DPROP_REGULAR
 use SETTINGS,    only: READ_SETTINGS
 use IO,          only: id_cart,id_orb,id_stat
-use SETTINGS,    only: model,gdeg,gord,outpath
+use SETTINGS,    only: model,gdeg,gord,outpath,mxstep
 use PHYS_CONST,  only: GE,d2r,r2d,secsPerDay,secsPerSidDay,twopi
+use PROPAGATE,   only: trajectory
 implicit none
 
 ! VARIABLES
@@ -57,6 +58,9 @@ integer  ::  rate,tic,toc
 real(dk) ::  cputime
 ! Function calls and integration steps
 integer  ::  int_steps,tot_calls
+
+! Results
+type(trajectory),allocatable  ::  traj_ICRF(:)
 
 
 ! ==============================================================================
@@ -99,14 +103,14 @@ mu = CURRENT_MU(coordSyst)
 ! write(*,'(a,g22.15)') 'Initial GMST (deg): ',GMST0*r2d
 ! write(*,'(a,g22.15)') 'Initial orbital period (sid. days): ',period
 
-call DPROP_REGULAR(coordSyst,R0,V0,tspan,tstep,cart,int_steps,tot_calls)
+call DPROP_REGULAR(coordSyst,R0,V0,tspan,tstep,cart,int_steps,tot_calls,traj_ICRF)
 
 ! ==============================================================================
 ! 03. PROCESSING AND OUTPUT
 ! ==============================================================================
 
 ! Initialize orbital elements array
-npts = size(cart,1)
+npts = size(traj_ICRF,1)
 if (allocated(orb)) deallocate(orb)
 allocate(orb(1:npts,1:7))
 orb = 0._dk
@@ -120,10 +124,11 @@ write(*,'(a,g9.2,a)') 'CPU time: ',cputime,' s'
 ! orb(1): MJD,  orb(2): a,  orb(3): e, orb(4): i
 ! orb(5): Om,   orb(6): om, orb(7): M
 do ipt=1,npts
-    orb(ipt,1) = cart(ipt,1)    ! Copy MJD
-    R = cart(ipt,2:4)
-    V = cart(ipt,5:7)
-    call CART2COE(R,V,orb(ipt,2:7),GE)
+    orb(ipt,1) = traj_ICRF(ipt)%MJD    ! Copy MJD
+    R = traj_ICRF(ipt)%RV(1:3)
+    V = traj_ICRF(ipt)%RV(4:6)
+!    mu = CURRENT_MU(traj_ICRF(ipt)%CS)
+    call CART2COE(R,V,orb(ipt,2:7),CURRENT_MU('MMEIAUE'))
     orb(ipt,4:7) = orb(ipt,4:7)/d2r
 
 end do
@@ -134,7 +139,7 @@ call SYSTEM('cp in/*.txt '//trim(outpath))
 call CREATE_OUT(id_cart)
 call CREATE_OUT(id_orb)
 call CREATE_OUT(id_stat)
-call DUMP_TRAJ(id_cart,npts,cart)
+!call DUMP_TRAJ(id_cart,npts,cart)
 call DUMP_TRAJ(id_orb,npts,orb)
 
 ! Write statistics line: calls, steps, CPU time, final time and orbital elements

@@ -79,7 +79,7 @@ subroutine EPHEM_ICRF(ibody,DU,TU,t,r,v)
 
 ! MODULES
 use SETTINGS,    only: iephem
-use AUXILIARIES, only: T2MJD
+use AUXILIARIES, only: T2MJD,MJD0
 use PHYS_CONST,  only: secsPerDay,MJD_J2000,GE,GM,twopi
 
 ! VARIABLES
@@ -98,7 +98,7 @@ real(dk)  ::  lt
 ! Ephemerides
 real(dk)  ::  y(1:6)
 ! Moon mean motion and mean anomaly [rad/s,rad] (Keplerian case)
-real(dk)  ::  nMoon_Kep,MMoon_Kep
+real(dk)  ::  nMoon_Kep,nMoon_Kep_day,MMoon_Kep
 
 ! ==============================================================================
 
@@ -139,9 +139,10 @@ case(2)
   
   case(3)
     ! MOON (Keplerian)
-    ! **NOTE**: At t = 0 the Moon is on the x-axis ALWAYS.
+    ! **NOTE**: At t = 0 (MJD = MJD0) the Moon is on the x-axis ALWAYS.
     nMoon_Kep = sqrt((GE + GM)/aMoon_Kep**3)
-    MMoon_Kep = mod(nMoon_Kep*t,twopi)
+    nMoon_Kep_day = sqrt((GE + GM)/aMoon_Kep**3)*secsPerDay
+    MMoon_Kep = mod(nMoon_Kep_day*(MJD_UT1-MJD0),twopi)
     y(1:3) = aMoon_Kep*[cos(MMoon_Kep),sin(MMoon_Kep),0._dk]
     y(4:6) = aMoon_Kep*nMoon_Kep*[-sin(MMoon_Kep),cos(MMoon_Kep),0._dk]
 

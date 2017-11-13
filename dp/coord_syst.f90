@@ -121,8 +121,8 @@ select case(trim(coordSyst))
   
   case ('MMEIAUE')
     call EPHEM_ICRF(2,DU,TU,t,rMoon_ICRF,vMoon_ICRF)
-    rICRF = rMoon_ICRF + rCurr
-    vICRF = vMoon_ICRF + vCurr
+    rICRF = rMoon_ICRF*DU    + rCurr
+    vICRF = vMoon_ICRF*DU*TU + vCurr
 
 end select
 

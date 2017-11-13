@@ -59,6 +59,9 @@ integer,parameter  ::  maxswitch = 50
 ! Derived data types
 type trajectory
   character(len=12)  ::  CS
+  real(dk)           ::  DU
+  real(dk)           ::  TU
+  real(dk)           ::  t
   real(dk)           ::  MJD
   real(dk)           ::  RV(1:6)
 
@@ -67,7 +70,7 @@ end type trajectory
 contains
 
 
-subroutine DPROP_REGULAR(coordSyst,R0,V0,tspan,tstep,cart,int_steps,tot_calls)
+subroutine DPROP_REGULAR(coordSyst,R0,V0,tspan,tstep,cart,int_steps,tot_calls,traj_ICRF)
 ! Description:
 !    Propagates an orbit for "tspan" days, starting from MJD0. The propagation
 !    is performed using either regularized formulations or unregularized Cowell.
@@ -94,6 +97,7 @@ character(len=*),intent(inout)  ::  coordSyst
 real(dk),intent(in)  ::  R0(1:3),V0(1:3)
 real(dk),intent(in)  ::  tspan,tstep
 real(dk),intent(out),allocatable  ::  cart(:,:)
+type(trajectory),intent(out),allocatable     ::  traj_ICRF(:)
 integer,intent(out)   ::  int_steps,tot_calls
 ! LOCALS
 integer   ::  neq                  ! N. of equations
@@ -123,7 +127,6 @@ integer   ::  len_yx
 integer   ::  switchCS,finTime,reentry
 
 type(trajectory)     ::  traj_save(1:mxstep)
-type(trajectory)     ::  traj_ICRF(1:mxstep)
 type(trajectory)     ::  traj_MMEIAUE(1:mxstep)
 type(trajectory)     ::  traj_SYN(1:mxstep)
 integer              ::  ptr
@@ -170,6 +173,9 @@ do
   do ip=1,npts
       t = PHYSICAL_TIME(eqs,neq,yx(ip,1),yx(ip,2:nels))
       traj_save(ip)%CS  = coordSyst
+      traj_save(ip)%DU  = DU
+      traj_save(ip)%TU  = TU
+      traj_save(ip)%t   = t
       traj_save(ip)%MJD = MJD0 + t/TU/secsPerDay
       traj_save(ip)%RV  = CARTESIAN(eqs,neq,DU,TU,yx(ip,1),yx(ip,2:nels))
   
@@ -202,17 +208,37 @@ end do
 ! 03. OFFLINE PROCESSING
 ! ==============================================================================
 
+! Allocate trajectory results
+if (allocated(traj_ICRF)) deallocate(traj_ICRF)
+allocate(traj_ICRF(1:npts))
+
+!!! DEBUG
 ! Convert saved trajectory into output frames ICRF, MMEIAUE, SYN
+! do ip=1,npts
+!   ! Save MJD, CS, extract t
+!   MJD = traj_save(ip)%MJD
+!   traj_ICRF(ip)%MJD = MJD
+!   traj_ICRF(ip)%CS  = coordSyst
+  
+!   call POS_VEL_ICRF(traj_ICRF(ip)%CS,traj_save(ip)%t,traj_save(ip)%DU,&
+!   &traj_save(ip)%TU,traj_save(ip)%RV(1:3),traj_save(ip)%RV(4:6),&
+!   &traj_ICRF(ip)%RV(1:3),traj_ICRF(ip)%RV(4:6))
+
+! end do
 do ip=1,npts
-  MJD = traj_save(ip)%MJD
-  traj_ICRF(ip)%MJD = MJD
-  call POS_VEL_ICRF(traj_save(ip)%CS,t,1._dk,1._dk,traj_save(ip)%RV(1:3),&
-  &traj_save(ip)%RV(4:6),traj_ICRF(ip)%RV(1:3),traj_ICRF(ip)%RV(4:6))
+  traj_ICRF(ip)%CS = traj_save(ip)%CS
+  traj_ICRF(ip)%DU = traj_save(ip)%DU
+  traj_ICRF(ip)%TU = traj_save(ip)%TU
+  traj_ICRF(ip)%t = traj_save(ip)%t
+  traj_ICRF(ip)%MJD = traj_save(ip)%MJD
+  traj_ICRF(ip)%RV = traj_save(ip)%RV
 
 end do
 
-write(*,'(7(e23.15,1x))') ( traj_ICRF(ip)%MJD, traj_ICRF(ip)%RV, ip = 1,50 )
-stop
+!!! DEBUG
+
+! write(*,'(7(e23.15,1x))') ( traj_ICRF(ip)%MJD, traj_ICRF(ip)%RV, ip = 1,102 )
+! stop
 ! Save total number of function calls and number of steps taken
 int_steps = iwork(11)
 tot_calls = iwork(12)

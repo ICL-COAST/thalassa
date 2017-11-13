@@ -139,9 +139,10 @@ if (iswitch == 1) then
   ! Position of the particle wrt Moon
   d = r_ICRF - rMoon_ICRF
   dmag = sqrt(dot_product(d,d))
-  
-else
   roots(4) = dmag - RSw
+
+else
+  roots(4) = 1._dk
   
 end if
 
