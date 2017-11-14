@@ -27,12 +27,14 @@ program THALASSA
 
 ! MODULES
 use KINDS,       only: dk
-use AUXILIARIES, only: MJD0,coordSyst
 use IO,          only: READ_IC,CREATE_OUT,DUMP_TRAJ
 use CART_COE,    only: COE2CART,CART2COE
+use COORD_SYST,  only: CHOOSE_CS
 use PHYS_CONST,  only: READ_PHYS,GMST_UNIFORM,CURRENT_MU
 use PROPAGATE,   only: DPROP_REGULAR
 use SETTINGS,    only: READ_SETTINGS
+use AUXILIARIES, only: SET_UNITS
+use AUXILIARIES, only: MJD0,coordSyst
 use IO,          only: id_cart,id_orb,id_stat
 use SETTINGS,    only: model,gdeg,gord,outpath,mxstep
 use PHYS_CONST,  only: GE,d2r,r2d,secsPerDay,secsPerSidDay,twopi
@@ -87,6 +89,11 @@ call FURNSH('in/kernels_to_load.furnsh')
 
 ! Select gravitational parameter
 mu = CURRENT_MU(coordSyst)
+
+! Check on initial coordinate system
+! NOTE: CHOOSE_CS needs DU, TU to be set. SET_UNITS will be called again later.
+call SET_UNITS(R0)
+call CHOOSE_CS(0._dk,coordSyst,R0,V0,coordsyst,R0,V0)
 
 ! ! Output to user (TBD)
 ! GMST0 = GMST_UNIFORM(MJD0)

@@ -18,7 +18,8 @@ module SUN_MOON
 !
 ! ==============================================================================
 
-use KINDS, only: dk
+use KINDS,      only: dk
+use PHYS_CONST, only: GE,GM
 implicit none
 
 ! Moon SMA for the Keplerian case

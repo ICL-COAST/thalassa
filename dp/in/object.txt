@@ -1,12 +1,12 @@
 # THALASSA - OBJECT PARAMETERS (Davidson orbit)
 # ==============================================================================
 # Reference frame ('ICRF' or 'MMEIAUE')
-MMEIAUE
+ICRF
 # Initial epoch, position, and velocity
 +5.504100000000000E+04;	MJD  [UT1]
-+1000.000000000000E+00;	X  [km]
++369400.0000000000E+00;	X  [km]
 +0.000000000000000E+00;	Y  [km]
 +0.000000000000000E+00;	Z  [km]
 +0.000000000000000E+00;	VX [km/s]
-+2.726160970296866E+00;	VY [km/s]
++2.020065900739828E+00;	VY [km/s]
 +0.000000000000000E+00;	VZ [km/s]

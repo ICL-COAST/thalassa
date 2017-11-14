@@ -48,7 +48,7 @@ kepler.o: kepler.f90 kinds.o
 cart_coe.o: cart_coe.f90 phys_const.o kepler.o kinds.o
 	$(FC) $(FCFLAGS) cart_coe.f90
 
-coord_syst.o: coord_syst.f90 sun_moon.o kinds.o
+coord_syst.o: coord_syst.f90 sun_moon.o phys_const.o kinds.o
 	$(FC) $(FCFLAGS) coord_syst.f90
 
 nsgrav.o: ./model/nsgrav.f90 kinds.o settings.o phys_const.o auxiliaries.o
@@ -86,7 +86,7 @@ $(FORMUL) integrate.o initialize.o coord_syst.o
 	$(FC) $(FCFLAGS) propagate.f90
 
 thalassa_main.o: thalassa_main.f90 kinds.o io.o phys_const.o settings.o \
-cart_coe.o propagate.o
+coord_syst.o cart_coe.o propagate.o
 	$(FC) $(FCFLAGS) thalassa_main.f90
 
 # Atmospheric model

@@ -29,12 +29,14 @@ gord:      0
 # tstep:     Step size (solar days).
 # mxstep:    Maximum number of integration/output steps.
 # switch:    0 = do not switch coordinate systems, 1 = otherwise
+# RSw:       Switch radius (in Hill radii)
 integ:     1
 tol:       1.000000000000000E-14
 tspan:     28.53005425918177E+00
 tstep:     3.566256782397721E+00
 mxstep:    1.0E+06
 switch:    0
+RSw   :    1.100000000000000E+00
 
 # EQUATIONS OF MOTION
 # eqs:       Type of the equations of motion.
