@@ -79,7 +79,7 @@ subroutine COWELL_EVT(neq,t,y,ng,roots)
 ! MODULES
 use AUXILIARIES, only: MJD0,MJDnext,MJDf,TU,DU,coordSyst
 use PHYS_CONST,  only: secsPerDay,reentry_radius_nd,GE,GM
-use SETTINGS,    only: iswitch
+use SETTINGS,    only: iswitch,RSw_Hill
 use SUN_MOON,    only: aMoon_Kep
 use SUN_MOON,    only: EPHEM_ICRF
 use COORD_SYST,  only: R_SOI,POS_VEL_ICRF
@@ -98,7 +98,7 @@ real(dk)  ::  rmag
 real(dk)  ::  RSw
 real(dk)  ::  r_ICRF(1:3),v_ICRF(1:3)
 real(dk)  ::  rMoon_ICRF(1:3),vMoon_ICRF(1:3)
-real(dk)  ::  d(1:3),dmag
+real(dk)  ::  RHillMoon,d(1:3),dmag
 
 ! ==============================================================================
 
@@ -130,11 +130,12 @@ roots(3) = 1._dk
 ! ==============================================================================
 
 if (iswitch == 1) then
-  RSw = R_SoI(aMoon_Kep,GE,GM); RSw = RSw/DU
-  
+  RHillMoon = aMoon_Kep*(GM/(3._dk*GE))**(1._dk/3._dk)
+  RSw = RSw_Hill*RHillMoon
+
   ! Position of the particle in ICRF
   call POS_VEL_ICRF(coordSyst,t,DU,TU,y(1:3),y(4:6),r_ICRF,v_ICRF)
-  call EPHEM_ICRF(2,DU,TU,t,rMoon_ICRF,vMoon_ICRF)
+  call EPHEM_ICRF(2,1._dk,1._dk,t,rMoon_ICRF,vMoon_ICRF)
   
   ! Position of the particle wrt Moon
   d = r_ICRF - rMoon_ICRF

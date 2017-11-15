@@ -32,10 +32,10 @@ gord:      0
 # RSw:       Switch radius (in Hill radii)
 integ:     1
 tol:       1.000000000000000E-14
-tspan:     28.53005425918177E+00
-tstep:     3.566256782397721E+00
+tspan:     30.00000000000000E+00
+tstep:     30.00000000000000E-02
 mxstep:    1.0E+06
-switch:    0
+switch:    1
 RSw   :    1.100000000000000E+00
 
 # EQUATIONS OF MOTION

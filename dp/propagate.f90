@@ -93,7 +93,7 @@ use SETTINGS,    only: integ,eqs,tol,iswitch,mxstep
 ! VARIABLES
 implicit none
 ! ARGUMENTS
-character(len=*),intent(inout)  ::  coordSyst
+character(len=12),intent(inout)  ::  coordSyst
 real(dk),intent(in)  ::  R0(1:3),V0(1:3)
 real(dk),intent(in)  ::  tspan,tstep
 real(dk),intent(out),allocatable  ::  cart(:,:)
@@ -212,30 +212,27 @@ end do
 if (allocated(traj_ICRF)) deallocate(traj_ICRF)
 allocate(traj_ICRF(1:npts))
 
-!!! DEBUG
 ! Convert saved trajectory into output frames ICRF, MMEIAUE, SYN
-! do ip=1,npts
-!   ! Save MJD, CS, extract t
-!   MJD = traj_save(ip)%MJD
-!   traj_ICRF(ip)%MJD = MJD
-!   traj_ICRF(ip)%CS  = coordSyst
-  
-!   call POS_VEL_ICRF(traj_ICRF(ip)%CS,traj_save(ip)%t,traj_save(ip)%DU,&
-!   &traj_save(ip)%TU,traj_save(ip)%RV(1:3),traj_save(ip)%RV(4:6),&
-!   &traj_ICRF(ip)%RV(1:3),traj_ICRF(ip)%RV(4:6))
-
-! end do
 do ip=1,npts
-  traj_ICRF(ip)%CS = traj_save(ip)%CS
-  traj_ICRF(ip)%DU = traj_save(ip)%DU
-  traj_ICRF(ip)%TU = traj_save(ip)%TU
-  traj_ICRF(ip)%t = traj_save(ip)%t
-  traj_ICRF(ip)%MJD = traj_save(ip)%MJD
-  traj_ICRF(ip)%RV = traj_save(ip)%RV
+  ! Save MJD, CS, extract t
+  MJD = traj_save(ip)%MJD
+  traj_ICRF(ip)%MJD = MJD
+  traj_ICRF(ip)%CS  = coordSyst
+  
+  call POS_VEL_ICRF(traj_ICRF(ip)%CS,traj_save(ip)%t,traj_save(ip)%DU,&
+  &traj_save(ip)%TU,traj_save(ip)%RV(1:3),traj_save(ip)%RV(4:6),&
+  &traj_ICRF(ip)%RV(1:3),traj_ICRF(ip)%RV(4:6))
 
 end do
+! do ip=1,npts
+!   traj_ICRF(ip)%CS = traj_save(ip)%CS
+!   traj_ICRF(ip)%DU = traj_save(ip)%DU
+!   traj_ICRF(ip)%TU = traj_save(ip)%TU
+!   traj_ICRF(ip)%t = traj_save(ip)%t
+!   traj_ICRF(ip)%MJD = traj_save(ip)%MJD
+!   traj_ICRF(ip)%RV = traj_save(ip)%RV
 
-!!! DEBUG
+! end do
 
 ! write(*,'(7(e23.15,1x))') ( traj_ICRF(ip)%MJD, traj_ICRF(ip)%RV, ip = 1,102 )
 ! stop

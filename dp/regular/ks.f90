@@ -105,9 +105,6 @@ select case(trim(coordSyst))
     P(1:3) = PACC_MMEIAUE(0,isun,imoon,iSRP,x(1:3),xdot(1:3),rmag,t)
 
 end select
-!!! DEBUG
-P = 0._dk
-!!! DEBUG
 F = mdVdr + P
 
 ! ==============================================================================
@@ -281,7 +278,7 @@ subroutine KS_EVT(neq,phi,u,ng,roots)
 ! MODULES
 use AUXILIARIES, only: MJD0,MJDnext,MJDf,DU,TU,coordSyst
 use PHYS_CONST,  only: secsPerDay,RE,reentry_radius_nd,GE,GM
-use SETTINGS,    only: eqs,iswitch
+use SETTINGS,    only: eqs,iswitch,RSw_Hill
 use SUN_MOON,    only: aMoon_Kep
 use SUN_MOON,    only: EPHEM_ICRF
 use COORD_SYST,  only: R_SOI,POS_VEL_ICRF
@@ -302,7 +299,7 @@ real(dk)  ::  rmag,x(1:3),xdot(1:3)
 real(dk)  ::  RSw
 real(dk)  ::  r_ICRF(1:3),v_ICRF(1:3)
 real(dk)  ::  rMoon_ICRF(1:3),vMoon_ICRF(1:3)
-real(dk)  ::  d(1:3),dmag
+real(dk)  ::  RHillMoon,d(1:3),dmag
 
 ! ==============================================================================
 
@@ -340,11 +337,12 @@ roots(3) = 1._dk
 ! ==============================================================================
 
 if (iswitch == 1) then
-  RSw = R_SoI(aMoon_Kep,GE,GM); RSw = RSw/DU
+  RHillMoon = aMoon_Kep*(GM/(3._dk*GE))**(1._dk/3._dk)
+  RSw = RSw_Hill*RHillMoon
   
   ! Position of the particle in ICRF
-  call POS_VEL_ICRF(coordSyst,t,DU,TU,x,xdot,r_ICRF,v_ICRF)
-  call EPHEM_ICRF(2,DU,TU,t,rMoon_ICRF,vMoon_ICRF)
+  call POS_VEL_ICRF(coordSyst,t,DU,TU,x*DU,xdot*DU*TU,r_ICRF,v_ICRF)
+  call EPHEM_ICRF(2,1._dk,1._dk,t,rMoon_ICRF,vMoon_ICRF)
   
   ! Position of the particle wrt Moon
   d = r_ICRF - rMoon_ICRF

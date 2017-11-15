@@ -134,8 +134,8 @@ do ipt=1,npts
     orb(ipt,1) = traj_ICRF(ipt)%MJD    ! Copy MJD
     R = traj_ICRF(ipt)%RV(1:3)
     V = traj_ICRF(ipt)%RV(4:6)
-!    mu = CURRENT_MU(traj_ICRF(ipt)%CS)
-    call CART2COE(R,V,orb(ipt,2:7),CURRENT_MU('MMEIAUE'))
+    mu = GE
+    call CART2COE(R,V,orb(ipt,2:7),mu)
     orb(ipt,4:7) = orb(ipt,4:7)/d2r
 
 end do
