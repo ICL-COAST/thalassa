@@ -1,4 +1,4 @@
-# THALASSA - OBJECT PARAMETERS (Davidson orbit)
+# THALASSA - OBJECT PARAMETERS (Test orbit for the CR3BP)
 # ==============================================================================
 # Reference frame ('ICRF' or 'MMEIAUE')
 ICRF
