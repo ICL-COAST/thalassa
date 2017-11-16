@@ -38,7 +38,7 @@ use AUXILIARIES, only: MJD0,coordSyst
 use IO,          only: id_cart,id_orb,id_stat
 use SETTINGS,    only: model,gdeg,gord,outpath,mxstep
 use PHYS_CONST,  only: GE,d2r,r2d,secsPerDay,secsPerSidDay,twopi
-use PROPAGATE,   only: trajectory
+use PROPAGATE,   only: results
 implicit none
 
 ! VARIABLES
@@ -62,7 +62,7 @@ real(dk) ::  cputime
 integer  ::  int_steps,tot_calls
 
 ! Results
-type(trajectory),allocatable  ::  traj_ICRF(:)
+type(results)  ::  trs
 
 
 ! ==============================================================================
@@ -110,14 +110,14 @@ call CHOOSE_CS(MJD0,coordSyst,R0,V0,coordsyst,R0,V0)
 ! write(*,'(a,g22.15)') 'Initial GMST (deg): ',GMST0*r2d
 ! write(*,'(a,g22.15)') 'Initial orbital period (sid. days): ',period
 
-call DPROP_REGULAR(coordSyst,R0,V0,tspan,tstep,cart,int_steps,tot_calls,traj_ICRF)
+call DPROP_REGULAR(coordSyst,R0,V0,tspan,tstep,int_steps,tot_calls,trs)
 
 ! ==============================================================================
 ! 03. PROCESSING AND OUTPUT
 ! ==============================================================================
 
 ! Initialize orbital elements array
-npts = size(traj_ICRF,1)
+npts = size(trs%ICRF,1)
 if (allocated(orb)) deallocate(orb)
 allocate(orb(1:npts,1:7))
 orb = 0._dk
@@ -131,9 +131,9 @@ write(*,'(a,g9.2,a)') 'CPU time: ',cputime,' s'
 ! orb(1): MJD,  orb(2): a,  orb(3): e, orb(4): i
 ! orb(5): Om,   orb(6): om, orb(7): M
 do ipt=1,npts
-    orb(ipt,1) = traj_ICRF(ipt)%MJD    ! Copy MJD
-    R = traj_ICRF(ipt)%RV(1:3)
-    V = traj_ICRF(ipt)%RV(4:6)
+    orb(ipt,1) = trs%ICRF(ipt)%MJD    ! Copy MJD
+    R = trs%ICRF(ipt)%RV(1:3)
+    V = trs%ICRF(ipt)%RV(4:6)
     mu = GE
     call CART2COE(R,V,orb(ipt,2:7),mu)
     orb(ipt,4:7) = orb(ipt,4:7)/d2r

@@ -67,10 +67,17 @@ type trajectory
 
 end type trajectory
 
+type results
+  type(trajectory),allocatable  ::  ICRF(:)
+  type(trajectory),allocatable  ::  MMEIAUE(:)
+  type(trajectory),allocatable  ::  SYN(:)
+
+end type results
+
 contains
 
 
-subroutine DPROP_REGULAR(coordSyst,R0,V0,tspan,tstep,cart,int_steps,tot_calls,traj_ICRF)
+subroutine DPROP_REGULAR(coordSyst,R0,V0,tspan,tstep,int_steps,tot_calls,trs)
 ! Description:
 !    Propagates an orbit for "tspan" days, starting from MJD0. The propagation
 !    is performed using either regularized formulations or unregularized Cowell.
@@ -83,7 +90,7 @@ use AUXILIARIES, only: SET_UNITS
 use INITIALIZE,  only: INIT_STATE
 use INTEGRATE,   only: SET_SOLV,SET_DX
 use REGULAR_AUX, only: PHYSICAL_TIME,CARTESIAN
-use COORD_SYST,  only: SWITCH_CS,POS_VEL_ICRF
+use COORD_SYST,  only: SWITCH_CS,POS_VEL_ICRF,POS_VEL_MMEIAUE
 use PHYS_CONST,  only: CURRENT_MU
 use AUXILIARIES, only: MJD0,MJDnext,MJDf,DU,TU
 use PHYS_CONST,  only: GE,secsPerDay,GE,RE,GE_nd,RE_nd,ERR_constant,&
@@ -94,11 +101,12 @@ use SETTINGS,    only: integ,eqs,tol,iswitch,mxstep
 implicit none
 ! ARGUMENTS
 character(len=12),intent(inout)  ::  coordSyst
-real(dk),intent(in)  ::  R0(1:3),V0(1:3)
-real(dk),intent(in)  ::  tspan,tstep
-real(dk),intent(out),allocatable  ::  cart(:,:)
-type(trajectory),intent(out),allocatable     ::  traj_ICRF(:)
-integer,intent(out)   ::  int_steps,tot_calls
+real(dk),intent(in)              ::  R0(1:3),V0(1:3)
+real(dk),intent(in)              ::  tspan,tstep
+type(results),intent(out)        ::  trs
+integer,intent(out)              ::  int_steps,tot_calls
+
+
 ! LOCALS
 integer   ::  neq                  ! N. of equations
 real(dk)  ::  x0                   ! Initial value of indep. variable
@@ -116,7 +124,7 @@ integer               ::  nels
 real(dk),allocatable  ::  yx(:,:)
 real(dk)              ::  t              ! Physical time (dimensionless)
 real(dk)              ::  MJD,RV(1:6)
-real(dk)              ::  RV_ICRF(1:6)
+real(dk)              ::  RV_ICRF(1:6),RV_MMEIAUE(1:6)
 
 ! LSODAR - individual tolerances
 real(dk),allocatable  ::  atols(:)
@@ -128,6 +136,7 @@ integer   ::  len_yx
 integer   ::  switchCS,finTime,reentry
 
 type(trajectory)     ::  traj_save(1:mxstep)
+type(trajectory)     ::  traj_ICRF(1:mxstep)
 type(trajectory)     ::  traj_MMEIAUE(1:mxstep)
 type(trajectory)     ::  traj_SYN(1:mxstep)
 integer              ::  start,ncum,nseg,iseg
@@ -225,8 +234,8 @@ end do
 ! ==============================================================================
 
 ! Allocate trajectory results
-if (allocated(traj_ICRF)) deallocate(traj_ICRF)
-allocate(traj_ICRF(1:ncum))
+if (allocated(trs%ICRF)) deallocate(trs%ICRF); allocate(trs%ICRF(1:ncum))
+! if (allocated(traj_MMEIAUE)) deallocate(traj_ICRF); allocate(traj_ICRF(1:ncum))
 
 ! Convert saved trajectory into output frames ICRF, MMEIAUE, SYN
 do ip=1,ncum
@@ -237,20 +246,15 @@ do ip=1,ncum
   call POS_VEL_ICRF(CS_integ,MJD,traj_save(ip)%DU,traj_save(ip)%TU,&
   &RV(1:3),RV(4:6),RV_ICRF(1:3),RV_ICRF(4:6))
   
-  ! Copy remaining values
-  traj_ICRF(ip) = SAVETR(CS_integ,traj_save(ip)%DU,traj_save(ip)%TU,&
+  ! Convert CS_integ -> MMEIAUE
+  call POS_VEL_MMEIAUE(CS_integ,MJD,traj_save(ip)%DU,traj_save(ip)%TU,&
+  &RV(1:3),RV(4:6),RV_MMEIAUE(1:3),RV_MMEIAUE(4:6))
+
+  ! Copy values in output arrays
+  trs%ICRF(ip) = SAVETR(CS_integ,traj_save(ip)%DU,traj_save(ip)%TU,&
   traj_save(ip)%t,MJD,RV_ICRF)
   
 end do
-! do ip=1,nseg
-!   traj_ICRF(ip)%CS = traj_save(ip)%CS
-!   traj_ICRF(ip)%DU = traj_save(ip)%DU
-!   traj_ICRF(ip)%TU = traj_save(ip)%TU
-!   traj_ICRF(ip)%t = traj_save(ip)%t
-!   traj_ICRF(ip)%MJD = traj_save(ip)%MJD
-!   traj_ICRF(ip)%RV = traj_save(ip)%RV
-
-! end do
 
 
 contains
