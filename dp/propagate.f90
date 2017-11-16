@@ -90,12 +90,13 @@ use AUXILIARIES, only: SET_UNITS
 use INITIALIZE,  only: INIT_STATE
 use INTEGRATE,   only: SET_SOLV,SET_DX
 use REGULAR_AUX, only: PHYSICAL_TIME,CARTESIAN
-use COORD_SYST,  only: SWITCH_CS,POS_VEL_ICRF,POS_VEL_MMEIAUE
+use COORD_SYST,  only: SWITCH_CS,POS_VEL_ICRF,POS_VEL_MMEIAUE,ICRF2SYN
 use PHYS_CONST,  only: CURRENT_MU
 use AUXILIARIES, only: MJD0,MJDnext,MJDf,DU,TU
-use PHYS_CONST,  only: GE,secsPerDay,GE,RE,GE_nd,RE_nd,ERR_constant,&
+use PHYS_CONST,  only: GE,GM,secsPerDay,GE,RE,GE_nd,RE_nd,ERR_constant,&
 &ERR_constant_nd,pi,reentry_height,reentry_radius_nd
 use SETTINGS,    only: integ,eqs,tol,iswitch,mxstep
+use SUN_MOON,    only: aMoon_Kep
 
 ! VARIABLES
 implicit none
@@ -124,7 +125,8 @@ integer               ::  nels
 real(dk),allocatable  ::  yx(:,:)
 real(dk)              ::  t              ! Physical time (dimensionless)
 real(dk)              ::  MJD,RV(1:6)
-real(dk)              ::  RV_ICRF(1:6),RV_MMEIAUE(1:6)
+real(dk)              ::  RV_ICRF(1:6),RV_MMEIAUE(1:6),RV_SYN(1:6)
+real(dk)              ::  rMoon(1:3),vMoon(1:3),nMoon
 
 ! LSODAR - individual tolerances
 real(dk),allocatable  ::  atols(:)
@@ -136,9 +138,6 @@ integer   ::  len_yx
 integer   ::  switchCS,finTime,reentry
 
 type(trajectory)     ::  traj_save(1:mxstep)
-type(trajectory)     ::  traj_ICRF(1:mxstep)
-type(trajectory)     ::  traj_MMEIAUE(1:mxstep)
-type(trajectory)     ::  traj_SYN(1:mxstep)
 integer              ::  start,ncum,nseg,iseg
 character(len=12)    ::  CS_integ
 
@@ -235,7 +234,11 @@ end do
 
 ! Allocate trajectory results
 if (allocated(trs%ICRF)) deallocate(trs%ICRF); allocate(trs%ICRF(1:ncum))
-! if (allocated(traj_MMEIAUE)) deallocate(traj_ICRF); allocate(traj_ICRF(1:ncum))
+if (allocated(trs%MMEIAUE)) deallocate(trs%MMEIAUE); allocate(trs%MMEIAUE(1:ncum))
+if (allocated(trs%SYN)) deallocate(trs%SYN); allocate(trs%SYN(1:ncum))
+
+! Init nMoon (for conversion to SYN)
+nMoon = sqrt((GM + GE)/aMoon_Kep**3)
 
 ! Convert saved trajectory into output frames ICRF, MMEIAUE, SYN
 do ip=1,ncum
@@ -250,10 +253,18 @@ do ip=1,ncum
   call POS_VEL_MMEIAUE(CS_integ,MJD,traj_save(ip)%DU,traj_save(ip)%TU,&
   &RV(1:3),RV(4:6),RV_MMEIAUE(1:3),RV_MMEIAUE(4:6))
 
+  ! Convert ICRF -> SYN
+  rMoon = RV_ICRF(1:3) - RV_MMEIAUE(1:3); vMoon = RV_ICRF(4:6) - RV_MMEIAUE(4:6)
+  RV_SYN = ICRF2SYN(RV_ICRF(1:3),RV_ICRF(4:6),rMoon,vMoon,GM,GE,nMoon)
+
   ! Copy values in output arrays
   trs%ICRF(ip) = SAVETR(CS_integ,traj_save(ip)%DU,traj_save(ip)%TU,&
   traj_save(ip)%t,MJD,RV_ICRF)
-  
+  trs%MMEIAUE(ip) = SAVETR(CS_integ,traj_save(ip)%DU,traj_save(ip)%TU,&
+  traj_save(ip)%t,MJD,RV_MMEIAUE)
+  trs%SYN(ip) = SAVETR(CS_integ,traj_save(ip)%DU,traj_save(ip)%TU,&
+  traj_save(ip)%t,MJD,RV_SYN)
+
 end do
 
 
