@@ -116,6 +116,7 @@ integer               ::  nels
 real(dk),allocatable  ::  yx(:,:)
 real(dk)              ::  t              ! Physical time (dimensionless)
 real(dk)              ::  MJD,RV(1:6)
+real(dk)              ::  RV_ICRF(1:6)
 
 ! LSODAR - individual tolerances
 real(dk),allocatable  ::  atols(:)
@@ -155,6 +156,9 @@ traj_save(1) = SAVETR(coordSyst,DU,TU,0._dk,MJD0,[R0,V0])
 ! Initialize indices
 start = 2; nseg  = 1; iseg  = 1; ncum  = 1
 
+! Initialize integration statistics
+int_steps = 0; tot_calls = 0
+
 ! Initialize state vector and independent variable. Initial time = 0 s
 call INIT_STATE(eqs,R0,V0,0._dk,neq,y0,x0,CURRENT_MU(coordSyst))
 
@@ -187,6 +191,10 @@ do
   end do
   start = ncum + 1
   iseg = 1
+
+  ! Save int steps, function calls
+  int_steps = int_steps + iwork(11)
+  tot_calls = tot_calls + iwork(12)
 
   finTime  = isett(8); reentry = isett(9); switchCS = isett(10)
   if (finTime == 1 .or. reentry == 1) then
@@ -222,15 +230,17 @@ allocate(traj_ICRF(1:ncum))
 
 ! Convert saved trajectory into output frames ICRF, MMEIAUE, SYN
 do ip=1,ncum
-  ! Save MJD, CS, extract t
-  MJD = traj_save(ip)%MJD; CS_integ = traj_save(ip)%CS
+  ! Rename vars
+  MJD = traj_save(ip)%MJD; CS_integ = traj_save(ip)%CS; RV = traj_save(ip)%RV
   
-  traj_ICRF(ip)%MJD = MJD
-  traj_ICRF(ip)%CS  = CS_integ
-  call POS_VEL_ICRF(traj_ICRF(ip)%CS,traj_ICRF(ip)%MJD,traj_save(ip)%DU,&
-  &traj_save(ip)%TU,traj_save(ip)%RV(1:3),traj_save(ip)%RV(4:6),&
-  &traj_ICRF(ip)%RV(1:3),traj_ICRF(ip)%RV(4:6))
-
+  ! Convert CS_integ -> ICRF
+  call POS_VEL_ICRF(CS_integ,MJD,traj_save(ip)%DU,traj_save(ip)%TU,&
+  &RV(1:3),RV(4:6),RV_ICRF(1:3),RV_ICRF(4:6))
+  
+  ! Copy remaining values
+  traj_ICRF(ip) = SAVETR(CS_integ,traj_save(ip)%DU,traj_save(ip)%TU,&
+  traj_save(ip)%t,MJD,RV_ICRF)
+  
 end do
 ! do ip=1,nseg
 !   traj_ICRF(ip)%CS = traj_save(ip)%CS
@@ -241,12 +251,6 @@ end do
 !   traj_ICRF(ip)%RV = traj_save(ip)%RV
 
 ! end do
-
-! write(*,'(7(e23.15,1x))') ( traj_ICRF(ip)%MJD, traj_ICRF(ip)%RV, ip = 1,102 )
-! stop
-! Save total number of function calls and number of steps taken
-int_steps = iwork(11)
-tot_calls = iwork(12)
 
 
 contains
