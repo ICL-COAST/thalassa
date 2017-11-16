@@ -276,7 +276,7 @@ end subroutine CART2KS
 subroutine KS_EVT(neq,phi,u,ng,roots)
 
 ! MODULES
-use AUXILIARIES, only: MJD0,MJDnext,MJDf,DU,TU,coordSyst
+use AUXILIARIES, only: MJD0,MJDnext,MJDf,DU,TU,coordSyst,T2MJD
 use PHYS_CONST,  only: secsPerDay,RE,reentry_radius_nd,GE,GM
 use SETTINGS,    only: eqs,iswitch,RSw_Hill
 use SUN_MOON,    only: aMoon_Kep
@@ -295,6 +295,7 @@ real(dk),intent(out)  ::  roots(1:ng)
 
 ! Locals
 real(dk)  ::  t         ! Current time [-]
+real(dk)  ::  MJD
 real(dk)  ::  rmag,x(1:3),xdot(1:3)
 real(dk)  ::  RSw
 real(dk)  ::  r_ICRF(1:3),v_ICRF(1:3)
@@ -341,8 +342,9 @@ if (iswitch == 1) then
   RSw = RSw_Hill*RHillMoon
   
   ! Position of the particle in ICRF
-  call POS_VEL_ICRF(coordSyst,t,DU,TU,x*DU,xdot*DU*TU,r_ICRF,v_ICRF)
-  call EPHEM_ICRF(2,1._dk,1._dk,t,rMoon_ICRF,vMoon_ICRF)
+  MJD = T2MJD(t)
+  call POS_VEL_ICRF(coordSyst,MJD,DU,TU,x*DU,xdot*DU*TU,r_ICRF,v_ICRF)
+  call EPHEM_ICRF(2,1._dk,1._dk,MJD,rMoon_ICRF,vMoon_ICRF)
   
   ! Position of the particle wrt Moon
   d = r_ICRF - rMoon_ICRF

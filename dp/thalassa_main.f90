@@ -93,7 +93,7 @@ mu = CURRENT_MU(coordSyst)
 ! Check on initial coordinate system
 ! NOTE: CHOOSE_CS needs DU, TU to be set. SET_UNITS will be called again later.
 call SET_UNITS(R0)
-call CHOOSE_CS(0._dk,coordSyst,R0,V0,coordsyst,R0,V0)
+call CHOOSE_CS(MJD0,coordSyst,R0,V0,coordsyst,R0,V0)
 
 ! ! Output to user (TBD)
 ! GMST0 = GMST_UNIFORM(MJD0)

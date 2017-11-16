@@ -112,10 +112,10 @@ integer   ::  isett(1:20)                ! Solver option flags. Increase size if
 
 ! Results
 integer               ::  ip
-integer               ::  npts,nels
+integer               ::  nels
 real(dk),allocatable  ::  yx(:,:)
 real(dk)              ::  t              ! Physical time (dimensionless)
-real(dk)              ::  MJD
+real(dk)              ::  MJD,RV(1:6)
 
 ! LSODAR - individual tolerances
 real(dk),allocatable  ::  atols(:)
@@ -129,7 +129,7 @@ integer   ::  switchCS,finTime,reentry
 type(trajectory)     ::  traj_save(1:mxstep)
 type(trajectory)     ::  traj_MMEIAUE(1:mxstep)
 type(trajectory)     ::  traj_SYN(1:mxstep)
-integer              ::  ptr,npts_tot
+integer              ::  start,ncum,nseg,iseg
 character(len=12)    ::  CS_integ
 
 ! ==============================================================================
@@ -145,13 +145,15 @@ RE_nd = RE/DU
 ERR_constant_nd = 2._dk*pi*ERR_constant/secsPerDay/TU
 reentry_radius_nd = (reentry_height + RE)/DU
 
-! Set times (TBD)
+! Set times
 MJDf = MJD0 + tspan
 MJDnext = MJD0 + tstep
 
-! Set pointer and number of points
-ptr = 1
-npts_tot = 0
+! Save first point
+traj_save(1) = SAVETR(coordSyst,DU,TU,0._dk,MJD0,[R0,V0])
+
+! Initialize indices
+start = 2; nseg  = 1; iseg  = 1; ncum  = 1
 
 ! Initialize state vector and independent variable. Initial time = 0 s
 call INIT_STATE(eqs,R0,V0,0._dk,neq,y0,x0,CURRENT_MU(coordSyst))
@@ -172,20 +174,19 @@ do
   rwork)
 
   ! Save trajectory
-  npts = size(yx,1)
+  nseg = size(yx,1)
   nels = size(yx,2)
-  do ip=ptr,(npts + ptr - 1)
-      t = PHYSICAL_TIME(eqs,neq,yx(ip,1),yx(ip,2:nels))
-      traj_save(ip)%CS  = coordSyst
-      traj_save(ip)%DU  = DU
-      traj_save(ip)%TU  = TU
-      traj_save(ip)%t   = t
-      traj_save(ip)%MJD = MJD0 + t/TU/secsPerDay
-      traj_save(ip)%RV  = CARTESIAN(eqs,neq,DU,TU,yx(ip,1),yx(ip,2:nels))
-  
+  ncum = ncum + nseg - 1
+  do ip=start,ncum
+    iseg = iseg + 1
+    t    = PHYSICAL_TIME(eqs,neq,yx(iseg,1),yx(iseg,2:nels))
+    MJD  = MJD0 + t/TU/secsPerDay
+    RV   = CARTESIAN(eqs,neq,DU,TU,yx(iseg,1),yx(iseg,2:nels))
+    traj_save(ip) = SAVETR(coordSyst,DU,TU,t,MJD,RV)
+    
   end do
-  ptr = npts + 1
-  npts_tot = npts_tot + npts
+  start = ncum + 1
+  iseg = 1
 
   finTime  = isett(8); reentry = isett(9); switchCS = isett(10)
   if (finTime == 1 .or. reentry == 1) then
@@ -195,21 +196,20 @@ do
     ! Convert last point of the trajectory to Cartesian
     len_yx  = size(yx,1)
     tSwitch = PHYSICAL_TIME(eqs,neq,yx(len_yx,1),yx(len_yx,2:nels))/TU
+    MJDSwitch = MJD0 + tSwitch/secsPerDay
     RVSwitch = CARTESIAN(eqs,neq,DU,TU,yx(len_yx,1),yx(len_yx,2:nels))
     
     ! Switch coordinate system
-    call SWITCH_CS(coordSyst,tSwitch,RVSwitch(1:3),RVSwitch(4:6),RSwNew,VSwNew)
-    MJDSwitch = MJD0 + tSwitch/secsPerDay
+    call SWITCH_CS(coordSyst,MJDSwitch,RVSwitch(1:3),RVSwitch(4:6),RSwNew,VSwNew)
     
     ! Re-initialize state vector
     call INIT_STATE(eqs,RSwNew,VSwNew,tSwitch,neq,y0,x0,CURRENT_MU(coordSyst))
 
     ! Reset istate = 1 for LSODAR (reinitialization is needed)
     if(integ == 1) isett(3) = 1
-    
+        
   end if
   
-
 end do
 
 ! ==============================================================================
@@ -218,21 +218,21 @@ end do
 
 ! Allocate trajectory results
 if (allocated(traj_ICRF)) deallocate(traj_ICRF)
-allocate(traj_ICRF(1:npts_tot))
+allocate(traj_ICRF(1:ncum))
 
 ! Convert saved trajectory into output frames ICRF, MMEIAUE, SYN
-do ip=1,npts_tot
+do ip=1,ncum
   ! Save MJD, CS, extract t
   MJD = traj_save(ip)%MJD; CS_integ = traj_save(ip)%CS
   
   traj_ICRF(ip)%MJD = MJD
   traj_ICRF(ip)%CS  = CS_integ
-  call POS_VEL_ICRF(traj_ICRF(ip)%CS,traj_save(ip)%t,traj_save(ip)%DU,&
+  call POS_VEL_ICRF(traj_ICRF(ip)%CS,traj_ICRF(ip)%MJD,traj_save(ip)%DU,&
   &traj_save(ip)%TU,traj_save(ip)%RV(1:3),traj_save(ip)%RV(4:6),&
   &traj_ICRF(ip)%RV(1:3),traj_ICRF(ip)%RV(4:6))
 
 end do
-! do ip=1,npts
+! do ip=1,nseg
 !   traj_ICRF(ip)%CS = traj_save(ip)%CS
 !   traj_ICRF(ip)%DU = traj_save(ip)%DU
 !   traj_ICRF(ip)%TU = traj_save(ip)%TU
@@ -247,6 +247,34 @@ end do
 ! Save total number of function calls and number of steps taken
 int_steps = iwork(11)
 tot_calls = iwork(12)
+
+
+contains
+
+
+function SAVETR(coordSyst,DU,TU,t,MJD,RV)
+! Description:
+!    Saves data into trajectory type.
+! 
+! ==============================================================================
+
+! VARIABLES
+implicit none
+character(len=12),intent(in)  ::  coordSyst
+real(dk),intent(in)  ::  DU,TU,t,MJD,RV(1:6)
+type(trajectory)     ::  SAVETR
+
+! ==============================================================================
+
+SAVETR%CS  = coordSyst
+SAVETR%DU  = DU
+SAVETR%TU  = TU
+SAVETR%t   = t
+SAVETR%MJD = MJD
+SAVETR%RV  = RV
+
+end function SAVETR
+
 
 end subroutine DPROP_REGULAR
 

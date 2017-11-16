@@ -76,7 +76,7 @@ function PACC_ICRF(insgrav,isun,imoon,idrag,iSRP,r,v,rm,t,gradU_sph_out)
 use PHYS_CONST,  only: GE,GE_nd,GS,GM,RE_nd,ERR_constant,secsPerDay,twopi,RE,&
 &CD,A2M_Drag,pSRP_1au,au,CR,A2M_SRP,MJD_J1950,GMST_UNIFORM,F107,Kp,Ap,JD2CAL,&
 &r2d,cutoff_height
-use AUXILIARIES, only: DU,TU,MJD0
+use AUXILIARIES, only: DU,TU,MJD0,T2MJD
 
 ! VARIABLES
 implicit none
@@ -96,6 +96,7 @@ real(dk)            ::  PACC_ICRF(1:3)
 real(dk)  ::  gradU_sph(1:3)
 real(dk)  ::  p_nsg(1:3)
 ! Third bodies
+real(dk)  ::  MJD
 real(dk)  ::  r_sun(1:3),v_sun(1:3),p_sun(1:3)
 real(dk)  ::  r_moon(1:3),v_moon(1:3),p_moon(1:3)
 ! Drag, density (US76)
@@ -154,14 +155,16 @@ end if
 p_sun = 0._dk; p_moon = 0._dk
 if (isun /= 0) then
   ! SUN
-  call EPHEM_ICRF(1,DU,TU,t,r_sun,v_sun)
+  MJD = T2MJD(t)
+  call EPHEM_ICRF(1,DU,TU,MJD,r_sun,v_sun)
   p_sun = ACC_THBOD_EJ2K_ND(r,r_sun,GE,GS)
 
 end if
 
 if (imoon /= 0 ) then
   ! MOON
-  call EPHEM_ICRF(2,DU,TU,t,r_moon,v_moon)
+  MJD = T2MJD(t)
+  call EPHEM_ICRF(2,DU,TU,MJD,r_moon,v_moon)
   p_moon = ACC_THBOD_EJ2K_ND(r,r_moon,GE,GM)
 
 end if
@@ -205,7 +208,8 @@ if (idrag /= 0 .and. h_D <= cutoff_height) then
         
         ! Ephemerides of the Sun (if they haven't been computed earlier)
         if (isun == 0) then
-          call EPHEM_ICRF(1,DU,TU,t,r_sun,v_sun)
+          MJD = T2MJD(t)
+          call EPHEM_ICRF(1,DU,TU,MJD,r_sun,v_sun)
         
         end if
         r_sun_m = sqrt(dot_product(r_sun,r_sun))
@@ -278,7 +282,8 @@ p_SRP = 0._dk
 if (iSRP == 1) then
   ! If the Sun gravitational perturbation is disabled, get its ephemerides
   if (isun == 0) then
-    call EPHEM_ICRF(1,DU,TU,t,r_sun,v_sun)
+    MJD = T2MJD(t)
+    call EPHEM_ICRF(1,DU,TU,MJD,r_sun,v_sun)
 
   end if
   ! Computation is in dimensional units (m/s^2).
@@ -304,7 +309,7 @@ function PACC_MMEIAUE(insgrav,isun,iearth,iSRP,r,v,rm,t,gradU_sph_out)
 
 ! MODULES
 use PHYS_CONST,  only: GM,GE,GS
-use AUXILIARIES, only: DU,TU
+use AUXILIARIES, only: DU,TU,T2MJD
 
 ! VARIABLES
 implicit none
@@ -324,6 +329,7 @@ real(dk)            ::  PACC_MMEIAUE(1:3)
 ! Non-spherical gravity
 real(dk)  ::  p_nsg(1:3)
 ! Third-body perturbations
+real(dk)  ::  MJD
 real(dk)  ::  p_sun(1:3),p_earth(1:3)
 real(dk)  ::  r_sun(1:3),v_sun(1:3),r_earth(1:3),v_earth(1:3)
 ! Solar radiation pressure
@@ -348,7 +354,8 @@ PACC_MMEIAUE = p_nsg + PACC_MMEIAUE
 p_sun = 0._dk; p_earth = 0._dk
 if (isun /= 0) then
   ! SUN
-  call EPHEM_ICRF(1,DU,TU,t,r_sun,v_sun)
+  MJD = T2MJD(t)
+  call EPHEM_ICRF(1,DU,TU,MJD,r_sun,v_sun)
 
   ! Convert to MMEIAUE CS (TBD)
 
@@ -360,7 +367,8 @@ if (iearth /= 0 ) then
   ! EARTH
   ! Position and velocity of the Earth in MMEIAUE are opposite of position and
   ! velocity of the Moon in ICRF.
-  call EPHEM_ICRF(2,DU,TU,t,r_earth,v_earth)
+  MJD = T2MJD(t)
+  call EPHEM_ICRF(2,DU,TU,MJD,r_earth,v_earth)
   r_earth = -r_earth; v_earth = -v_earth
   p_earth = ACC_THBOD_EJ2K_ND(r,r_earth,GM,GE)
 

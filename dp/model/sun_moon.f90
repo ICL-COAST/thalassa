@@ -65,7 +65,7 @@ end function ACC_THBOD_EJ2K_ND
 
 
 
-subroutine EPHEM_ICRF(ibody,DU,TU,t,r,v)
+subroutine EPHEM_ICRF(ibody,DU,TU,MJD,r,v)
 ! Description:
 !    Computes position and velocity of the body "ibody" from the ephemerides
 !    source specified in "iephem", in the ICRF.
@@ -80,20 +80,19 @@ subroutine EPHEM_ICRF(ibody,DU,TU,t,r,v)
 
 ! MODULES
 use SETTINGS,    only: iephem
-use AUXILIARIES, only: T2MJD,MJD0
 use PHYS_CONST,  only: secsPerDay,MJD_J2000,GE,GM,twopi
+use AUXILIARIES, only: MJD0
 
 ! VARIABLES
 implicit none   ! <-- Lucky charm
 ! Arguments IN
 integer,intent(in)   ::  ibody    ! Body ID. 1 = Sun, 2 = Moon.
-real(dk),intent(in)  ::  t        ! Time (dimensionless)
-real(dk),intent(in)  ::  DU,TU    ! Reference units (km, 1/s).
+real(dk),intent(in)  ::  DU,TU    ! Refrence units [km,km/s]
+real(dk),intent(in)  ::  MJD      ! Modified Julian Date
 ! Arguments OUT
 real(dk),intent(out)  ::  r(1:3),v(1:3)  ! Position and velocity of the body.
 
 ! Times
-real(dk)  ::  MJD_UT1
 real(dk)  ::  secs_J2000
 real(dk)  ::  lt
 ! Ephemerides
@@ -109,8 +108,7 @@ real(dk)  ::  nMoon_Kep,nMoon_Kep_day,MMoon_Kep
 !!! TODO TODO TODO
 
 y = 0._dk
-MJD_UT1 = T2MJD(t)
-secs_J2000 = (MJD_UT1-MJD_J2000)*secsPerDay
+secs_J2000 = (MJD - MJD_J2000)*secsPerDay
 
 select case(ibody)
 case (1)
@@ -123,7 +121,7 @@ case (1)
   case(2)
     ! SUN (Meeus and Brown)
     ! NOTE: the Meeus and Brown ephemerides don't provide the velocity.
-    y(1:3) = SUN_POS_MEEUS(MJD_UT1,1._dk)
+    y(1:3) = SUN_POS_MEEUS(MJD,1._dk)
 
   end select
 
@@ -136,14 +134,14 @@ case(2)
   case(2)
     ! MOON (Meeus and Brown)
     ! NOTE: the Meeus and Brown ephemerides don't provide the velocity.
-    y(1:3) = MOON_POS_MEEUS(MJD_UT1,1._dk)
+    y(1:3) = MOON_POS_MEEUS(MJD,1._dk)
   
   case(3)
     ! MOON (Keplerian)
     ! **NOTE**: At t = 0 (MJD = MJD0) the Moon is on the x-axis ALWAYS.
     nMoon_Kep = sqrt((GE + GM)/aMoon_Kep**3)
     nMoon_Kep_day = sqrt((GE + GM)/aMoon_Kep**3)*secsPerDay
-    MMoon_Kep = mod(nMoon_Kep_day*(MJD_UT1-MJD0),twopi)
+    MMoon_Kep = mod(nMoon_Kep_day*(MJD - MJD0),twopi)
     y(1:3) = aMoon_Kep*[cos(MMoon_Kep),sin(MMoon_Kep),0._dk]
     y(4:6) = aMoon_Kep*nMoon_Kep*[-sin(MMoon_Kep),cos(MMoon_Kep),0._dk]
 

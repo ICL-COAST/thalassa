@@ -21,7 +21,7 @@ contains
 
 
 
-subroutine SWITCH_CS(coordSyst,t,R_from,V_from,R_to,V_to)
+subroutine SWITCH_CS(coordSyst,MJD,R_from,V_from,R_to,V_to)
 ! Description:
 !    Changes the coordinate system of the position and velocity 'R_from',
 !    'V_from', giving 'R_to', 'V_to' as output. If 'coordSyst == ICRF' it
@@ -32,11 +32,12 @@ subroutine SWITCH_CS(coordSyst,t,R_from,V_from,R_to,V_to)
 ! ==============================================================================
 
 use SUN_MOON,    only: EPHEM_ICRF
-use AUXILIARIES, only: DU,TU,SET_UNITS
+use AUXILIARIES, only: SET_UNITS
+
 implicit none
 ! VARIABLES
 character(len=12),intent(inout)  ::  coordSyst
-real(dk),intent(in)   ::  t                        ! Time [-]
+real(dk),intent(in)   ::  MJD                      ! Modified Julian Date
 real(dk),intent(in)   ::  R_from(1:3),V_from(1:3)  ! Original pos and vel [km,km/s]
 real(dk),intent(out)  ::  R_to(1:3),V_to(1:3)      ! New pos and vel [km,km/s]
 
@@ -46,7 +47,7 @@ real(dk)  ::  rMoon(1:3),vMoon(1:3)  ! Moon position and velocity [km,km/s]
 ! ==============================================================================
 
 ! Call Moon ephemerides (dimensional)
-call EPHEM_ICRF(2,1._dk,1._dk,t,rMoon,vMoon)
+call EPHEM_ICRF(2,1._dk,1._dk,MJD,rMoon,vMoon)
 
 select case (trim(coordSyst))
   case ('ICRF')
@@ -95,7 +96,7 @@ end function R_SOI
 
 
 
-subroutine POS_VEL_ICRF(coordSyst,t,DU,TU,rCurr,vCurr,rICRF,vICRF)
+subroutine POS_VEL_ICRF(coordSyst,MJD,DU,TU,rCurr,vCurr,rICRF,vICRF)
 ! Description:
 !    Computes the position and velocity in the ICRF coordinate system, starting
 !    from position and velocity in the coordinate system specified by
@@ -108,7 +109,7 @@ use SUN_MOON, only: EPHEM_ICRF
 ! VARIABLES
 implicit none
 character(len=12),intent(in)  ::  coordSyst
-real(dk),intent(in)           ::  t,DU,TU,rCurr(1:3),vCurr(1:3)
+real(dk),intent(in)           ::  MJD,DU,TU,rCurr(1:3),vCurr(1:3)
 real(dk),intent(out)          ::  rICRF(1:3),vICRF(1:3)
 
 ! LOCALS
@@ -122,7 +123,7 @@ select case(trim(coordSyst))
     vICRF = vCurr
   
   case ('MMEIAUE')
-    call EPHEM_ICRF(2,DU,TU,t,rMoon_ICRF,vMoon_ICRF)
+    call EPHEM_ICRF(2,DU,TU,MJD,rMoon_ICRF,vMoon_ICRF)
     rICRF = rMoon_ICRF*DU    + rCurr
     vICRF = vMoon_ICRF*DU*TU + vCurr
 
@@ -133,7 +134,7 @@ end subroutine POS_VEL_ICRF
 
 
 
-subroutine POS_VEL_MMEIAUE(coordSyst,t,DU,TU,rCurr,vCurr,rMMEIAUE,vMMEIAUE)
+subroutine POS_VEL_MMEIAUE(coordSyst,MJD,DU,TU,rCurr,vCurr,rMMEIAUE,vMMEIAUE)
 ! Description:
 !    Computes the position and velocity in the MMEIAUE coordinate system,
 !    starting from position and velocity in the coordinate system specified by
@@ -146,7 +147,7 @@ use SUN_MOON, only: EPHEM_ICRF
 ! VARIABLES
 implicit none
 character(len=12),intent(in)  ::  coordSyst
-real(dk),intent(in)           ::  t,DU,TU,rCurr(1:3),vCurr(1:3)
+real(dk),intent(in)           ::  MJD,DU,TU,rCurr(1:3),vCurr(1:3)
 real(dk),intent(out)          ::  rMMEIAUE(1:3),vMMEIAUE(1:3)
 
 ! LOCALS
@@ -160,7 +161,7 @@ select case(trim(coordSyst))
     vMMEIAUE = vCurr
   
   case ('ICRF')
-    call EPHEM_ICRF(2,DU,TU,t,rMoon_ICRF,vMoon_ICRF)
+    call EPHEM_ICRF(2,DU,TU,MJD,rMoon_ICRF,vMoon_ICRF)
     rMMEIAUE = rCurr - rMoon_ICRF*DU
     vMMEIAUE = vCurr - vMoon_ICRF*DU*TU
 
@@ -177,9 +178,6 @@ function ICRF2SYN(rICRF,vICRF,r2,v2,m2,m1,n)
 !     coordinates.
 !
 ! ==============================================================================
-
-! MODULES
-use SUN_MOON, only: EPHEM_ICRF
 
 ! VARIABLES
 implicit none
@@ -234,9 +232,6 @@ function SYN2ICRF(rSYN,vSYN,r2,v2,m2,m1,n)
 !
 ! ==============================================================================
 
-! MODULES
-use SUN_MOON, only: EPHEM_ICRF
-
 ! VARIABLES
 implicit none
 ! Arguments
@@ -282,7 +277,7 @@ end function SYN2ICRF
 
 
 
-subroutine CHOOSE_CS(t,CS_in,R_in,V_in,CS_out,R_out,V_out)
+subroutine CHOOSE_CS(MJD,CS_in,R_in,V_in,CS_out,R_out,V_out)
 ! Description:
 !    Given (R_in,V_in), expressed in the coordinate system CS_in, check if any
 !    switch criterion is satisfied. In this case, return (R_out,V_out) expressed
@@ -300,7 +295,7 @@ use SUN_MOON,    only: EPHEM_ICRF
 ! VARIABLES
 implicit none
 character(len=12),intent(in)   ::  CS_in
-real(dk),intent(in)            ::  t,R_in(1:3),V_in(1:3)
+real(dk),intent(in)            ::  MJD,R_in(1:3),V_in(1:3)
 character(len=12),intent(out)  ::  CS_out
 real(dk),intent(out)           ::  R_out(1:3),V_out(1:3)
 
@@ -315,8 +310,8 @@ character(len=12)  ::  CS
 ! ==============================================================================
 
 ! Check distance from Moon
-call POS_VEL_ICRF(CS_in,t,1._dk,1._dk,R_in,V_in,rICRF,vICRF)
-call EPHEM_ICRF(2,1._dk,1._dk,t,rMoon_ICRF,vMoon_ICRF)
+call POS_VEL_ICRF(CS_in,MJD,1._dk,1._dk,R_in,V_in,rICRF,vICRF)
+call EPHEM_ICRF(2,1._dk,1._dk,MJD,rMoon_ICRF,vMoon_ICRF)
 dVec = rICRF - rMoon_ICRF
 d    = sqrt(dot_product(dVec,dVec))
 
@@ -332,7 +327,7 @@ switch = (d <= RSwMoon .and. trim(CS_in) /= 'MMEIAUE') .or.&
 &        (d > RSwMoon .and. trim(CS_in) /= 'ICRF')
 if (switch) then
   CS = CS_in
-  call SWITCH_CS(CS,t,R_in,V_in,R_out,V_out)
+  call SWITCH_CS(CS,MJD,R_in,V_in,R_out,V_out)
   CS_out = CS
 
 end if
