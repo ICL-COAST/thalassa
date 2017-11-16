@@ -35,9 +35,9 @@ use PROPAGATE,   only: DPROP_REGULAR
 use SETTINGS,    only: READ_SETTINGS
 use AUXILIARIES, only: SET_UNITS
 use AUXILIARIES, only: MJD0,coordSyst
-use IO,          only: id_cart,id_orb,id_stat
+use IO
 use SETTINGS,    only: model,gdeg,gord,outpath,mxstep
-use PHYS_CONST,  only: GE,d2r,r2d,secsPerDay,secsPerSidDay,twopi
+use PHYS_CONST,  only: GM,GE,d2r,r2d,secsPerDay,secsPerSidDay,twopi
 use PROPAGATE,   only: results
 implicit none
 
@@ -51,7 +51,7 @@ real(dk)  ::  period
 real(dk)  ::  tspan,tstep
 ! Trajectory
 integer               ::  npts,ipt
-real(dk),allocatable  ::  cart(:,:),orb(:,:)
+real(dk),allocatable  ::  orb(:,:,:),cart(:,:,:)
 real(dk)              ::  R(1:3),V(1:3)
 ! Current gravitational parameter
 real(dk)              ::  mu
@@ -63,6 +63,7 @@ integer  ::  int_steps,tot_calls
 
 ! Results
 type(results)  ::  trs
+integer        ::  iout
 
 
 ! ==============================================================================
@@ -116,10 +117,12 @@ call DPROP_REGULAR(coordSyst,R0,V0,tspan,tstep,int_steps,tot_calls,trs)
 ! 03. PROCESSING AND OUTPUT
 ! ==============================================================================
 
-! Initialize orbital elements array
+! Initialize orbital elements array.
+! orb(1,:,:): ICRF      
+! orb(2,:,:): MMEIAUE
 npts = size(trs%ICRF,1)
-if (allocated(orb)) deallocate(orb)
-allocate(orb(1:npts,1:7))
+if (allocated(orb)) deallocate(orb); allocate(orb(1:3,1:npts,1:7))
+if (allocated(cart)) deallocate(cart); allocate(cart(1:3,1:npts,1:7))
 orb = 0._dk
 
 ! End timing BEFORE converting back to orbital elements
@@ -131,26 +134,46 @@ write(*,'(a,g9.2,a)') 'CPU time: ',cputime,' s'
 ! orb(1): MJD,  orb(2): a,  orb(3): e, orb(4): i
 ! orb(5): Om,   orb(6): om, orb(7): M
 do ipt=1,npts
-    orb(ipt,1) = trs%ICRF(ipt)%MJD    ! Copy MJD
-    R = trs%ICRF(ipt)%RV(1:3)
-    V = trs%ICRF(ipt)%RV(4:6)
-    mu = GE
-    call CART2COE(R,V,orb(ipt,2:7),mu)
-    orb(ipt,4:7) = orb(ipt,4:7)/d2r
+    orb(:,ipt,1)  = trs%ICRF(ipt)%MJD    ! Copy MJD
+    cart(:,ipt,1) = trs%ICRF(ipt)%MJD
+
+    call CART2COE(trs%ICRF(ipt)%RV(1:3),trs%ICRF(ipt)%RV(4:6),orb(1,ipt,2:7),GE)
+    call CART2COE(trs%MMEIAUE(ipt)%RV(1:3),trs%MMEIAUE(ipt)%RV(4:6),orb(2,ipt,2:7),GM)
+    orb(:,ipt,4:7) = orb(:,ipt,4:7)/d2r
+    
+    cart(1,ipt,2:7) = trs%ICRF(ipt)%RV
+    cart(2,ipt,2:7) = trs%MMEIAUE(ipt)%RV
+    cart(3,ipt,2:7) = trs%SYN(ipt)%RV
 
 end do
 
-! Dump output and copy input files to the output directory
+! Copy input files to the output directory
 call SYSTEM('mkdir -p '//trim(outpath))
 call SYSTEM('cp in/*.txt '//trim(outpath))
-call CREATE_OUT(id_cart)
-call CREATE_OUT(id_orb)
-call CREATE_OUT(id_stat)
-!call DUMP_TRAJ(id_cart,npts,cart)
-call DUMP_TRAJ(id_orb,npts,orb)
+
+! Create output files
+call CREATE_OUT(id_cICRF,'CART','cart_ICRF.dat')
+call CREATE_OUT(id_cMMEIAUE,'CART','cart_MMEIAUE.dat')
+call CREATE_OUT(id_cSYN,'CART','cart_SYN.dat')
+
+call CREATE_OUT(id_oICRF,'ORB','orb_ICRF.dat')
+call CREATE_OUT(id_oMMEIAUE,'ORB','orb_MMEIAUE.dat')
+
+call CREATE_OUT(id_stat,'STAT','stats.dat')
+
+! Dump output
+do iout=12,14  ! Cartesian
+  call DUMP_TRAJ(iout,npts,cart(iout - 11,:,:))
+
+end do
+
+do iout=15,16  ! Orbital elements
+  call DUMP_TRAJ(iout,npts,orb(iout - 14,:,:))
+
+end do
 
 ! Write statistics line: calls, steps, CPU time, final time and orbital elements
-write(id_stat,100) tot_calls, int_steps, cputime, orb(npts,:)
+write(id_stat,100) tot_calls, int_steps, cputime, orb(1,npts,:)
 
 100 format((2(i10,'',''),8(es22.15,'','')))
 end program THALASSA

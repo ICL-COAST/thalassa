@@ -15,8 +15,11 @@ use SETTINGS, only: outpath
 
 ! VARIABLES
 implicit none
-integer,parameter  ::  id_ic = 10, id_in = 11, id_cart = 12, id_orb = 13
-integer,parameter  ::  id_stat = 14
+integer,parameter  ::  id_ic = 10, id_in = 11
+integer,parameter  ::  id_cICRF = 12, id_cMMEIAUE = 13, id_cSYN = 14
+integer,parameter  ::  id_oICRF = 15, id_oMMEIAUE = 16
+integer,parameter  ::  id_stat  = 17
+
 
 contains
 
@@ -72,7 +75,7 @@ A2M_SRP  = 0._dk
 end subroutine READ_IC
 
 
-subroutine CREATE_OUT(fid)
+subroutine CREATE_OUT(fid,ftype,fname)
 ! Description:
 !    Creates an output file and writes the header.
 !
@@ -80,17 +83,19 @@ subroutine CREATE_OUT(fid)
 
 ! VARIABLES
 implicit none
-integer,intent(in)       ::  fid
-character(len=4096)      ::  filepath
-integer,parameter        ::  hlines = 3
-character(len=512)       ::  header(hlines)
-logical                  ::  stat_exists
+integer,intent(in)          ::  fid
+character(len=*),intent(in) ::  ftype
+character(len=*),intent(in) ::  fname
+character(len=4096)         ::  filepath
+integer,parameter           ::  hlines = 3
+character(len=512)          ::  header(hlines)
+logical                     ::  stat_exists
 
 ! ==============================================================================
 
-select case (fid)
-    case(12) ! Cartesian trajectory file, id_cart = 12 (see module preamble)
-        filepath = adjustl(trim(outpath)//'cart.dat')
+select case (trim(ftype))
+    case('CART') ! Cartesian trajectory file, id_cart = 12 (see module preamble)
+        filepath = adjustl(trim(outpath)//trim(fname))
         header(1) = '# THALASSA - CARTESIAN COORDINATES'
         write(header(2),'(''#'',160(''=''))')
         write(header(3),'(''#'',a21,1x,6(a22,1x))') &
@@ -98,8 +103,8 @@ select case (fid)
         open(unit=fid,file=trim(filepath),action='write',status='replace')
         write(fid,'(a200)') header
 
-    case(13) ! Orbital elements file, id_orb = 13 (see module preamble)
-        filepath = adjustl(trim(outpath)//'orbels.dat')
+    case('ORB') ! Orbital elements file, id_orb = 13 (see module preamble)
+        filepath = adjustl(trim(outpath)//trim(fname))
         header(1) = '# THALASSA - ORBITAL ELEMENTS'
         write(header(2),'(''#'',160(''=''))')
         write(header(3),'(''#'',a21,1x,6(a22,1x))') &
@@ -107,8 +112,8 @@ select case (fid)
         open(unit=fid,file=trim(filepath),action='write',status='replace')
         write(fid,'(a200)') header
 
-    case(14) ! Integration statistics file, id_stat = 14 (see module preamble)
-        filepath = adjustl(trim(outpath)//'stats.dat')
+    case('STAT') ! Integration statistics file, id_stat = 14 (see module preamble)
+        filepath = adjustl(trim(outpath)//trim(fname))
         header(1) = '# THALASSA - STATISTICS'
         write(header(2),'(''#'',195(''=''))')
         write(header(3),'(''#'',a9,1x,a9,8(a22))')&
