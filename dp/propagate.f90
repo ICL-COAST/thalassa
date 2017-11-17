@@ -138,7 +138,7 @@ integer   ::  len_yx
 integer   ::  switchCS,finTime,reentry
 
 type(trajectory)     ::  traj_save(1:mxstep)
-integer              ::  start,ncum,nseg,iseg
+integer              ::  start,ncum,nseg,iseg,isw
 character(len=12)    ::  CS_integ
 
 ! ==============================================================================
@@ -162,7 +162,7 @@ MJDnext = MJD0 + tstep
 traj_save(1) = SAVETR(coordSyst,DU,TU,0._dk,MJD0,[R0,V0])
 
 ! Initialize indices
-start = 2; nseg  = 1; iseg  = 1; ncum  = 1
+start = 2; nseg  = 1; iseg  = 1; ncum  = 1; isw = 0
 
 ! Initialize integration statistics
 int_steps = 0; tot_calls = 0
@@ -223,7 +223,12 @@ do
 
     ! Reset istate = 1 for LSODAR (reinitialization is needed)
     if(integ == 1) isett(3) = 1
-        
+
+    ! Output to user
+    isw = isw + 1
+    write(*,'(a,1x,i3,3(1x,a))') 'Switch',isw,'to',coordSyst,'performed.'
+    write(*,'(a,1x,g14.7)') 'MJD - MJD0 =',(MJDSwitch - MJD0)
+    
   end if
   
 end do
