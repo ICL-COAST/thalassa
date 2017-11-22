@@ -2,7 +2,7 @@
 FC = gfortran
 
 # Compile flags
-FCFLAGS = -c -g
+FCFLAGS = -c -g -O
 FLFLAGS = -g -o
 # Link flags
 LIBS = ~/SPICE/toolkit/lib/spicelib.a

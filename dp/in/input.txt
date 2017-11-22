@@ -31,9 +31,9 @@ gord:      0
 # switch:    0 = do not switch coordinate systems, 1 = otherwise
 # RSw:       Switch radius (in Hill radii)
 integ:     1
-tol:       1.000000000000000E-14
-tspan:     365.2500000000000E+01
-tstep:     365.2500000000000E-03
+tol:       1.000000000000000E-26
+tspan:     1.279236453633455E+02
+tstep:     1.280949280773085E+00
 mxstep:    1.0E+06
 switch:    1
 RSw   :    1.100000000000000E+00
@@ -45,4 +45,4 @@ RSw   :    1.100000000000000E+00
 eqs:       5
 
 # OUTPUT DIRECTORY
-out: /home/davide/Documents/PhD/02.Progetti/THESS/Thalassa_val/Davidson_val/
+out: /home/davide/Documents/PhD/02.Progetti/THESS/data/elbert/Davidson_period/
