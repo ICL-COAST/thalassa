@@ -185,10 +185,13 @@ do
   call INTLOOP(integ,eqs,neq,y0,x0,dx,tstep,yx,rtols,atols,isett,liw,iwork,lrw,&
   rwork)
 
-  ! Save trajectory
+  finTime  = isett(8); reentry = isett(9); switchCS = isett(10)
+
+  ! Save trajectory except 1) the first point 2) the last point, if a switch
+  ! took place.
   nseg = size(yx,1)
   nels = size(yx,2)
-  ncum = ncum + nseg - 1
+  ncum = ncum + nseg - 1 - switchCS
   do ip=start,ncum
     iseg = iseg + 1
     t    = PHYSICAL_TIME(eqs,neq,yx(iseg,1),yx(iseg,2:nels))
@@ -204,7 +207,6 @@ do
   int_steps = int_steps + iwork(11)
   tot_calls = tot_calls + iwork(12)
 
-  finTime  = isett(8); reentry = isett(9); switchCS = isett(10)
   if (finTime == 1 .or. reentry == 1) then
     exit
 

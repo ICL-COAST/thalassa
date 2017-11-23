@@ -33,9 +33,9 @@ gord:      0
 integ:     1
 tol:       1.000000000000000E-26
 tspan:     1.279221710643427E+02
-tstep:     1.280949280773085E+00
+tstep:     1.279221710643427E+00
 mxstep:    1.0E+06
-switch:    1
+switch:    0
 RSw   :    1.100000000000000E+00
 
 # EQUATIONS OF MOTION
@@ -45,4 +45,4 @@ RSw   :    1.100000000000000E+00
 eqs:       5
 
 # OUTPUT DIRECTORY
-out: /home/davide/Documents/PhD/02.Progetti/THESS/data/elbert/Davidson_period/
+out: /home/davide/Documents/PhD/02.Progetti/THESS/data/elbert/Thalassa/Davidson_period/
