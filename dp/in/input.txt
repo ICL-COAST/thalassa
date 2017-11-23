@@ -32,10 +32,10 @@ gord:      0
 # RSw:       Switch radius (in Hill radii)
 integ:     1
 tol:       1.000000000000000E-14
-tspan:     365.2500000000000E+01
-tstep:     365.2500000000000E-03
+tspan:     127.9221692702410E+00
+tstep:     127.9221692702410E-03
 mxstep:    1.0E+06
-switch:    1
+switch:    0
 RSw   :    1.100000000000000E+00
 
 # EQUATIONS OF MOTION
@@ -45,4 +45,4 @@ RSw   :    1.100000000000000E+00
 eqs:       5
 
 # OUTPUT DIRECTORY
-out: /home/davide/Documents/PhD/02.Progetti/THESS/Thalassa_val/Davidson_val/
+out: /home/davide/Documents/PhD/02.Progetti/THESS/data/elbert/Thalassa/Davidson/KS_tol1e-26_1T_2/
