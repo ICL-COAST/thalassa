@@ -32,7 +32,7 @@ gord:      0
 # RSw:       Switch radius (in Hill radii)
 integ:     1
 tol:       1.000000000000000E-26
-tspan:     1.279236453633455E+02
+tspan:     1.279221710643427E+02
 tstep:     1.280949280773085E+00
 mxstep:    1.0E+06
 switch:    1

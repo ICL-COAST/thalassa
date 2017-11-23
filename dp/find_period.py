@@ -34,9 +34,12 @@ def xDiff(T,x0,nM_day,aM_km,outPath):
   traj    = numpy.loadtxt(outFile,delimiter=',',usecols=range(7))
   outFile.close
 
-  xAtT_km = traj[-1,1]
-  xAtT    = xAtT_km/aM_km
-  zero    = x0 - xAtT
+  # xAtT_km = traj[-1,1]
+  # xAtT    = xAtT_km/aM_km
+  # zero    = x0 - xAtT
+  yAtT_km = traj[-1,2]
+  yAtT    = yAtT_km/aM_km
+  zero    = yAtT
 
   return zero
 
@@ -71,7 +74,7 @@ def main():
   outPath = outPath + '/'
   x0      = 1.15    # Non-dimensionalized with lunar SMA
   T0      = 29.5    # Non-dimensionalized with lunar M.M.
-  tol     = 1.e-5   # fsolve tolerance
+  tol     = 1.e-7   # fsolve tolerance
   T0_days = numpy.array(T0/nM_day)
   
 #   # Modify input file
