@@ -13,8 +13,9 @@ module SETTINGS
 use KINDS, only: dk
 
 implicit none
-! Settings file id
-integer,parameter   ::  id_set = 13
+! Settings file id and path
+integer,parameter      ::  id_set = 13
+character(len=4096)    ::  input_path
 ! Physical model
 integer  ::  model              ! 1 = STELA model, 2 = SWIFT model, 3 = custom.
 integer  ::  insgrav            ! Non-spherical gravity field flag.
@@ -37,7 +38,6 @@ real(dk)  ::  RSw_Hill
 ! Output directories
 character(len=512)  ::  outpath
 
-
 contains
 
 
@@ -54,7 +54,7 @@ character(len=4096)  ::  dummy
 real(dk)  ::  rmxstep
 
 ! Open and skip header lines
-open(unit=id_set,file='./in/input.txt',status='old',action='read')
+open(unit=id_set,file=adjustl(trim(input_path)),status='old',action='read')
 read(id_set,'(a)') (dummy, i = 1,hlines)
 
 read(id_set,'(a11,i3)') dummy, model

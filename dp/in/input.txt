@@ -2,7 +2,7 @@
 # ==============================================================================
 
 # PHYSICAL MODEL
-# model:     1 = STELA model, 2 = SWIFT-SAT model, 3 = custom (TBD).
+# model:     1 = STELA model, 2 = SWIFT-SAT model, 3 = custom (TBD). ONLY AFFECTS COMPUTATION OF GMST
 # insgrav:   0 = sph. grav. field, 1 = non-spherical grav. field.
 # isun:      0 = no Sun perturbation, 1 = otherwise.
 # imoon:     0 = no Moon perturbation, 1 = otherwise.
@@ -33,7 +33,7 @@ gord:      0
 integ:     1
 tol:       1.000000000000000E-14
 tspan:     127.9221692702410E+00
-tstep:     127.9221692702410E-03
+tstep:     127.9221692702410E-01
 mxstep:    1.0E+06
 switch:    0
 RSw   :    1.100000000000000E+00
@@ -42,7 +42,7 @@ RSw   :    1.100000000000000E+00
 # eqs:       Type of the equations of motion.
 #            1 = Cowell, 2 = EDromo(t), 3 = EDromo(c), 4 = EDromo(l),
 #            5 = KS (t)
-eqs:       5
+eqs:       1
 
 # OUTPUT DIRECTORY
 out: /home/davide/Documents/PhD/02.Progetti/THESS/data/elbert/Thalassa/Davidson/KS_tol1e-26_1T_2/

@@ -32,13 +32,14 @@ use CART_COE,    only: COE2CART,CART2COE
 use COORD_SYST,  only: CHOOSE_CS
 use PHYS_CONST,  only: READ_PHYS,GMST_UNIFORM,CURRENT_MU
 use PROPAGATE,   only: DPROP_REGULAR
-use SETTINGS,    only: READ_SETTINGS
+use SETTINGS,    only: READ_SETTINGS,input_path
 use AUXILIARIES, only: SET_UNITS
 use AUXILIARIES, only: MJD0,coordSyst
 use IO
-use SETTINGS,    only: model,gdeg,gord,outpath,mxstep
+use SETTINGS,    only: model,gdeg,gord,outpath,mxstep,tol,eqs
 use PHYS_CONST,  only: GM,GE,d2r,r2d,secsPerDay,secsPerSidDay,twopi
 use PROPAGATE,   only: results
+
 implicit none
 
 ! VARIABLES
@@ -60,6 +61,8 @@ integer  ::  rate,tic,toc
 real(dk) ::  cputime
 ! Function calls and integration steps
 integer  ::  int_steps,tot_calls
+! Command arguments
+integer  ::  command_arguments
 
 ! Results
 type(results)  ::  trs
@@ -68,13 +71,19 @@ integer        ::  iout
 
 ! ==============================================================================
 
+! ==============================================================================
+! 01. COMMAND LINE PARSING
+! ==============================================================================
+
+command_arguments = COMMAND_ARGUMENT_COUNT()
+input_path  = './in/input.txt'
+object_path = './in/object.txt'
+if (command_arguments > 0) call GET_COMMAND_ARGUMENT(1,input_path)
+if (command_arguments > 1) call GET_COMMAND_ARGUMENT(2,object_path)
 
 ! ==============================================================================
-! 01. INITIALIZATIONS
+! 02. INITIALIZATIONS
 ! ==============================================================================
-
-! Start clock
-call SYSTEM_CLOCK(tic,rate)
 
 ! Read initial conditions, settings and physical model data.
 call READ_IC(MJD0,R0,V0,coordSyst)
@@ -85,8 +94,11 @@ call READ_PHYS(model,gdeg,gord)
 call FURNSH('in/kernels_to_load.furnsh')
 
 ! ==============================================================================
-! 02. TEST PROPAGATION
+! 03. TEST PROPAGATION
 ! ==============================================================================
+
+! Start clock
+call SYSTEM_CLOCK(tic,rate)
 
 ! Select gravitational parameter
 mu = CURRENT_MU(coordSyst)
@@ -101,20 +113,18 @@ call CHOOSE_CS(MJD0,coordSyst,R0,V0,coordsyst,R0,V0)
 ! aGEO  = (GE*(secsPerSidDay/twopi)**2)**(1._dk/3._dk)
 ! period = twopi*sqrt(COE0(1)**3/GE)/secsPerSidDay
 
-! write(*,'(a)') 'INITIAL COORDINATES (aGEO, aGEO/sidDay):'
-! write(*,'(a,g22.15)') 'X = ',R0(1)/aGEO
-! write(*,'(a,g22.15)') 'Y = ',R0(2)/aGEO
-! write(*,'(a,g22.15)') 'Z = ',R0(3)/aGEO
-! write(*,'(a,g22.15)') 'VX = ',V0(1)/aGEO*(secsPerDay/1.0027379093508_dk)
-! write(*,'(a,g22.15)') 'VY = ',V0(2)/aGEO*(secsPerDay/1.0027379093508_dk)
-! write(*,'(a,g22.15)') 'VZ = ',V0(3)/aGEO*(secsPerDay/1.0027379093508_dk)
-! write(*,'(a,g22.15)') 'Initial GMST (deg): ',GMST0*r2d
-! write(*,'(a,g22.15)') 'Initial orbital period (sid. days): ',period
+write(*,'(a,g15.8)') 'Tolerance: ',tol
+write(*,'(a,i2)') 'Equations: ',eqs
 
 call DPROP_REGULAR(coordSyst,R0,V0,tspan,tstep,int_steps,tot_calls,trs)
 
+! End timing BEFORE converting back to orbital elements
+call SYSTEM_CLOCK(toc)
+cputime = real((toc-tic),dk)/real(rate,dk)
+write(*,'(a,g9.2,a)') 'CPU time: ',cputime,' s'
+
 ! ==============================================================================
-! 03. PROCESSING AND OUTPUT
+! 04. PROCESSING AND OUTPUT
 ! ==============================================================================
 
 ! Initialize orbital elements array.
@@ -125,10 +135,6 @@ if (allocated(orb)) deallocate(orb); allocate(orb(1:3,1:npts,1:7))
 if (allocated(cart)) deallocate(cart); allocate(cart(1:3,1:npts,1:7))
 orb = 0._dk
 
-! End timing BEFORE converting back to orbital elements
-call SYSTEM_CLOCK(toc)
-cputime = real((toc-tic),dk)/real(rate,dk)
-write(*,'(a,g9.2,a)') 'CPU time: ',cputime,' s'
 
 ! Convert to orbital elements.
 ! orb(1): MJD,  orb(2): a,  orb(3): e, orb(4): i
@@ -175,5 +181,5 @@ end do
 ! Write statistics line: calls, steps, CPU time, final time and orbital elements
 write(id_stat,100) tot_calls, int_steps, cputime, orb(1,npts,:)
 
-100 format((2(i10,'',''),8(es22.15,'','')))
+100 format((2(i10,1x),8(es22.15,1x)))
 end program THALASSA
