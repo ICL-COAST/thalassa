@@ -132,8 +132,6 @@ do ipt=1,npts
 end do
 
 ! Dump output and copy input files to the output directory
-call SYSTEM('mkdir -p '//trim(outpath))
-call SYSTEM('cp in/object.txt in/physical_constants.txt '//trim(outpath))
 call CREATE_OUT(id_cart)
 call CREATE_OUT(id_orb)
 call CREATE_OUT(id_stat)

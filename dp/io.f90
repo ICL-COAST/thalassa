@@ -109,15 +109,15 @@ select case (fid)
         write(header(3),'(''#'',a9,1x,a9,8(a22))')&
         & 'CALLS', 'STEPS', 'CPUT [s]', 'MJD', 'SMA [km]', 'ECC [-]',&
         & 'INC [deg]', 'RAAN [deg]', 'AOP [deg]', 'MA [deg]'
-        ! inquire(file=trim(filepath),exist=stat_exists)
-        ! if (stat_exists) then
-        !   open(unit=fid,file=trim(filepath),action='write',status='old')
-
-        ! else
-        open(unit=fid,file=trim(filepath),action='write',status='replace')
-        write(fid,'(a200)') header
-
-        ! end if
+        inquire(file=trim(filepath),exist=stat_exists)
+        if (stat_exists) then
+          open(unit=fid,file=trim(filepath),position='append',action='write',status='old')
+          
+        else
+          open(unit=fid,file=trim(filepath),action='write',status='new')
+          write(fid,'(a200)') header
+          
+        end if
 
 end select
 
