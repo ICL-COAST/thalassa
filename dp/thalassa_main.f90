@@ -153,10 +153,6 @@ do ipt=1,npts
 
 end do
 
-! Copy input files to the output directory
-call SYSTEM('mkdir -p '//trim(outpath))
-call SYSTEM('cp in/*.txt '//trim(outpath))
-
 ! Create output files
 call CREATE_OUT(id_cICRF,'CART','cart_ICRF.dat')
 call CREATE_OUT(id_cMMEIAUE,'CART','cart_MMEIAUE.dat')
@@ -180,6 +176,7 @@ end do
 
 ! Write statistics line: calls, steps, CPU time, final time and orbital elements
 write(id_stat,100) tot_calls, int_steps, cputime, orb(1,npts,:)
+close(id_stat)
 
 100 format((2(i10,1x),8(es22.15,1x)))
 end program THALASSA

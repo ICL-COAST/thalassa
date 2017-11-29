@@ -13,6 +13,7 @@ import subprocess
 import shutil
 import numpy as np
 import datetime
+import time
 
 def generateTolVec(tolMax,tolMin,ntol):
   # Generates the tolerance vector, logarithmically spaced from 'tolmax' to
@@ -117,30 +118,41 @@ def main():
     # Generate an input file in the current output folder by copying and
     # modifying the one that is already in the MASTER_FOLDER
     outPath = os.path.join(masterPath,'tol' + subDir)
-    if not os.path.exists(outPath): os.makedirs(outPath)
+    if os.path.exists(outPath):
+       print 'Output path exists, its contents will be PURGED.'
+       shutil.rmtree(outPath)
+    os.makedirs(outPath)
     inputPath = os.path.join(outPath,'input.txt')
     shutil.copy(os.path.join(masterPath,'input.txt'),inputPath)
     modifyInput(inputPath,[33,44,47],tol,outPath,eqs)
     
-    for i in range(0,1):
+    for i in range(0,rep_time):
+      
       # LAUNCH PROPAGATION (this could be parallelised somehow)
       subprocess.call(['./thalassa.x',os.path.abspath(inputPath),
       os.path.abspath(ICPath)])
 
-      # Save statistics (esp. CPU time) for this run and unpack them
-      stats = readStats(os.path.join(outPath,'stats.dat'),tol,eqs)
-
-    stats = np.insert(stats,0,tol)
+    # Save statistics (esp. CPU time) for this run and compute avg CPU time
+    stats = readStats(os.path.join(outPath,'stats.dat'),tol,eqs)
+    try:
+      cpuT = stats[:,2]
+      statsFirstLine = stats[0]
+    except IndexError:
+      cpuT = stats[2]
+      statsFirstLine = stats
     cpuTAvg = np.average(cpuT)
+
+    # Generate line for the summary file
+    summLine = np.insert(statsFirstLine,0,tol)
+    summLine[3] = cpuTAvg
+    
     print 'Propagation', str(np.where(tolVec == tol)[0][0]+1), 'ended.'
 
     # Write results to summary file
     try:
-      np.savetxt(summFile,stats.reshape(1,11),fmt='%13.6G,' + 2*'%i,' + '%13.6g,' + 7*'%22.15E,')
+      np.savetxt(summFile,summLine.reshape(1,11),fmt='%13.6G,' + 2*'%i,' + '%13.6g,' + 7*'%22.15E,')
     except TypeError:
       summFile.write('%.6G, ' % tol + 9*'NaN, ' + '\n')
-    #summLine = ('%.6g,' + 2*'%i,' + '%.6g,' + 7*'%.15E,' ) % tuple(stats) + '\n'
-    #summFile.write(summLine)
     summFile.flush()
 
   summFile.close()

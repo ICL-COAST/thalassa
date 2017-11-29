@@ -45,4 +45,4 @@ RSw   :    1.100000000000000E+00
 eqs:       1
 
 # OUTPUT DIRECTORY
-out: /home/davide/Documents/PhD/02.Progetti/THESS/data/elbert/Thalassa/Davidson/KS_tol1e-26_1T_2/
+out: /home/davide/Documents/PhD/02.Progetti/THESS/data/elbert/Thalassa_val/Davidson_batch/
