@@ -228,8 +228,8 @@ do
 
     ! Output to user
     isw = isw + 1
-    write(*,'(a,1x,i3,3(1x,a))') 'Switch',isw,'to',coordSyst,'performed.'
-    write(*,'(a,1x,g14.7)') 'MJD - MJD0 =',(MJDSwitch - MJD0)
+    ! write(*,'(a,1x,i3,3(1x,a))') 'Switch',isw,'to',coordSyst,'performed.'
+    ! write(*,'(a,1x,g14.7)') 'MJD - MJD0 =',(MJDSwitch - MJD0)
     
   end if
   

@@ -67,6 +67,7 @@ integer  ::  command_arguments
 ! Results
 type(results)  ::  trs
 integer        ::  iout
+logical        ::  out_exists
 
 
 ! ==============================================================================
@@ -153,6 +154,13 @@ do ipt=1,npts
 
 end do
 
+! If output directory does not exist, create it
+inquire(file=trim(outpath),exist=out_exists)
+if (.not.(out_exists)) then
+  call SYSTEM('mkdir -p '//trim(outpath))
+
+end if
+
 ! Create output files
 call CREATE_OUT(id_cICRF,'CART','cart_ICRF.dat')
 call CREATE_OUT(id_cMMEIAUE,'CART','cart_MMEIAUE.dat')
@@ -175,7 +183,7 @@ do iout=15,16  ! Orbital elements
 end do
 
 ! Write statistics line: calls, steps, CPU time, final time and orbital elements
-write(id_stat,100) tot_calls, int_steps, cputime, orb(1,npts,:)
+write(id_stat,100) tot_calls, int_steps, cputime, cart(1,npts,:)
 close(id_stat)
 
 100 format((2(i10,1x),8(es22.15,1x)))

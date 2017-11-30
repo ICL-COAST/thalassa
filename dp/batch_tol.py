@@ -109,8 +109,8 @@ def main():
   ICPath   = os.path.join(masterPath,'object.txt')
   summFile = open(os.path.join(masterPath,'summary.csv'),'w')
   summFile.write('# THALASSA - BATCH PROPAGATION SUMMARY\n')
-  summFile.write('# Legend:\n# Tolerance,Calls,Steps,Avg_CPU[s],MJD_f,SMA[km],'
-  'ECC,INC[deg],RAAN[deg],AOP[deg],M[deg]\n# ' + 80*'=' + '\n')
+  summFile.write('# Legend:\n# Tolerance,Calls,Steps,Avg_CPU[s],MJD_f,X[km],'
+  'Y[km],Z[km],VX[km/s],VY[km/s],VZ[km/s]\n# ' + 80*'=' + '\n')
   for tol in tolVec:
     print '\nStarting propagation',str(np.where(tolVec == tol)[0][0]+1),'out of',str(len(tolVec)),'...'
     subDir = '%.5g' % np.log10(tol)

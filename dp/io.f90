@@ -99,7 +99,7 @@ select case (trim(ftype))
         header(1) = '# THALASSA - CARTESIAN COORDINATES'
         write(header(2),'(''#'',160(''=''))')
         write(header(3),'(''#'',a21,1x,6(a22,1x))') &
-        & 'MJD', 'X [km]', 'Y [km]', 'Z [km]', 'VX [km]', 'VY [km]', 'VZ [km]'
+        & 'MJD', 'X [km]', 'Y [km]', 'Z [km]', 'VX [km/s]', 'VY [km/s]', 'VZ [km/s]'
         open(unit=fid,file=trim(filepath),action='write',status='replace')
         write(fid,'(a200)') header
 
@@ -117,8 +117,8 @@ select case (trim(ftype))
         header(1) = '# THALASSA - STATISTICS'
         write(header(2),'(''#'',195(''=''))')
         write(header(3),'(''#'',a9,1x,a9,8(a22))')&
-        & 'CALLS', 'STEPS', 'CPUT [s]', 'MJD', 'SMA [km]', 'ECC [-]',&
-        & 'INC [deg]', 'RAAN [deg]', 'AOP [deg]', 'MA [deg]'
+        & 'CALLS', 'STEPS', 'CPUT [s]', 'MJD', 'X [km]', 'Y [km]', 'Z [km]',&
+        & 'VX [km/s]', 'VY [km/s]', 'VZ [km/s]'
         inquire(file=trim(filepath),exist=stat_exists)
         if (stat_exists) then
           open(unit=fid,file=trim(filepath),position='append',action='write',status='old')

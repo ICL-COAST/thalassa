@@ -31,11 +31,11 @@ gord:      0
 # switch:    0 = do not switch coordinate systems, 1 = otherwise
 # RSw:       Switch radius (in Hill radii)
 integ:     1
-tol:       1.000000000000000E-14
-tspan:     127.9221692702410E+00
-tstep:     127.9221692702410E-01
+tol:       1.000000000000000E-13
+tspan:     511.6849601569503E+00
+tstep:     127.9212400392376E-03
 mxstep:    1.0E+06
-switch:    0
+switch:    1
 RSw   :    1.100000000000000E+00
 
 # EQUATIONS OF MOTION
@@ -45,4 +45,4 @@ RSw   :    1.100000000000000E+00
 eqs:       1
 
 # OUTPUT DIRECTORY
-out: /home/davide/Documents/PhD/02.Progetti/THESS/data/elbert/Thalassa_val/Davidson_batch/
+out: /home/davide/Documents/PhD/02.Progetti/THESS/data/elbert/Thalassa/Davidson_accurate/Cow_RSw1p1_t1e-13_4T/
