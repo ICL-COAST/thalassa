@@ -136,7 +136,7 @@ if (iswitch == 1) then
 
   ! Position of the particle in ICRF
   MJD = T2MJD(t)
-  call POS_VEL_ICRF(coordSyst,MJD,DU,TU,y(1:3),y(4:6),r_ICRF,v_ICRF)
+  call POS_VEL_ICRF(coordSyst,MJD,DU,TU,y(1:3)*DU,y(4:6)*DU*TU,r_ICRF,v_ICRF)
   call EPHEM_ICRF(2,1._dk,1._dk,MJD,rMoon_ICRF,vMoon_ICRF)
   
   ! Position of the particle wrt Moon
