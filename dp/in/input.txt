@@ -13,13 +13,13 @@
 # gord:      Maximum order of the gravitational potential.
 model:     1
 insgrav:   1
-isun:      1
-imoon:     1
-idrag:     1
-iSRP:      1
-iephem:    2
-gdeg:      2
-gord:      2
+isun:      0
+imoon:     0
+idrag:     0
+iSRP:      0
+iephem:    1
+gdeg:      3
+gord:      0
 
 # INTEGRATION
 # integ:     Integrator flag. 1 = LSODAR, 2 = CVODE (TBD).
@@ -29,8 +29,8 @@ gord:      2
 # tstep:     Step size (solar days).
 # mxstep:    Maximum number of integration/output steps.
 integ:     1
-tol:       1.000000000000000E-20
-tspan:     30.00000000000000E+00
+tol:       1.000000000000000E-13
+tspan:     365.2500000000000E+00
 tstep:     0.100000000000000E+00
 mxstep:    1.0E+06
 
@@ -41,5 +41,4 @@ mxstep:    1.0E+06
 eqs:       5
 
 # OUTPUT DIRECTORY
-out: /home/davide/Documents/PhD/02.Progetti/THESS/Thalassa_val/LEO_KS_full/
-stat: /home/davide/Documents/PhD/02.Progetti/THESS/Thalassa_val/LEO_KS_full/
+out:   /home/davide/Documents/Research/02.Progetti/THESS/data/elbert/Thalassa/LEO_harmonics_180126/C20_C30/
