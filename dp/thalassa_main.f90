@@ -81,7 +81,7 @@ call SYSTEM_CLOCK(tic,rate)
 ! Read initial conditions, settings and physical model data.
 call READ_IC(MJD0,COE0)
 call READ_SETTINGS(tspan,tstep)
-call READ_PHYS(model,gdeg,gord)
+call READ_PHYS(model)
 
 ! Load SPICE kernels
 call FURNSH('in/kernels_to_load.furnsh')

@@ -25,7 +25,7 @@ subroutine INIT_STATE(eqs,R0,V0,MJD0,neq,y0,x0)
 
 ! MODULES
 use AUXILIARIES,   only: DU,TU
-use PHYS_CONST,    only: GE,RE,Clm,Slm
+use PHYS_CONST,    only: GE,RE
 use SETTINGS,      only: insgrav
 use PERTURBATIONS, only: PPOTENTIAL
 use EDROMO,        only: EDROMO_PHI0,CART2EDROMO

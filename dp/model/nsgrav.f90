@@ -3,6 +3,7 @@ module NSGRAV
 ! VARIABLES
 use KINDS,      only: dk
 use SETTINGS,   only: gdeg,gord
+use PHYS_CONST, only: maxDeg,maxOrd
 implicit none
 
 contains
@@ -30,7 +31,8 @@ real(dk),intent(in)  ::  r(1:3)                             ! Radius vector
 real(dk),intent(in)  ::  rm                                 ! Radius magnitude
 real(dk),intent(in)  ::  t                                  ! Time (ALWAYS DIMENSIONLESS)
 real(dk),intent(in)  ::  GM,RE                              ! Planet constants
-real(dk),intent(in)  ::  Clm(2:gdeg,0:gord),Slm(2:gdeg,0:gord)  ! Coefficients
+real(dk),intent(in)  ::  Clm(1:maxDeg,0:maxOrd)             ! Grav coefficients
+real(dk),intent(in)  ::  Slm(1:maxDeg,0:maxOrd)             ! Grav coefficients
 ! Function definition
 real(dk)  ::  POT_NSG
 ! Locals
@@ -161,13 +163,13 @@ use PHYS_CONST,  only: GMST_UNIFORM,GRHOAN
 ! VARIABLES
 implicit none
 ! Arguments IN
-real(dk),intent(in)  ::  GM					! Gravitational parameter
-real(dk),intent(in)  ::  RE					! Equatorial radius
-real(dk),intent(in)  ::  r(1:3)		  ! Position vector in inertial frame
-real(dk),intent(in)  ::  rm		    	! Position vector magnitude
-real(dk),intent(in)  ::  t          ! Current time
-real(dk),intent(in)	 ::  Clm(2:gdeg,0:gord)		! Spherical harmonics coefficients
-real(dk),intent(in)  ::  Slm(2:gdeg,0:gord)		! Spherical harmonics coefficients
+real(dk),intent(in)  ::  GM			               ! Gravitational parameter
+real(dk),intent(in)  ::  RE			               ! Equatorial radius
+real(dk),intent(in)  ::  r(1:3)		               ! Position vector in inertial frame
+real(dk),intent(in)  ::  rm		                   ! Position vector magnitude
+real(dk),intent(in)  ::  t                         ! Current time
+real(dk),intent(in)  ::  Clm(1:maxDeg,0:maxOrd)    ! Grav coefficients
+real(dk),intent(in)  ::  Slm(1:maxDeg,0:maxOrd)    ! Grav coefficients
 ! Function definition
 real(dk)	::	POTPAR(1:3)
 
