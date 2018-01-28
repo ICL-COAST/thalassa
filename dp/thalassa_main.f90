@@ -89,7 +89,7 @@ if (command_arguments > 1) call GET_COMMAND_ARGUMENT(2,object_path)
 ! Read initial conditions, settings and physical model data.
 call READ_IC(MJD0,R0,V0,coordSyst)
 call READ_SETTINGS(tspan,tstep)
-call READ_PHYS(model,gdeg,gord)
+call READ_PHYS(model)
 
 ! Load SPICE kernels
 call FURNSH('in/kernels_to_load.furnsh')

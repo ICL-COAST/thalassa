@@ -52,7 +52,8 @@ real(dk)            ::  ERR_constant_nd
 real(dk)  ::  RE_nd,GE_nd       ! Earth
 
 ! Spherical harmonics (not normalized)
-real(dk),allocatable  ::  Clm(:,:),Slm(:,:)
+integer,parameter     ::  maxDeg = 15, maxOrd = 15 
+real(dk)              ::  Clm(1:maxDeg,0:maxOrd),Slm(1:maxDeg,0:maxOrd)
 
 ! Mass (kg)
 real(dk)  ::  SCMass
@@ -77,7 +78,7 @@ contains
 
 
 
-subroutine READ_PHYS(model,gdeg,gord)
+subroutine READ_PHYS(model)
 ! Description:
 !    Read values for the physical parameters from text file.
 !
@@ -87,7 +88,6 @@ subroutine READ_PHYS(model,gdeg,gord)
 implicit none
 ! Arguments
 integer,intent(in)   ::  model ! 1: STELA 3.0 model. 2: SWIFT model.
-integer,intent(in)   ::  gdeg,gord ! Grav. pot. - maximum degree and order
 ! Locals
 character(len=4096)  ::  filepath,dummy
 integer,parameter    ::  hlines = 7
@@ -118,15 +118,12 @@ ERR_constant = secsPerDay/secsPerSidDay
 
 ! Read coefficients of the gravitational spherical harmonics
 ! Initialize
-l = 0; m = 0;
-if (allocated(Clm)) deallocate(Clm)
-if (allocated(Slm)) deallocate(Slm)
-allocate(Clm(2:gdeg,0:gord))
-allocate(Slm(2:gdeg,0:gord))
+l = 1; m = 0;
+Clm = 0._dk; Slm = 0._dk
 
-read(id_val,'(a)') (dummy, i=1,4)
-do i=2,gdeg
-  do j=0,minval([i,gord])
+read(id_val,'(a)') (dummy, i=1,2)
+do i=1,maxDeg
+  do j=0,minval([i,maxOrd])
     read(id_val,'(2(1x,i2),2(1x,e24.17))') l,m,Clm(i,j),Slm(i,j)
 
   end do
