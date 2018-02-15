@@ -213,7 +213,7 @@ auxy(1,1:neq+1) = [x0,y0]
 quit_flag = .false.
 
 ! Approximate number of steps to be taken
-nsteps = (MJDf - MJD0)/(MJDnext - MJD0)
+nsteps = int((MJDf - MJD0)/(MJDnext - MJD0))
 print_each = nsteps/20
 i_print = 1
 
@@ -272,7 +272,7 @@ function QUIT_LOOP(eqs,neq,integ,isett,x,y)
 ! ==============================================================================
 
 ! MODULES
-use AUXILIARIES, only: MJD0,MJDf,TU
+use AUXILIARIES, only: MJD0,TU
 use REGULAR_AUX, only: PHYSICAL_TIME
 use PHYS_CONST,  only: mzero,secsPerDay,reentry_height
 ! VARIABLES
