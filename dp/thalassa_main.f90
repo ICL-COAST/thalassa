@@ -5,17 +5,14 @@ program THALASSA
 ! EMEJ2000 frame. It takes into account the following perturbations:
 ! - Non-spherical Earth gravitational potential
 ! - Third-body perturbations from Sun and Moon
-! - Drag (TBD)
-! - SRP  (TBD)
+! - Drag
+! - SRP
 !
 ! The choice of the mathematical model and constants reflect those used in
-! SWIFT and STELA, two widely-known propagators currently in usage for studying
-! the MEO and GEO regions.
+! STELA, a widely-known semi-analytical propagator currently in usage for studying
+! the LEO, MEO and GEO regions.
 ! Also, the user can choose between the following numerical integrators:
 ! - LSODAR
-! - CVODE     (TBD)
-! - DOPRI853  (TBD)
-! - RKG       (TBD)
 !
 ! Author:
 !    Davide Amato
