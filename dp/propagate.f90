@@ -141,6 +141,10 @@ select case (eqs)
         call INTLOOP(KS_RHS,KS_EVT,integ,eqs,neq,y0,x0,dx,tstep,yx,rtols,&
         &atols,isett,liw,iwork,lrw,rwork)
     
+    ! case(7:8) ! Stiefel-Scheifele
+    !     call INTLOOP(STISCHE_RHS,STISCHE_EVT,integ,eqs,neq,y0,x0,dx,tstep,yx,rtols,&
+    !     &atols,isett,liw,iwork,lrw,rwork)
+    
 end select
 
 ! ==============================================================================

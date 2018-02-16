@@ -24,190 +24,167 @@ contains
 ! ==============================================================================
 
 
-! subroutine STISCHE_RHS(neq,phi,z,zdot)
-! ! Description:
-! !    Computes the value of the right-hand side of the equations of motion of the
-! !    EDromo formulation.
-! !
-! ! ==============================================================================
+subroutine STISCHE_RHS(neq,phi,z,zdot)
+! Description:
+!    Computes the value of the right-hand side of the equations of motion of the
+!    EDromo formulation.
+!
+! ==============================================================================
 
 ! ! MODULES
-! use SETTINGS,      only: eqs,insgrav,isun,imoon,idrag
-! use PHYS_CONST,    only: GE_nd,RE_nd,ERR_constant_nd
-! use PERTURBATIONS, only: PPOTENTIAL,PACC_EJ2K
+use SETTINGS,      only: eqs,insgrav,isun,imoon,idrag,iSRP
+use PHYS_CONST,    only: GE_nd,RE_nd,ERR_constant_nd
+use PERTURBATIONS, only: PPOTENTIAL,PACC_EJ2K
 
-! ! VARIABLES
-! implicit none
+! VARIABLES
+implicit none
 
-! ! Arguments
-! integer,intent(in)    ::  neq              ! Number of equations
-! real(dk),intent(in)   ::  phi              ! StiSche independent variable
-! real(dk),intent(in)   ::  z(1:neq)         ! StiSche state vector, ND
-! real(dk),intent(out)  ::  zdot(1:neq)      ! RHS of EoM's, ND
+! Arguments
+integer,intent(in)    ::  neq              ! Number of equations
+real(dk),intent(in)   ::  phi              ! StiSche independent variable
+real(dk),intent(in)   ::  z(1:neq)         ! StiSche state vector, ND
+real(dk),intent(out)  ::  zdot(1:neq)      ! RHS of EoM's, ND
 
-! ! Auxiliary quantities
-! real(dk)  ::  sph2,cph2
-! real(dk)  ::  aux0,aux1,aux2,aux3,aux4,aux5,aux6
-! integer   ::  flag_time
+! Auxiliary quantities
+real(dk)  ::  sph2,cph2
+real(dk)  ::  aux(1:4),lte1,lte2,lte3
+integer   ::  flag_time
 
-! ! K-S parameters and  their derivatives
-! real(dk)  ::  u_vec(1:4)
-! real(dk)  ::  du_vec(1:4)
+! K-S state vector and its derivative
+real(dk)  ::  u(1:4)
+real(dk)  ::  du(1:4)
 
-! ! State
-! real(dk)  ::  rV(1:3),vV(1:3),t
+! State
+real(dk)  ::  rV(1:3),vV(1:3),t
 ! real(dk)  ::  x_vec(1:3),y_vec(1:3)
-! real(dk)  ::  rmag,vmag,vsq
+real(dk)  ::  rmag,vsq
 
-! ! Perturbations
-! real(dk)  ::  Upot,dUdr(1:3),dUdu(1:4),dUdt  ! Perturbing potential and its derivatives
-! real(dk)  ::  gradU_sph(1:3)
-! real(dk)  ::  p(1:3),Lp_vec(1:4)             ! Non-conservative perturbing accelerations
+! Perturbations
+real(dk)  ::  Vpot,mdVdr(1:3),dVdu(1:4),dVdt  ! Perturbing potential and its derivatives
+real(dk)  ::  gradV_sph(1:3)
+real(dk)  ::  p(1:3),Lp(1:4)             ! Non-conservative perturbing accelerations
 
-! ! ==============================================================================
+! ==============================================================================
 
-! ! INDEX OF STATE VECTORS
+! STATE VECTOR DICTIONARY
 
-! ! z(1) = zeta1
-! ! z(2) = zeta2
-! ! z(3) = zeta3
-! ! z(4) = zeta4
-! ! z(5) = zeta5
-! ! z(6) = zeta6
-! ! z(7) = zeta7
-! ! z(8) = zeta8
-! ! z(9) = zeta9
-! ! z(10) = zeta10 (physical time,
-! !                 constant time element,
-! !                 linear time element,
-! !                 depending on flag_time)
+! z(1:4) = alpha
+! z(5:8) = beta
+! z(9)   = omega
+! z(10)  = time (flag_time = 0) or time element (flag_time = 1)
 
+! ==============================================================================
+! 01. AUXILIARY QUANTITIES (1)
+! ==============================================================================
 
-! ! Safety check
-! !if (any(z/=z)) then
-! !	write(*,*) 'NaNs detected in the RHS, stopping execution.'
-! !	stop
-! !end if
+! Store trig functions
+sph2 = sin(0.5_dk*phi)
+cph2 = cos(0.5_dk*phi)
 
-! ! ==============================================================================
-! ! 01. AUXILIARY QUANTITIES (1)
-! ! ==============================================================================
+! ==============================================================================
+! 02. POSITION AND VELOCITY IN INERTIAL FRAME, TIME
+! ==============================================================================
 
-! ! Store trig functions
-! sph2 = sin(phi/2._dk)
-! cph2 = cos(phi/2._dk)
+! K-S vector. This is Eq. (19,50) in the reference.
+u = z(1:4)*cph2 + z(5:8)*sph2
+! Derivative of K-S vector. This is Eq. (19,51) in the reference.
+du = .5_dk*(-z(1:4)*sph2 + z(5:8)*cph2)
 
-! ! ==============================================================================
-! ! 02. POSITION IN INERTIAL FRAME, TIME
-! ! ==============================================================================
+! Position in inertial frame. Eq. (19,56).
+rV = [u(1)**2 - u(2)**2 - u(3)**2 + u(4)**2,&
+      2._dk*(u(1)*u(2) - u(3)*u(4))        ,&
+      2._dk*(u(1)*u(3) + u(2)*u(4))         ]
+rmag = dot_product(u,u)
 
-! ! K-S parameters
-! u_vec = [z(2)*cph2 + z(6)*sph2,  &
-!          z(3)*cph2 + z(7)*sph2,  &
-!          z(4)*cph2 + z(8)*sph2,  &
-!          z(5)*cph2 + z(9)*sph2]
-! ! Derivatives of u_vec wrt the independent variable
-! du_vec = .5_dk*[-z(2)*sph2 + z(6)*cph2,  &
-!                 -z(3)*sph2 + z(7)*cph2,  &
-!                 -z(4)*sph2 + z(8)*cph2,  &
-!                 -z(5)*sph2 + z(9)*cph2]
+! Velocity in inertial frame. Eq. (19,58)
+vV = 4._dk*z(9)/rmag*&
+    [u(1)*du(1) - u(2)*du(2) - u(3)*du(3) + u(4)*du(4),  &
+     u(2)*du(1) + u(1)*du(2) - u(4)*du(3) - u(3)*du(4),  &
+     u(3)*du(1) + u(4)*du(2) + u(1)*du(3) + u(2)*du(4)]
+vsq = dot_product(vV,vV)
 
-! ! Position in inertial frame
-! rV = [u_vec(1)**2 - u_vec(2)**2 - u_vec(3)**2 + u_vec(4)**2,  &
-!       2._dk*(u_vec(1)*u_vec(2) - u_vec(3)*u_vec(4)),  &
-!       2._dk*(u_vec(1)*u_vec(3) + u_vec(2)*u_vec(4))]
-! rmag = u_vec(1)**2 + u_vec(2)**2 + u_vec(3)**2 + u_vec(4)**2
+flag_time = eqs - 7
 
-! flag_time = eqs - 2
+! Get time
+if ( flag_time == 0 ) then
+    ! Physical time
+    t = z(10)
+elseif  ( flag_time == 1 ) then
+    ! Linear time element
+    t = z(10) - dot_product(u,du)/z(9)
+end if
 
-! ! Get time
-! if ( flag_time == 0 ) then
-!     ! Physical time
-!     t = z(10)
-! elseif  ( flag_time == 1 ) then
-!     ! Constant time element
-!     ! I risultati non sono migliori rispetto ad un elemento tempo lineare
-! elseif  ( flag_time == 2 ) then
-!     ! Linear time element
-!     t = z(10) - dot_product(u_vec,du_vec)/z(1)
-! end if
+! ==============================================================================
+! 03. PERTURBING POTENTIAL
+! ==============================================================================
 
-! ! ==============================================================================
-! ! 03. PERTURBING POTENTIAL
-! ! ==============================================================================
+! Initialize
+Vpot = 0._dk; dVdt = 0._dk; mdVdr = 0._dk
+! Evaluate potential
+Vpot = PPOTENTIAL(insgrav,GE_nd,RE_nd,rV,rmag,t)
+! Evaluate time and spatial derivatives (note that velocity is not needed here)
+mdVdr = PACC_EJ2K(insgrav,0,0,0,0,rV,vV,rmag,t,gradV_sph)
+dVdt = gradV_sph(3)*ERR_constant_nd
 
-! ! Initialize
-! Upot = 0._dk; dUdt = 0._dk; dUdr = 0._dk
-! ! Evaluate potential
-! Upot = PPOTENTIAL(insgrav,GE_nd,RE_nd,rV,rmag,t)
-! ! Evaluate time and spatial derivatives (note that velocity is not needed here)
-! dUdr = PACC_EJ2K(insgrav,0,0,0,0,rV,vV,rmag,t,gradU_sph)
-! dUdt = gradU_sph(3)*ERR_constant_nd
+! ==============================================================================
+! 04. PERTURBING ACCELERATIONS
+! ==============================================================================
 
-! ! ==============================================================================
-! ! 04. VELOCITY IN THE INERTIAL FRAME
-! ! ==============================================================================
+! Initializations
+p = 0._dk
+p = PACC_EJ2K(0,isun,imoon,idrag,iSRP,rV,vV,rmag,t)
 
-! vV = 4._dk*z(1)/rmag*[u_vec(1)*du_vec(1) - u_vec(2)*du_vec(2) - u_vec(3)*du_vec(3) + u_vec(4)*du_vec(4),  &
-!                       u_vec(2)*du_vec(1) + u_vec(1)*du_vec(2) - u_vec(4)*du_vec(3) - u_vec(3)*du_vec(4),  &
-!                       u_vec(3)*du_vec(1) + u_vec(4)*du_vec(2) + u_vec(1)*du_vec(3) + u_vec(2)*du_vec(4)]
-! vsq = vV(1)**2 + vV(2)**2 + vV(3)**2
-! vmag = sqrt(vsq)
+! ==============================================================================
+! 05. COMPUTE AUXILIARY QUANTITIES (2)
+! ==============================================================================
 
-! ! ==============================================================================
-! ! 05. PERTURBING ACCELERATIONS
-! ! ==============================================================================
+! Eq. (19,60)
+Lp = [ u(1)*p(1) + u(2)*p(2) + u(3)*p(3),  &
+      -u(2)*p(1) + u(1)*p(2) + u(4)*p(3),  &
+      -u(3)*p(1) - u(4)*p(2) + u(1)*p(3),  &
+       u(4)*p(1) - u(3)*p(2) + u(2)*p(3)   ]
 
-! ! Initializations
-! p = 0._dk; f = 0._dk
-! p = PACC_EJ2K(0,isun,imoon,idrag,0,rV,vV,rmag,t)
-
-! ! ==============================================================================
-! ! 06. COMPUTE AUXILIARY QUANTITIES (2)
-! ! ==============================================================================
-
-! Lp_vec = [ u_vec(1)*p(1) + u_vec(2)*p(2) + u_vec(3)*p(3),  &
-!           -u_vec(2)*p(1) + u_vec(1)*p(2) + u_vec(4)*p(3),  &
-!           -u_vec(3)*p(1) - u_vec(4)*p(2) + u_vec(1)*p(3),  &
-!            u_vec(4)*p(1) - u_vec(3)*p(2) + u_vec(2)*p(3)]
-! dUdu = 2._dk*[ u_vec(1)*dUdr(1) + u_vec(2)*dUdr(2) + u_vec(3)*dUdr(3),  &
-!               -u_vec(2)*dUdr(1) + u_vec(1)*dUdr(2) + u_vec(4)*dUdr(3),  &
-!               -u_vec(3)*dUdr(1) - u_vec(4)*dUdr(2) + u_vec(1)*dUdr(3),  &
-!                u_vec(4)*dUdr(1) - u_vec(3)*dUdr(2) + u_vec(2)*dUdr(3)]
+! Eq. (9,45)
+dVdu = -2._dk*[u(1)*mdVdr(1) + u(2)*mdVdr(2) + u(3)*mdVdr(3),  &
+              -u(2)*mdVdr(1) + u(1)*mdVdr(2) + u(4)*mdVdr(3),  &
+              -u(3)*mdVdr(1) - u(4)*mdVdr(2) + u(1)*mdVdr(3),  &
+               u(4)*mdVdr(1) - u(3)*mdVdr(2) + u(2)*mdVdr(3)]
 ! aux0 = 2._dk/z(1)*zdot(1)
-! aux1 = .5_dk/z(1)**2*(.5_dk*Upot*u_vec(1) + rmag/4._dk*(dUdu(1) - 2._dk*Lp_vec(1))) + aux0*du_vec(1)
-! aux2 = .5_dk/z(1)**2*(.5_dk*Upot*u_vec(2) + rmag/4._dk*(dUdu(2) - 2._dk*Lp_vec(2))) + aux0*du_vec(2)
-! aux3 = .5_dk/z(1)**2*(.5_dk*Upot*u_vec(3) + rmag/4._dk*(dUdu(3) - 2._dk*Lp_vec(3))) + aux0*du_vec(3)
-! aux4 = .5_dk/z(1)**2*(.5_dk*Upot*u_vec(4) + rmag/4._dk*(dUdu(4) - 2._dk*Lp_vec(4))) + aux0*du_vec(4)
-! aux5 = dot_product(u_vec,dUdu)
-! aux6 = dot_product(u_vec,Lp_vec)
+! aux1 = .5_dk/z(1)**2*(.5_dk*Vpot*u_vec(1) + rmag/4._dk*(dVdu(1) - 2._dk*Lp(1))) + aux0*du_vec(1)
+! aux2 = .5_dk/z(1)**2*(.5_dk*Vpot*u_vec(2) + rmag/4._dk*(dVdu(2) - 2._dk*Lp(2))) + aux0*du_vec(2)
+! aux3 = .5_dk/z(1)**2*(.5_dk*Vpot*u_vec(3) + rmag/4._dk*(dVdu(3) - 2._dk*Lp(3))) + aux0*du_vec(3)
+! aux4 = .5_dk/z(1)**2*(.5_dk*Vpot*u_vec(4) + rmag/4._dk*(dVdu(4) - 2._dk*Lp(4))) + aux0*du_vec(4)
+! aux5 = dot_product(u_vec,dVdu)
+! aux6 = dot_product(u_vec,Lp)
 
-! ! ==============================================================================
-! ! 07. COMPUTE RIGHT-HAND SIDE
-! ! ==============================================================================
+! ==============================================================================
+! 07. COMPUTE RIGHT-HAND SIDE
+! ==============================================================================
 
-! zdot(1) = -rmag/(8._dk*z(1)**2)*dUdt - .5_dk/z(1)*dot_product(du_vec,Lp_vec)
-! zdot(2) = aux1*sph2
-! zdot(3) = aux2*sph2
-! zdot(4) = aux3*sph2 
-! zdot(5) = aux4*sph2
-! zdot(6) = -aux1*cph2
-! zdot(7) = -aux2*cph2
-! zdot(8) = -aux3*cph2 
-! zdot(9) = -aux4*cph2 
+! Eq. (19,61)
+zdot(9) = -rmag/(8._dk*z(9)**2)*dVdt - .5_dk/z(9)*dot_product(du,Lp)
 
-! ! Time / Time Element
-! if (flag_time == 0) then
-!     zdot(10) = rmag/(2._dk*z(1))
-! else if (flag_time == 1) then   ! Constant Time Element
-!     ! NO
-! else if (flag_time == 2) then   ! Linear Time Element
-!    GE = 1._dk
-!    zdot(10) = 1._dk/(8._dk*z(1)**3)*(GE - 2._dk*rmag*Upot - 0.5_dk*rmag*(aux5 - 2._dk*aux6)) -  &
-!               2._dk/z(1)**2*zdot(1)*aux
-! end if
+! Eq. (19,63)
+aux = (.5_dk/z(9)**2) * (.5_dk*Vpot*u + rmag/4._dk * (dVdu - 2._dk*Lp)) + &
+    &   2._dk/z(9) * zdot(9) * du 
 
-! end subroutine STISCHE_RHS
+zdot(1:4) =  aux*sph2
+zdot(5:8) = -aux*cph2
+
+! Time / Time Element
+if (flag_time == 0) then
+   zdot(10) = .5_dk*rmag/z(9)
+
+else if (flag_time == 1) then   ! Linear Time Element
+   ! Eq. (19,62)
+   lte1 = (GE_nd - 2._dk*rmag*Vpot)/(8._dk*z(9)**3)
+   lte2 = (rmag/(16._dk*z(9)**3)) * dot_product(u,dVdu - 2._dk*Lp)
+   lte3 = (2._dk/z(9)**2) * zdot(9) * dot_product(u,du)
+   zdot(10) = lte1 - lte2 - lte3
+
+end if
+
+end subroutine STISCHE_RHS
 
 
 ! subroutine STISCHE_EVT(neq,phi,z,ng,roots)
