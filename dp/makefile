@@ -10,7 +10,7 @@ LIBS = ~/SPICE/toolkit/lib/spicelib.a
 # Numerical integrators
 SLSODAR = opksa1.o opksa2.o opksmain.o
 DLSODAR = opkda1.o opkda2.o opkdmain.o
-FORMUL  = cowell.o edromo.o ks.o regular_aux.o
+FORMUL  = cowell.o edromo.o ks.o stische.o regular_aux.o
 J77     = atsu.o soflud.o ja77.o
 
 # Source and object files
@@ -132,6 +132,9 @@ ks.o: ./regular/ks.f90 perturbations.o settings.o auxiliaries.o phys_const.o \
 kinds.o
 	$(FC) $(FCFLAGS) ./regular/ks.f90
 
-.PHONY: clean
+stische.o: ./regular/stische.f90 kinds.o
+	$(FC) $(FCFLAGS) ./regular/stische.f90
+
+.PHONY: cleanks
 clean:
 	-rm *.x *.o *.mod

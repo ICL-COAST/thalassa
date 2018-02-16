@@ -179,7 +179,7 @@ if (size(xdot,1) > 3) xdot(4:) = 0._dk
 end subroutine KS2CART
 
 
-subroutine CART2KS(R0_d,V0_d,t0_d,mu,DU,TU,u0,Vpot_d)
+subroutine CART2KS(R0_d,V0_d,t0_d,mu,DU,TU,u0,Vpot_d,flag_time)
 ! Description:
 !     Transforms Cartesian position and velocity into the KS state vector. 
 !
@@ -193,6 +193,8 @@ real(dk),intent(in)     ::  t0_d                 ! Dimensional time [s]
 real(dk),intent(in)     ::  mu                   ! Grav parameter of the main body [km^3/s^2]
 real(dk),intent(in)     ::  DU,TU                ! Ref. quantities for ND [km,1/s]
 real(dk),intent(in)     ::  Vpot_d               ! Dimensional potential [km^2/s^2]
+integer,intent(in)      ::  flag_time            ! = 0: u(10) is physical time
+                                                 ! = 1: u(10) is linear time element
 real(dk),intent(out)    ::  u0(:)                ! Extended KS state vector
 
 ! Locals
@@ -213,7 +215,7 @@ real(dk)            ::  Vpot                 ! Perturbing potential, ND
 ! u(1:4)        u1,...,u4; KS-position, in R^4
 ! u(5:8)        u1',...,u4'; KS-velocity, in R^4
 ! u(9)          h; (-total energy) = (-Keplerian energy) + (-potential)
-! u(10)         t; non-dimensional physical time
+! u(10)         t; non-dimensional physical time or time element
 
 ! ==============================================================================
 ! 01. INITIALIZE POSITION AND VELOCITY IN R^4, NON-DIMENSIONALIZATIONS
@@ -260,7 +262,13 @@ h     = Ksq/r - Kin - Vpot
 u0(9) = h
 
 ! Initial time
-u0(10) = t0
+if (flag_time == 0) then
+  u0(10) = t0
+
+else if (flag_time == 1) then
+  u0(10) = t0 + dot_product(u0(1:4),u0(5:8))/u0(9)
+
+end if
 
 end subroutine CART2KS
 
