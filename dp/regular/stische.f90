@@ -85,9 +85,9 @@ cph2 = cos(0.5_dk*phi)
 ! 02. POSITION AND VELOCITY IN INERTIAL FRAME, TIME
 ! ==============================================================================
 
-! K-S vector. This is Eq. (19,50) in the reference.
+! K-S vector, Eq. (19,50)
 u = z(1:4)*cph2 + z(5:8)*sph2
-! Derivative of K-S vector. This is Eq. (19,51) in the reference.
+! Derivative of K-S vector, Eq. (19,51)
 du = .5_dk*(-z(1:4)*sph2 + z(5:8)*cph2)
 
 ! Position in inertial frame. Eq. (19,56).
@@ -144,18 +144,11 @@ Lp = [ u(1)*p(1) + u(2)*p(2) + u(3)*p(3),  &
       -u(3)*p(1) - u(4)*p(2) + u(1)*p(3),  &
        u(4)*p(1) - u(3)*p(2) + u(2)*p(3)   ]
 
-! Eq. (9,45)
+! Eq. (9,44) - note that mdVdr = -dV/dr
 dVdu = -2._dk*[u(1)*mdVdr(1) + u(2)*mdVdr(2) + u(3)*mdVdr(3),  &
               -u(2)*mdVdr(1) + u(1)*mdVdr(2) + u(4)*mdVdr(3),  &
               -u(3)*mdVdr(1) - u(4)*mdVdr(2) + u(1)*mdVdr(3),  &
                u(4)*mdVdr(1) - u(3)*mdVdr(2) + u(2)*mdVdr(3)]
-! aux0 = 2._dk/z(1)*zdot(1)
-! aux1 = .5_dk/z(1)**2*(.5_dk*Vpot*u_vec(1) + rmag/4._dk*(dVdu(1) - 2._dk*Lp(1))) + aux0*du_vec(1)
-! aux2 = .5_dk/z(1)**2*(.5_dk*Vpot*u_vec(2) + rmag/4._dk*(dVdu(2) - 2._dk*Lp(2))) + aux0*du_vec(2)
-! aux3 = .5_dk/z(1)**2*(.5_dk*Vpot*u_vec(3) + rmag/4._dk*(dVdu(3) - 2._dk*Lp(3))) + aux0*du_vec(3)
-! aux4 = .5_dk/z(1)**2*(.5_dk*Vpot*u_vec(4) + rmag/4._dk*(dVdu(4) - 2._dk*Lp(4))) + aux0*du_vec(4)
-! aux5 = dot_product(u_vec,dVdu)
-! aux6 = dot_product(u_vec,Lp)
 
 ! ==============================================================================
 ! 07. COMPUTE RIGHT-HAND SIDE
@@ -173,6 +166,7 @@ zdot(5:8) = -aux*cph2
 
 ! Time / Time Element
 if (flag_time == 0) then
+   ! Generalized Sundman transformation
    zdot(10) = .5_dk*rmag/z(9)
 
 else if (flag_time == 1) then   ! Linear Time Element
@@ -187,126 +181,102 @@ end if
 end subroutine STISCHE_RHS
 
 
-! subroutine STISCHE_EVT(neq,phi,z,ng,roots)
+subroutine STISCHE_EVT(neq,phi,z,ng,roots)
 
 ! ! MODULES
-! use AUXILIARIES, only: MJD0,MJDnext,MJDf,DU,TU
-! use PHYS_CONST,  only: secsPerDay,RE,reentry_radius_nd
-! use SETTINGS,    only: eqs
+use AUXILIARIES, only: MJD0,MJDnext,MJDf,DU,TU
+use PHYS_CONST,  only: secsPerDay,RE,reentry_radius_nd
+use SETTINGS,    only: eqs
 
-! ! VARIABLES
-! implicit none
-! ! Arguments IN
-! integer,intent(in)    ::  neq
-! integer,intent(in)    ::  ng
-! real(dk),intent(in)   ::  phi
-! real(dk),intent(in)   ::  z(1:neq)
-! ! Arguments OUT
-! real(dk),intent(out)  ::  roots(1:ng)
+! VARIABLES
+implicit none
+! Arguments IN
+integer,intent(in)    ::  neq
+integer,intent(in)    ::  ng
+real(dk),intent(in)   ::  phi
+real(dk),intent(in)   ::  z(1:neq)
+! Arguments OUT
+real(dk),intent(out)  ::  roots(1:ng)
 
-! ! Locals
-! integer   ::  flag_time
-! real(dk)  ::  t  ! Current time [-]
-! real(dk)  ::  sph2,cph2,rmag
-! real(dk)  ::  u_vec(1:4)
+! Locals
+integer   ::  flag_time
+real(dk)  ::  t                   ! Current time [-]
+real(dk)  ::  sph2,cph2,rmag
+real(dk)  ::  u(1:4) 
 
-! ! ==============================================================================
+! ==============================================================================
 
-! roots = 1._dk
+roots = 1._dk
 
-! ! Get time
-! flag_time = eqs - 2
-! t = STISCHE_TE2TIME(z,phi,flag_time)
+! Get time
+flag_time = eqs - 7
+t = STISCHE_TE2TIME(z,phi,flag_time)
 
-! ! ==============================================================================
-! ! 01. Next timestep
-! ! ==============================================================================
+! ==============================================================================
+! 01. Next timestep
+! ==============================================================================
 
-! roots(1) = t - (MJDnext - MJD0)*secsPerDay*TU
+roots(1) = t - (MJDnext - MJD0)*secsPerDay*TU
 
-! ! ==============================================================================
-! ! 02. Stop integration
-! ! ==============================================================================
+! ==============================================================================
+! 02. Stop integration
+! ==============================================================================
 
-! roots(2) = t - (MJDf - MJD0)*secsPerDay*TU
+roots(2) = t - (MJDf - MJD0)*secsPerDay*TU
 
-! ! ==============================================================================
-! ! 03. Re-entry
-! ! ==============================================================================
-! sph2 = sin(phi/2._dk)
-! cph2 = cos(phi/2._dk)
-! u_vec = [z(2)*cph2 + z(6)*sph2,  &
-!          z(3)*cph2 + z(7)*sph2,  &
-!          z(4)*cph2 + z(8)*sph2,  &
-!          z(5)*cph2 + z(9)*sph2]
-! rmag = u_vec(1)**2 + u_vec(2)**2 + u_vec(3)**2 + u_vec(4)**2
+! ==============================================================================
+! 03. Re-entry
+! ==============================================================================
+sph2 = sin(phi/2._dk)
+cph2 = cos(phi/2._dk)
+u    = z(1:4)*cph2 + z(5:8)*sph2
 
-! roots(3) = rmag - reentry_radius_nd
+rmag = dot_product(u,u)
 
-! end subroutine STISCHE_EVT
+roots(3) = rmag - reentry_radius_nd
 
+end subroutine STISCHE_EVT
 
-! function STISCHE_PHI0(R,V,pot,GM,DU,TU)
-! ! Description:
-! !    Computes initial value of the Stiefel-Scheifele fictitious time
-! !
-! ! ==============================================================================
-
-! implicit none
-! ! Arguments
-! real(dk),intent(in)  ::  R(1:3),V(1:3),pot,GM,DU,TU
-! real(dk)  ::  STISCHE_PHI0
-! ! Locals
-! real(dk)  ::  R_nd(1:3),V_nd(1:3),GM_nd,Rmag_nd
-! real(dk)  ::  rvdot
-! real(dk)  ::  pot_nd,totEn
-
-! R_nd = R/DU; V_nd = V/(DU*TU); GM_nd = GM/(DU**3*TU**2); pot_nd = pot/(DU*TU)**2
-! Rmag_nd = sqrt(dot_product(R_nd,R_nd))
-! rvdot = dot_product(R_nd,V_nd)
-! totEn = .5_dk*dot_product(V_nd,V_nd) - GM_nd/Rmag_nd - pot_nd
-! STISCHE_PHI0 = atan2(rvdot*sqrt(-2._dk*totEn), 1._dk + 2._dk*totEn*Rmag_nd)
-
-! end function STISCHE_PHI0
+! ==============================================================================
+! 02. TRANSFORMATIONS AND PROCESSING PROCEDURES
+! ==============================================================================
 
 
-! ! ==============================================================================
-! ! 02. TRANSFORMATIONS AND PROCESSING PROCEDURES
-! ! ==============================================================================
+function STISCHE_TE2TIME(z,phi,flag_time)
+! Description:
+!    Gets the value of physical time from the Stiefel-Scheifele state vector "z" and
+!    fictitious time "phi".
+!
+! ==============================================================================
 
+! VARIABLES
+implicit none
+! Arguments IN
+real(dk),intent(in)  ::  z(1:10),phi
+integer,intent(in)   ::  flag_time
+! Locals
+real(dk)             ::  alphaSq,betaSq,alphaDotBeta
+! Function definition
+real(dk)  ::  STISCHE_TE2TIME
 
-! function STISCHE_TE2TIME(z,phi,flag_time)
-! ! Description:
-! !    Gets the value of physical time from the Stiefel-Scheifele state vector "z" and
-! !    fictitious time "phi".
-! !
-! ! ==============================================================================
+! ==============================================================================
 
-! ! VARIABLES
-! implicit none
-! ! Arguments IN
-! real(dk),intent(in)  ::  z(1:10),phi
-! integer,intent(in)   ::  flag_time
-! ! Function definition
-! real(dk)  ::  STISCHE_TE2TIME
+if ( flag_time == 0 ) then
+    ! Physical time
+    STISCHE_TE2TIME = z(10)
 
-! ! ==============================================================================
+else if  ( flag_time == 1 ) then
+    ! Linear time element. This is derived by plugging Eq. (19, 55) in
+    ! Eq. (19,59)
+    alphaSq = dot_product(z(1:4),z(1:4))
+    betaSq  = dot_product(z(5:8),z(5:8))
+    alphaDotBeta = dot_product(z(1:4),z(5:8))
+    STISCHE_TE2TIME = z(10) +&
+    & ( (alphaSq + betaSq)/4._dk * sin(phi) + alphaDotBeta )/z(9)
+    
+end if
 
-! if ( flag_time == 0 ) then
-!     ! Physical time
-!     STISCHE_TE2TIME = z(10)
-
-! else if  ( flag_time == 1 ) then
-!     ! Constant time element
-!     ! NO
-
-! else if  ( flag_time == 2 ) then
-!     ! Linear time element
-!     STISCHE_TE2TIME = z(10) - dot_product(u_vec,du_vec)/z(1)
-
-! end if
-
-! end function STISCHE_TE2TIME
+end function STISCHE_TE2TIME
 
 
 subroutine CART2STISCHE(R,V,t0,mu,DU,TU,z,phi,W,flag_time)
