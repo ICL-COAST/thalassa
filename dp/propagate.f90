@@ -64,6 +64,7 @@ use INTEGRATE,   only: SET_SOLV,SET_DX
 use COWELL,      only: COWELL_RHS,COWELL_EVT
 use EDROMO,      only: EDROMO_RHS,EDROMO_EVT
 use KUST_STI,    only: KS_RHS,KS_EVT
+use STI_SCHE,    only: STISCHE_RHS,STISCHE_EVT
 use REGULAR_AUX, only: PHYSICAL_TIME,CARTESIAN
 use AUXILIARIES, only: MJD0,MJDnext,MJDf,DU,TU
 use PHYS_CONST,  only: GE,secsPerDay,GE,RE,GE_nd,RE_nd,ERR_constant,&
@@ -141,9 +142,9 @@ select case (eqs)
         call INTLOOP(KS_RHS,KS_EVT,integ,eqs,neq,y0,x0,dx,tstep,yx,rtols,&
         &atols,isett,liw,iwork,lrw,rwork)
     
-    ! case(7:8) ! Stiefel-Scheifele
-    !     call INTLOOP(STISCHE_RHS,STISCHE_EVT,integ,eqs,neq,y0,x0,dx,tstep,yx,rtols,&
-    !     &atols,isett,liw,iwork,lrw,rwork)
+    case(7:8) ! Stiefel-Scheifele
+        call INTLOOP(STISCHE_RHS,STISCHE_EVT,integ,eqs,neq,y0,x0,dx,tstep,yx,rtols,&
+        &atols,isett,liw,iwork,lrw,rwork)
     
 end select
 

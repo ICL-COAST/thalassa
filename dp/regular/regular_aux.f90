@@ -14,6 +14,7 @@ module REGULAR_AUX
 use KINDS, only: dk
 use EDROMO
 use KUST_STI
+use STI_SCHE
 
 ! VARIABLES
 implicit none
@@ -50,6 +51,10 @@ select case (eqs)
     case(5:6)  ! KS
         ftime = eqs - 5
         PHYSICAL_TIME = KS_TE2TIME(y,x,ftime)
+    
+    case(7:8)
+        ftime = eqs - 7
+        PHYSICAL_TIME = STISCHE_TE2TIME(y,x,ftime)
 
 end select
 
@@ -88,6 +93,10 @@ select case (eqs)
     
     case(5:6) ! KS
         call KS2CART(y,R,V)
+        CARTESIAN = [R*DU,V*DU*TU]
+    
+    case(7:8) ! Stiefel-Scheifele
+        call STISCHE2CART(x,y,R,V)
         CARTESIAN = [R*DU,V*DU*TU]
 
 end select

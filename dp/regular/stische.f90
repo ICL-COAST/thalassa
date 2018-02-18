@@ -379,66 +379,60 @@ end if
 end subroutine CART2STISCHE
 
 
-! subroutine STISCHE2CART(phi,z,r_vec,v_vec)
-! ! Description:
-! !    Transforms from the Stiefel-Scheifele state vector "z", fictitious time "phi" and
-! !    potential "Upot" to Cartesian position and velocity "r_vec", "v_vec".
-! !    **All quantities are dimensionless, unlike in CART2STISCHE**.
-! !
-! ! ==============================================================================
+subroutine STISCHE2CART(phi,z,r,v)
+! Description:
+!    Transforms from the Stiefel-Scheifele state vector "z" and fictitious time
+!    "phi" to Cartesian position and velocity "r", "v".
+!    **All quantities are dimensionless, unlike in CART2STISCHE**.
+!
+! ==============================================================================
 
-! ! VARIABLES
-! implicit none
-! ! Arguments IN
-! real(dk),intent(in)   ::  z(1:10),phi
-! ! Arguments OUT
-! real(dk),intent(out)  ::  r_vec(1:3),v_vec(1:3)
+! VARIABLES
+implicit none
+! Arguments IN
+real(dk),intent(in)   ::  z(1:10),phi
+! Arguments OUT
+real(dk),intent(out)  ::  r(1:3),v(1:3)
 
-! ! Auxiliaries
-! real(dk)  ::  sph2,cph2
-! real(dk)  ::  rmag
-! real(dk)  ::  u_vec(1:4),du_vec(1:4)
+! Auxiliaries
+real(dk)  ::  sph2,cph2
+real(dk)  ::  rmag
+real(dk)  ::  u(1:4),du(1:4)
 
-! ! ==============================================================================
+! ==============================================================================
 
-! ! ==============================================================================
-! ! 01. AUXILIARY QUANTITIES
-! ! ==============================================================================
+! ==============================================================================
+! 01. AUXILIARY QUANTITIES
+! ==============================================================================
 
-! ! Store trig functions
-! sph2 = sin(phi/2._dk)
-! cph2 = cos(phi/2._dk)
+! Store trig functions
+sph2 = sin(phi/2._dk)
+cph2 = cos(phi/2._dk)
 
-! ! ==============================================================================
-! ! 02. POSITION IN INERTIAL FRAME
-! ! ==============================================================================
+! ==============================================================================
+! 02. POSITION IN INERTIAL FRAME
+! ==============================================================================
 
-! ! K-S parameters
-! u_vec = [z(2)*cph2 + z(6)*sph2,  &
-!          z(3)*cph2 + z(7)*sph2,  &
-!          z(4)*cph2 + z(8)*sph2,  &
-!          z(5)*cph2 + z(9)*sph2]
-! ! Derivatives of the K-S parameters wrt the independent variable
-! du_vec = .5_dk*[-z(2)*sph2 + z(6)*cph2,  &
-!                 -z(3)*sph2 + z(7)*cph2,  &
-!                 -z(4)*sph2 + z(8)*cph2,  &
-!                 -z(5)*sph2 + z(9)*cph2]
+! K-S state vector and its derivative
+u  = z(1:4)*cph2 + z(5:8)*sph2
+du = - .5_dk*(z(1:4)*sph2 + z(5:8)*cph2) 
 
-! ! Position in inertial frame
-! r_vec = [u_vec(1)**2 - u_vec(2)**2 - u_vec(3)**2 + u_vec(4)**2,  &
-!          2._dk*(u_vec(1)*u_vec(2) - u_vec(3)*u_vec(4)),  &
-!          2._dk*(u_vec(1)*u_vec(3) + u_vec(2)*u_vec(4))]
-! rmag = u_vec(1)**2 + u_vec(2)**2 + u_vec(3)**2 + u_vec(4)**2
+! Position in inertial frame
+r = [u(1)**2 - u(2)**2 - u(3)**2 + u(4)**2,  &
+     2._dk*(u(1)*u(2) - u(3)*u(4)),  &
+     2._dk*(u(1)*u(3) + u(2)*u(4))]
+rmag = u(1)**2 + u(2)**2 + u(3)**2 + u(4)**2
 
-! ! ==============================================================================
-! ! 03. VELOCITY IN INERTIAL FRAME
-! ! ==============================================================================
+! ==============================================================================
+! 03. VELOCITY IN INERTIAL FRAME
+! ==============================================================================
 
-! v_vec = 4._dk*z(1)/rmag*[u_vec(1)*du_vec(1) - u_vec(2)*du_vec(2) - u_vec(3)*du_vec(3) + u_vec(4)*du_vec(4),  &
-!                          u_vec(2)*du_vec(1) + u_vec(1)*du_vec(2) - u_vec(4)*du_vec(3) - u_vec(3)*du_vec(4),  &
-!                          u_vec(3)*du_vec(1) + u_vec(4)*du_vec(2) + u_vec(1)*du_vec(3) + u_vec(2)*du_vec(4)]
+v = 4._dk*z(1)/rmag*&
+    [u(1)*du(1) - u(2)*du(2) - u(3)*du(3) + u(4)*du(4),  &
+     u(2)*du(1) + u(1)*du(2) - u(4)*du(3) - u(3)*du(4),  &
+     u(3)*du(1) + u(4)*du(2) + u(1)*du(3) + u(2)*du(4)]
 
-! end subroutine STISCHE2CART
+end subroutine STISCHE2CART
 
 
 end module STI_SCHE
