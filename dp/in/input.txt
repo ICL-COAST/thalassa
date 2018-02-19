@@ -2,7 +2,6 @@
 # ==============================================================================
 
 # PHYSICAL MODEL
-# model:     1 = STELA model, 2 = SWIFT-SAT model, 3 = custom (TBD).
 # insgrav:   0 = sph. grav. field, 1 = non-spherical grav. field.
 # isun:      0 = no Sun perturbation, 1 = otherwise.
 # imoon:     0 = no Moon perturbation, 1 = otherwise.
@@ -11,15 +10,14 @@
 # iephem:    Ephemerides source. 1 = DE431 ephemerides. 2 = Simpl. Meeus & Brown
 # gdeg:      Maximum degree of the gravitational potential.
 # gord:      Maximum order of the gravitational potential.
-model:     1
 insgrav:   1
-isun:      0
-imoon:     0
-idrag:     0
-iSRP:      0
-iephem:    1
-gdeg:      3
-gord:      0
+isun:      1
+imoon:     1
+idrag:     1
+iSRP:      1
+iephem:    2
+gdeg:      2
+gord:      2
 
 # INTEGRATION
 # integ:     Integrator flag. 1 = LSODAR, 2 = CVODE (TBD).
@@ -29,16 +27,16 @@ gord:      0
 # tstep:     Step size (solar days).
 # mxstep:    Maximum number of integration/output steps.
 integ:     1
-tol:       1.000000000000000E-13
-tspan:     365.2500000000000E+00
-tstep:     0.100000000000000E+00
+tol:       1.000000000000000E-26
+tspan:     30.00000000000000E+00
+tstep:     0.500000000000000E+00
 mxstep:    1.0E+06
 
 # EQUATIONS OF MOTION
 # eqs:       Type of the equations of motion.
 #            1 = Cowell, 2 = EDromo(t), 3 = EDromo(c), 4 = EDromo(l),
-#            5 = KS (t)
-eqs:       5
+#            5 = KS (t), 6 = KS (l), 7 = Sti-Sche (t), 8 = Sti-Sche (l)
+eqs:       8
 
 # OUTPUT DIRECTORY
-out:   /home/davide/Documents/Research/02.Progetti/THESS/data/elbert/Thalassa/LEO_harmonics_180126/C20_C30/
+out:   /home/davide/Documents/Research/02.Progetti/THESS/data/elbert/Thalassa/Galileo_full/StiSche_l/

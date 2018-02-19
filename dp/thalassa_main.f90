@@ -31,7 +31,7 @@ use PHYS_CONST,  only: READ_PHYS,GMST_UNIFORM
 use PROPAGATE,   only: DPROP_REGULAR
 use SETTINGS,    only: READ_SETTINGS
 use IO,          only: id_cart,id_orb,id_stat
-use SETTINGS,    only: model,outpath
+use SETTINGS,    only: outpath
 use PHYS_CONST,  only: GE,d2r,r2d,secsPerDay,secsPerSidDay,twopi
 implicit none
 
@@ -67,7 +67,7 @@ call SYSTEM_CLOCK(tic,rate)
 ! Read initial conditions, settings and physical model data.
 call READ_IC(MJD0,COE0)
 call READ_SETTINGS(tspan,tstep)
-call READ_PHYS(model)
+call READ_PHYS()
 
 ! Load SPICE kernels
 call FURNSH('in/kernels_to_load.furnsh')

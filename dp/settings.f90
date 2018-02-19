@@ -16,7 +16,6 @@ implicit none
 ! Settings file id
 integer,parameter   ::  id_set = 13
 ! Physical model
-integer  ::  model              ! 1 = STELA model, 2 = SWIFT model, 3 = custom.
 integer  ::  insgrav            ! Non-spherical gravity field flag.
 integer  ::  isun               ! 0 = no Sun perturbation, 1 = otherwise.
 integer  ::  imoon              ! 0 = no Moon perturbation, 1 = otherwise.
@@ -44,7 +43,7 @@ subroutine READ_SETTINGS(tspan,tstep)
 
 implicit none
 real(dk),intent(out) ::  tspan,tstep
-integer,parameter    ::  hlines = 13  ! <- Check this when modifying input.txt
+integer,parameter    ::  hlines = 12  ! <- Check this when modifying input.txt
 integer  :: i
 character(len=4096)  ::  dummy
 real(dk)  ::  rmxstep
@@ -53,7 +52,6 @@ real(dk)  ::  rmxstep
 open(unit=id_set,file='./in/input.txt',status='old',action='read')
 read(id_set,'(a)') (dummy, i = 1,hlines)
 
-read(id_set,'(a11,i3)') dummy, model
 read(id_set,'(a11,i3)') dummy, insgrav
 read(id_set,'(a11,i3)') dummy, isun
 read(id_set,'(a11,i3)') dummy, imoon
