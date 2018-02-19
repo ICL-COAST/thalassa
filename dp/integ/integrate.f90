@@ -48,10 +48,13 @@ contains
 subroutine INTSTEP(EOM,EVT,integ,eqs,neq,xi,yi,dx,xf,yf,rtol,atol,isett,lrw,&
 &rwork,liw,iwork)
 ! Description:
-!    Performs one integration step with the integrator specified by "integ". It
+!    Performs one integration step with the integrator specified by "integ".* It
 !    advances the state vector yi(xi) to yf(xf), where xf = xi + dx, doing so by
 !    integrating the equations of motion specified in the subroutine EOM. The
 !    user can provide an event function through the subroutine EVT.
+!    
+!    * At the present moment, only the LSODAR integrator is available.
+!      (DA, 19 Feb 2018)
 !
 ! ==============================================================================
 
@@ -184,7 +187,7 @@ select case (integ)
               ! For Cowell, let the solver estimate the step size.
               rwork(5) = 0._dk
 
-          case(2:6)
+          case(2:8)
               ! For regularized formulations using angle-like fictitious times,
               ! estimate the step size as ~100th of a period, and scale according
               ! to tolerance.
@@ -222,7 +225,7 @@ select case (eqs)
         ! For Cowell, the step size is simply the step size in days, non-dimensionalized.
         SET_DX = tstep*secsPerDay*TU
 
-    case (2:6) ! EDromo, KS
+    case (2:8) ! EDromo, KS, Stiefel-Scheifele
         ! For regularized formulations, set the step size to +inf since they are
         ! to be stopped by event location.
         SET_DX = (tstep/abs(tstep))*huge(0._dk)

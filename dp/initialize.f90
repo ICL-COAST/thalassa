@@ -30,6 +30,7 @@ use SETTINGS,      only: insgrav
 use PERTURBATIONS, only: PPOTENTIAL
 use EDROMO,        only: EDROMO_PHI0,CART2EDROMO
 use KUST_STI,      only: CART2KS
+use STI_SCHE,       only: CART2STISCHE
 
 ! VARIABLES
 implicit none
@@ -78,8 +79,18 @@ select case (eqs)
         allocate(y0(1:neq))
         Rm = sqrt(dot_product(R0,R0))
         U0 = PPOTENTIAL(insgrav,GE,RE,R0,Rm,0._dk)
-        call CART2KS(R0,V0,0._dk,GE,DU,TU,y0,U0)
-
+        call CART2KS(R0,V0,0._dk,GE,DU,TU,y0,U0,ftime)
+        x0 = EDROMO_PHI0(R0,V0,U0,GE,DU,TU)
+    
+    case(7:8) ! Stiefel-Scheifele
+        neq = 10
+        ftime = eqs - 7
+        allocate(y0(1:neq))
+        Rm = sqrt(dot_product(R0,R0))
+        U0 = PPOTENTIAL(insgrav,GE,RE,R0,Rm,0._dk)
+        x0 = EDROMO_PHI0(R0,V0,U0,GE,DU,TU)
+        call CART2STISCHE(R0,V0,0._dk,GE,DU,TU,y0,x0,U0,ftime)
+        
 end select
 
 end subroutine INIT_STATE

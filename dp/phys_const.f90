@@ -78,7 +78,7 @@ contains
 
 
 
-subroutine READ_PHYS(model)
+subroutine READ_PHYS()
 ! Description:
 !    Read values for the physical parameters from text file.
 !
@@ -86,8 +86,6 @@ subroutine READ_PHYS(model)
 
 ! VARIABLES
 implicit none
-! Arguments
-integer,intent(in)   ::  model ! 1: STELA 3.0 model. 2: SWIFT model.
 ! Locals
 character(len=4096)  ::  filepath,dummy
 integer,parameter    ::  hlines = 7
@@ -150,7 +148,6 @@ function GMST_UNIFORM(MJD_UT1)
 ! ==============================================================================
 
 ! MODULES
-use SETTINGS, only: model
 implicit none
 ! Arguments IN
 real(dk),intent(in)  ::  MJD_UT1
@@ -172,44 +169,49 @@ MJD_UT1_frac = MJD_UT1 - MJD_UT1_num
 T_UT1 = (MJD_UT1 - MJD_J2000)/(36525._dk)
 T_UT1_num = (MJD_UT1_num - MJD_J2000)/(36525._dk)
 
-select case (model)
-  case(1) ! STELA
-    ! Note: the numerical result of the GMST should be identical to the
-    ! SWIFT-SAT model, except for round-off and the "dirty fixes". However
-    ! we use slightly different formulas (see Ref. [1]) to ensure maximum
-    ! compatibility. Perform the computation in quad to avoid roundoff problems.
-    GMST_seconds = real(67310.54841_dk,16) + &
-    & (real(876600.0_dk*hoursToSeconds,16) + real(8640184.812866_dk,16))*T_UT1
-    GMST_seconds = mod(GMST_seconds,secsPerDay)
-    GMST_deg = GMST_seconds*secondsToDegrees
+! STELA
+! Note: the numerical result of the GMST should be identical to the
+! SWIFT-SAT model, except for round-off and the "dirty fixes". However
+! we use slightly different formulas (see Ref. [1]) to ensure maximum
+! compatibility. Perform the computation in quad to avoid roundoff problems.
+GMST_seconds = real(67310.54841_dk,16) + &
+& (real(876600.0_dk*hoursToSeconds,16) + real(8640184.812866_dk,16))*T_UT1
+GMST_seconds = mod(GMST_seconds,secsPerDay)
+GMST_deg = GMST_seconds*secondsToDegrees
 
-  case (2) ! SWIFT-SAT
-    ! Value of GMST at J2000 epoch.
-    GMST_const = 100.4606184_dk
-    ! "Dirty fix" to make the initial GMST coincide with those used for
-    ! SWIFT-SAT, which are derived from SPICE.
-    if (model==2) then
-      if (abs((MJD_UT1 - 5.84747433E+04)/MJD_UT1) <= 1.E-3_dk) then
-        ! Correction for epoch: 22.74/12/2018 (CHECK THIS)
-        GMST_const = GMST_const - 0.23254054917021_dk
+! ============
+! SWIFT-SAT
+! Note (19 Feb 2018): This block of code has been deprecated. However, I'm
+! keeping it commented for a few commits for retrocompatibility.
+! ============
+! ! Value of GMST at J2000 epoch.
+! GMST_const = 100.4606184_dk
+! ! "Dirty fix" to make the initial GMST coincide with those used for
+! ! SWIFT-SAT, which are derived from SPICE.
+! if (model==2) then
+!   if (abs((MJD_UT1 - 5.84747433E+04)/MJD_UT1) <= 1.E-3_dk) then
+!     ! Correction for epoch: 22.74/12/2018 (CHECK THIS)
+!     GMST_const = GMST_const - 0.23254054917021_dk
 
-      else if (abs((MJD_UT1 - 5.902128E+04)/MJD_UT1) <= 1.E-3_dk) then
-        ! Correction for epoch: 21.28/06/2020 (CHECK THIS)
-        GMST_const = GMST_const - 0.24982607944896884_dk
-      end if
+!   else if (abs((MJD_UT1 - 5.902128E+04)/MJD_UT1) <= 1.E-3_dk) then
+!     ! Correction for epoch: 21.28/06/2020 (CHECK THIS)
+!     GMST_const = GMST_const - 0.24982607944896884_dk
+!   end if
 
-    end if
+! end if
 
-    ! GMST at midnight UTC excluding secular terms. Wrap to [0,360] deg.
-    GMST_deg_zeroh = GMST_const + 36000.77005361_dk*T_UT1_num
-    GMST_deg_zeroh = mod(GMST_deg_zeroh,360._dk)
+! ! GMST at midnight UTC excluding secular terms. Wrap to [0,360] deg.
+! GMST_deg_zeroh = GMST_const + 36000.77005361_dk*T_UT1_num
+! GMST_deg_zeroh = mod(GMST_deg_zeroh,360._dk)
 
-    ! Current GMST and wrap to [0,360] deg. The Earth rotation rate is
-    ! considered to be constant.
-    GMST_deg = GMST_deg_zeroh + ERR_constant*MJD_UT1_frac*360._dk
-    GMST_deg = mod(GMST_deg,360._dk)
+! ! Current GMST and wrap to [0,360] deg. The Earth rotation rate is
+! ! considered to be constant.
+! GMST_deg = GMST_deg_zeroh + ERR_constant*MJD_UT1_frac*360._dk
+! GMST_deg = mod(GMST_deg,360._dk)
 
-end select
+! ============
+! End of deprecated code.
+! ============
 
 ! To radians
 GMST_UNIFORM = GMST_deg*d2r
