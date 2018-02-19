@@ -24,7 +24,6 @@ integer  ::  iSRP               ! 0 = no SRP, 1 = otherwise.
 integer  ::  iephem             ! Ephemerides source. 1 = DE431 ephemerides. 2 = Simpl. Meeus & Brown
 integer  ::  gdeg,gord          ! Gravitational potential - maximum degree and order
 ! Integrator settings
-integer  ::  integ              ! Integrator type. 1 = LSODAR, 2 = CVODE.
 integer  ::  mxstep             ! Max. number of integration/output steps.
 real(dk) ::  tol                ! Integrator tolerance.
 ! Equations of motion settings
@@ -59,8 +58,7 @@ read(id_set,'(a11,i3)') dummy, idrag
 read(id_set,'(a11,i3)') dummy, iSRP
 read(id_set,'(a11,i3)') dummy, iephem
 read(id_set,'(a11,i3)') dummy, gdeg
-read(id_set,'(a11,i3,8(/))') dummy, gord
-read(id_set,'(a11,i3)') dummy, integ
+read(id_set,'(a11,i3,7(/))') dummy, gord
 read(id_set,'(a11,e22.15)') dummy, tol
 read(id_set,'(a11,e22.15)') dummy, tspan
 read(id_set,'(a11,e22.15)') dummy, tstep

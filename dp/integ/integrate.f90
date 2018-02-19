@@ -48,10 +48,13 @@ contains
 subroutine INTSTEP(EOM,EVT,integ,eqs,neq,xi,yi,dx,xf,yf,rtol,atol,isett,lrw,&
 &rwork,liw,iwork)
 ! Description:
-!    Performs one integration step with the integrator specified by "integ". It
+!    Performs one integration step with the integrator specified by "integ".* It
 !    advances the state vector yi(xi) to yf(xf), where xf = xi + dx, doing so by
 !    integrating the equations of motion specified in the subroutine EOM. The
 !    user can provide an event function through the subroutine EVT.
+!    
+!    * At the present moment, only the LSODAR integrator is available.
+!      (DA, 19 Feb 2018)
 !
 ! ==============================================================================
 

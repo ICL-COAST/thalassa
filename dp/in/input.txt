@@ -20,13 +20,11 @@ gdeg:      2
 gord:      2
 
 # INTEGRATION
-# integ:     Integrator flag. 1 = LSODAR, 2 = CVODE (TBD).
 # tolref:    Absolute = relative tolerance for the reference propagation
 # tol:       Absolute = relative tolerance for the test propagation
 # tspan:     Propagation time span (solar days).
 # tstep:     Step size (solar days).
 # mxstep:    Maximum number of integration/output steps.
-integ:     1
 tol:       1.000000000000000E-26
 tspan:     30.00000000000000E+00
 tstep:     0.500000000000000E+00

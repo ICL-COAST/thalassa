@@ -69,7 +69,7 @@ use REGULAR_AUX, only: PHYSICAL_TIME,CARTESIAN
 use AUXILIARIES, only: MJD0,MJDnext,MJDf,DU,TU
 use PHYS_CONST,  only: GE,secsPerDay,GE,RE,GE_nd,RE_nd,ERR_constant,&
 &ERR_constant_nd,pi,reentry_height,reentry_radius_nd
-use SETTINGS,    only: integ,eqs,tol
+use SETTINGS,    only: eqs,tol
 
 ! VARIABLES
 implicit none
@@ -124,26 +124,26 @@ call INIT_STATE(eqs,R0,V0,MJD0,neq,y0,x0)
 ! ==============================================================================
 
 ! Solver initialization
-call SET_SOLV(integ,eqs,neq,tol,isett,iwork,rwork,rtols,atols)
+call SET_SOLV(1,eqs,neq,tol,isett,iwork,rwork,rtols,atols)
 
 dx = SET_DX(eqs,tstep,TU)
 
 ! Choose equations of motion and start MAIN INTEGRATION LOOP
 select case (eqs)
     case(1)   ! Cowell, 1st order
-        call INTLOOP(COWELL_RHS,COWELL_EVT,integ,eqs,neq,y0,x0,dx,tstep,yx,rtols,&
+        call INTLOOP(COWELL_RHS,COWELL_EVT,1,eqs,neq,y0,x0,dx,tstep,yx,rtols,&
         &atols,isett,liw,iwork,lrw,rwork)
 
     case(2:4) ! EDromo
-        call INTLOOP(EDROMO_RHS,EDROMO_EVT,integ,eqs,neq,y0,x0,dx,tstep,yx,rtols,&
+        call INTLOOP(EDROMO_RHS,EDROMO_EVT,1,eqs,neq,y0,x0,dx,tstep,yx,rtols,&
         &atols,isett,liw,iwork,lrw,rwork)
     
     case(5:6) ! KS
-        call INTLOOP(KS_RHS,KS_EVT,integ,eqs,neq,y0,x0,dx,tstep,yx,rtols,&
+        call INTLOOP(KS_RHS,KS_EVT,1,eqs,neq,y0,x0,dx,tstep,yx,rtols,&
         &atols,isett,liw,iwork,lrw,rwork)
     
     case(7:8) ! Stiefel-Scheifele
-        call INTLOOP(STISCHE_RHS,STISCHE_EVT,integ,eqs,neq,y0,x0,dx,tstep,yx,rtols,&
+        call INTLOOP(STISCHE_RHS,STISCHE_EVT,1,eqs,neq,y0,x0,dx,tstep,yx,rtols,&
         &atols,isett,liw,iwork,lrw,rwork)
     
 end select
