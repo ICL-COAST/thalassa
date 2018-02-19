@@ -272,7 +272,7 @@ else if  ( flag_time == 1 ) then
     betaSq  = dot_product(z(5:8),z(5:8))
     alphaDotBeta = dot_product(z(1:4),z(5:8))
     STISCHE_TE2TIME = z(10) +&
-    & ( (alphaSq + betaSq)/4._dk * sin(phi) + alphaDotBeta )/z(9)
+    &.5_dk*( (alphaSq-betaSq)/2._dk * sin(phi) - alphaDotBeta * cos(phi) )/z(9)
     
 end if
 
@@ -415,7 +415,7 @@ cph2 = cos(phi/2._dk)
 
 ! K-S state vector and its derivative
 u  = z(1:4)*cph2 + z(5:8)*sph2
-du = - .5_dk*(z(1:4)*sph2 + z(5:8)*cph2) 
+du = .5_dk*( -z(1:4)*sph2 + z(5:8)*cph2)
 
 ! Position in inertial frame
 r = [u(1)**2 - u(2)**2 - u(3)**2 + u(4)**2,  &
@@ -427,7 +427,7 @@ rmag = u(1)**2 + u(2)**2 + u(3)**2 + u(4)**2
 ! 03. VELOCITY IN INERTIAL FRAME
 ! ==============================================================================
 
-v = 4._dk*z(1)/rmag*&
+v = 4._dk*z(9)/rmag*&
     [u(1)*du(1) - u(2)*du(2) - u(3)*du(3) + u(4)*du(4),  &
      u(2)*du(1) + u(1)*du(2) - u(4)*du(3) - u(3)*du(4),  &
      u(3)*du(1) + u(4)*du(2) + u(1)*du(3) + u(2)*du(4)]
