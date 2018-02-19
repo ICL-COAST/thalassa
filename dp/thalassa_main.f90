@@ -31,7 +31,7 @@ use PHYS_CONST,  only: READ_PHYS,GMST_UNIFORM
 use PROPAGATE,   only: DPROP_REGULAR
 use SETTINGS,    only: READ_SETTINGS,input_path
 use IO,          only: id_cart,id_orb,id_stat,object_path
-use SETTINGS,    only: model,gdeg,gord,outpath,tol,eqs
+use SETTINGS,    only: gdeg,gord,outpath,tol,eqs
 use PHYS_CONST,  only: GE,d2r,r2d,secsPerDay,secsPerSidDay,twopi
 implicit none
 
