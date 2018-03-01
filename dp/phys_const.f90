@@ -13,7 +13,7 @@ use KINDS, only: dk
 implicit none
 
 ! Physical values file id
-integer,parameter   ::  id_val = 12
+integer,parameter   ::  id_phys = 12, id_earth = 13
 ! Numerical constants
 real(dk),parameter  ::  pi    = acos(-1._dk)
 real(dk),parameter  ::  twopi = 2._dk*acos(-1._dk)
@@ -87,29 +87,44 @@ subroutine READ_PHYS()
 ! VARIABLES
 implicit none
 ! Locals
-character(len=4096)  ::  filepath,dummy
+character(len=4096)  ::  physFile,earthFile,dummy
 integer,parameter    ::  hlines = 7
 integer              ::  i,j,l,m
 
 ! Set file path
-filepath = './in/physical_constants.txt'
+physFile  = './in/physical_constants.txt'
+earthFile = './phys/earth_potential/EGM_GOC_2.txt'
 
-! Open and skip lines
-open(unit=id_val,file=trim(filepath),status='old',action='read')
-read(id_val,'(a)') (dummy, i=1,hlines)
 
-! Read values of physical constants
-read(id_val,'(e20.13)') au; read(id_val,'(a)'), dummy
-read(id_val,'(3(e20.13,/))') GS,GE,GM
-read(id_val,'(e20.13,/)') RE
-read(id_val,'(e20.13)') secsPerDay
-read(id_val,'(e20.13,/)') secsPerSidDay
-read(id_val,'(e20.13,/)') pSRP_1au
-read(id_val,'(e20.13,/)') F107
-read(id_val,'(e20.13,/)') Kp
-read(id_val,'(e20.13,/)') Ap
-read(id_val,'(e20.13,/)') reentry_height
-read(id_val,'(e20.13)') cutoff_height
+! ==============================================================================
+! 01. PHYSICAL CONSTANTS
+! ==============================================================================
+
+open(unit=id_phys,file=trim(physFile),status='old',action='read')
+read(id_phys,'(a)') (dummy, i=1,hlines)
+
+read(id_phys,'(e20.13)') au; read(id_phys,'(a)'), dummy
+read(id_phys,'(3(e20.13,/))') GS,GM
+read(id_phys,'(e20.13,/)') RE
+read(id_phys,'(e20.13)') secsPerDay
+read(id_phys,'(e20.13,/)') secsPerSidDay
+read(id_phys,'(e20.13,/)') pSRP_1au
+read(id_phys,'(e20.13,/)') F107
+read(id_phys,'(e20.13,/)') Kp
+read(id_phys,'(e20.13,/)') Ap
+read(id_phys,'(e20.13,/)') reentry_height
+read(id_phys,'(e20.13)') cutoff_height
+
+close(id_phys)
+
+! ==============================================================================
+! 02. EARTH DATA
+! ==============================================================================
+
+open(unit=id_earth,file=trim(earthFile),status='old',action='read')
+read(id_earth,'(a)') (dummy, i=1,4)
+
+close(id_earth)
 
 ! Compute Earth Rotation Rate (rounds per tropical day)
 ERR_constant = secsPerDay/secsPerSidDay
@@ -119,17 +134,15 @@ ERR_constant = secsPerDay/secsPerSidDay
 l = 1; m = 0;
 Clm = 0._dk; Slm = 0._dk
 
-read(id_val,'(a)') (dummy, i=1,2)
+read(id_phys,'(a)') (dummy, i=1,2)
 do i=1,maxDeg
   do j=0,minval([i,maxOrd])
-    read(id_val,'(2(1x,i2),2(1x,e24.17))') l,m,Clm(i,j),Slm(i,j)
+    read(id_phys,'(2(1x,i2),2(1x,e24.17))') l,m,Clm(i,j),Slm(i,j)
 
   end do
 end do
 
-close(id_val)
 
-! 100 format('(i2)')
 end subroutine READ_PHYS
 
 
