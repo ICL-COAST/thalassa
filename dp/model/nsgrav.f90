@@ -12,7 +12,7 @@ contains
 
 
 function POT_NSG(GM,RE,Clm,Slm,r,rm,t)
-! Compute the perturbing potential due to the non-spherical gravity field up
+! Perturbing potential due to the non-spherical gravity field up
 ! to degree 'deg' and order 'ord'.
 ! Pay attention to the sign convention! This subroutine computes:
 !
@@ -179,7 +179,7 @@ real(dk)  ::  MJD_UT1
 ! Coordinates in the Earth-fixed frame
 real(dk)  ::  sinph,phi,alpha,lam,ERA
 ! Trig and ALFs
-real(dk)  ::  PLexp(0:gdeg,0:gord+1) ! Associated Legendre functions matrix (expanded)
+real(dk)  ::  PLexp(0:gdeg,0:gord+1)    ! Associated Legendre functions matrix (expanded)
 ! Indices
 integer   ::  l,m,mmax
 ! Trigonometric functions
@@ -341,6 +341,44 @@ end if
 
 end function ALF
 
+
+
+function NORMFACT(l,m)
+! Normalization factor for the spherical harmonics coefficients and associated
+! Legendre functions:
+! 
+! sqrt( (l + m)! / ( (2 - delta_{0,m}) * (2n  + 1) * (n - m)! ) )
+! 
+! Reference:
+! [1] Montenbruck, O., Gill, E., "Satellite Orbits", p. 58, Springer, 2000.
+! 
+! ==============================================================================
+
+! Arguments and function definition
+integer,intent(in)  ::  l,m
+real(dk)            ::  NORMFACT
+! Locals
+real(dk)            ::  lr,mr
+real(dk)            ::  kron
+real(dk)            ::  numer,denom
+
+! ==============================================================================
+lr = real(l,dk)
+mr = real(m,dk)
+
+numer = gamma(lr + mr + 1._dk)
+
+if (m == 0) then
+	kron = 1._dk
+else
+	kron = 0._dk
+end if
+
+denom = (2._dk - kron) * (2._dk*lr + 1._dk) * gamma(lr - mr + 1._dk)
+
+NORMFACT = sqrt(numer/denom)
+
+end function NORMFACT
 
 !
 ! function DDGRHOAN(JD)

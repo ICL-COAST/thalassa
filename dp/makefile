@@ -5,7 +5,7 @@ FC = gfortran
 FCFLAGS = -c -O -g
 FLFLAGS = -g -O -o
 # Link flags
-LIBS = ~/SPICE/toolkit/lib/spicelib.a
+LIBS = ~/Documents/Codes/SPICE/toolkit/lib/spicelib.a
 
 # Numerical integrators
 SLSODAR = opksa1.o opksa2.o opksmain.o

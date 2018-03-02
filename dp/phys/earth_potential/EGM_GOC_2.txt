@@ -3,11 +3,13 @@
 # Body:                              Earth
 # Model:                             EGM-GOC-2 (static)
 # Max degree:                        15
+# Max order:                         15
 # GM [km^3/s^2]:                     3.986004414498200E+05
 # Ellipsoid semi-major axis [km]:    6.378136460000000E+03
 # 1/flattening:                      0.298257650000000E+03
 # Angular velocity [rad/s]:          7.292115855306578E-05
-#l  m                      Cbar                     Sbar
+# Unnormalized spherical harmonics coefficients:
+#l  m                         C                        S
  1  0   0.00000000000000000E+00  0.00000000000000000E+00
  1  1   0.00000000000000000E+00  0.00000000000000000E+00
  2  0  -4.84165115570149964E-04  0.00000000000000000E+00

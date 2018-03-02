@@ -26,10 +26,12 @@ real(dk),parameter  ::  mzero = epsilon(0._dk)
 real(dk)  ::  au
 ! Sun, Earth, Moon grav. parameters (km^3/s^2)
 real(dk)  ::  GS,GE,GM
-! Earth radius (km)
+! Earth radius (km), inverse flattening and angular velocity (rad/s)
 real(dk)  ::  RE
+real(dk)  ::  invFlatt
+real(dk)  ::  omegaE
 ! Seconds per day (tropical)
-real(dk)  ::  secsPerDay
+real(dk),parameter  ::  secsPerDay = 86400._dk
 ! Seconds per day (sidereal)
 real(dk)  ::  secsPerSidDay
 ! Re-entry height and radius. Latter is dimensionless (km,-)
@@ -51,9 +53,9 @@ real(dk)            ::  ERR_constant_nd
 ! Physical parameters (dimensionless)
 real(dk)  ::  RE_nd,GE_nd       ! Earth
 
-! Spherical harmonics (not normalized)
-integer,parameter     ::  maxDeg = 15, maxOrd = 15 
-real(dk)              ::  Clm(1:maxDeg,0:maxOrd),Slm(1:maxDeg,0:maxOrd)
+! Spherical harmonics (normalized)
+integer               ::  maxDeg, maxOrd
+real(dk),allocatable  ::  Clm(:,:),Slm(:,:)
 
 ! Mass (kg)
 real(dk)  ::  SCMass
@@ -103,11 +105,9 @@ earthFile = './phys/earth_potential/EGM_GOC_2.txt'
 open(unit=id_phys,file=trim(physFile),status='old',action='read')
 read(id_phys,'(a)') (dummy, i=1,hlines)
 
-read(id_phys,'(e20.13)') au; read(id_phys,'(a)'), dummy
-read(id_phys,'(3(e20.13,/))') GS,GM
-read(id_phys,'(e20.13,/)') RE
-read(id_phys,'(e20.13)') secsPerDay
-read(id_phys,'(e20.13,/)') secsPerSidDay
+read(id_phys,'(e20.13,/)') au
+read(id_phys,'(e20.13)') GS
+read(id_phys,'(e20.13,/)') GM
 read(id_phys,'(e20.13,/)') pSRP_1au
 read(id_phys,'(e20.13,/)') F107
 read(id_phys,'(e20.13,/)') Kp
@@ -123,25 +123,31 @@ close(id_phys)
 
 open(unit=id_earth,file=trim(earthFile),status='old',action='read')
 read(id_earth,'(a)') (dummy, i=1,4)
+read(id_earth,'(a37,i3)') dummy, maxDeg
+read(id_earth,'(a37,i3)') dummy, maxOrd
+read(id_earth,'(a36,e22.15)') dummy, GE
+read(id_earth,'(a36,e22.15)') dummy, RE
+read(id_earth,'(a36,e22.15)') dummy, invFlatt
+read(id_earth,'(a36,e22.15)') dummy, omegaE
 
-close(id_earth)
-
-! Compute Earth Rotation Rate (rounds per tropical day)
-ERR_constant = secsPerDay/secsPerSidDay
-
-! Read coefficients of the gravitational spherical harmonics
+! Read normalized spherical harmonics coefficients
 ! Initialize
 l = 1; m = 0;
-Clm = 0._dk; Slm = 0._dk
+allocate(Clm(1:maxDeg,0:maxOrd)); Clm = 0._dk
+allocate(Slm(1:maxDeg,0:maxOrd)); Slm = 0._dk
 
-read(id_phys,'(a)') (dummy, i=1,2)
+read(id_earth,'(a)') (dummy, i=1,2)
 do i=1,maxDeg
   do j=0,minval([i,maxOrd])
-    read(id_phys,'(2(1x,i2),2(1x,e24.17))') l,m,Clm(i,j),Slm(i,j)
-
+    read(id_earth,'(2(1x,i2),2(1x,e24.17))') l,m,Clm(i,j),Slm(i,j)
   end do
 end do
 
+close(id_earth)
+    
+! Earth Rotation Rate (revolutions per tropical day)
+secsPerSidDay = twopi/omegaE
+ERR_constant = secsPerDay/secsPerSidDay
 
 end subroutine READ_PHYS
 
