@@ -130,7 +130,7 @@ read(id_earth,'(a36,e22.15)') dummy, RE
 read(id_earth,'(a36,e22.15)') dummy, invFlatt
 read(id_earth,'(a36,e22.15)') dummy, omegaE
 
-! Read normalized spherical harmonics coefficients
+! Read and de-normalize spherical harmonics coefficients
 ! Initialize
 l = 1; m = 0;
 allocate(Clm(1:maxDeg,0:maxOrd)); Clm = 0._dk
@@ -140,6 +140,8 @@ read(id_earth,'(a)') (dummy, i=1,2)
 do i=1,maxDeg
   do j=0,minval([i,maxOrd])
     read(id_earth,'(2(1x,i2),2(1x,e24.17))') l,m,Clm(i,j),Slm(i,j)
+    Clm(i,j) = Clm(i,j)/NORMFACT(i,j)
+    Slm(i,j) = Slm(i,j)/NORMFACT(i,j)
   end do
 end do
 
@@ -413,5 +415,48 @@ dayOfYear = int((275._dk*real(month,dk)) / 9._dk) - &
 &           K * int((real(month,dk) + 9._dk)/12._dk ) + dayofMonth - 30._dk
 
 end subroutine JD2CAL
+
+
+
+function NORMFACT(l,m)
+! Normalization factor for the spherical harmonics coefficients and associated
+! Legendre functions:
+! 
+! sqrt( (l + m)! / ( (2 - delta_{0,m}) * (2n  + 1) * (n - m)! ) )
+! 
+! Reference:
+! [1] Montenbruck, O., Gill, E., "Satellite Orbits", p. 58, Springer, 2000.
+! 
+! ==============================================================================
+
+! Arguments and function definition
+integer,intent(in)  ::  l,m
+real(dk)            ::  NORMFACT
+! Locals
+real(dk)            ::  lr,mr
+real(dk)            ::  kron
+real(dk)            ::  numer,denom
+
+! ==============================================================================
+lr = real(l,dk)
+mr = real(m,dk)
+
+numer = gamma(lr + mr + 1._dk)
+
+if (m == 0) then
+  kron = 1._dk
+else
+  kron = 0._dk
+end if
+
+denom = (2._dk - kron) * (2._dk*lr + 1._dk) * gamma(lr - mr + 1._dk)
+
+NORMFACT = sqrt(numer/denom)
+
+end function NORMFACT
+
+
+
+  
 
 end module PHYS_CONST
