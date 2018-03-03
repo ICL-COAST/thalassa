@@ -70,7 +70,7 @@ call READ_SETTINGS(tspan,tstep)
 call READ_PHYS()
 
 ! Load SPICE kernels
-call FURNSH('in/kernels_to_load.furnsh')
+call FURNSH('./data/kernels_to_load.furnsh')
 
 ! ==============================================================================
 ! 02. TEST PROPAGATION

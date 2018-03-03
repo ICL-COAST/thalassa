@@ -94,8 +94,8 @@ integer,parameter    ::  hlines = 7
 integer              ::  i,j,l,m
 
 ! Set file path
-physFile  = './in/physical_constants.txt'
-earthFile = './phys/earth_potential/EGM_GOC_2.txt'
+physFile  = './data/physical_constants.txt'
+earthFile = './data/earth_potential/EGM_GOC_2.txt'
 
 
 ! ==============================================================================
