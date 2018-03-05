@@ -15,8 +15,9 @@ use SETTINGS, only: outpath
 
 ! VARIABLES
 implicit none
-integer,parameter  ::  id_ic = 10, id_in = 11, id_cart = 12, id_orb = 13
-integer,parameter  ::  id_stat = 14
+integer,parameter    ::  id_ic = 10, id_in = 11, id_cart = 12, id_orb = 13
+integer,parameter    ::  id_stat = 14
+character(len=512)   ::  object_path
 
 contains
 
@@ -39,7 +40,7 @@ integer               ::  i
 
 ! ==============================================================================
 
-open(unit=id_ic,file='./in/object.txt',status='old',action='read')
+open(unit=id_ic,file=adjustl(trim(object_path)),status='old',action='read')
 
 ! Skip header lines
 read(id_ic,'(a)') (dummy, i=1,hlines)
@@ -110,12 +111,12 @@ select case (fid)
         & 'INC [deg]', 'RAAN [deg]', 'AOP [deg]', 'MA [deg]'
         inquire(file=trim(filepath),exist=stat_exists)
         if (stat_exists) then
-          open(unit=fid,file=trim(filepath),action='write',status='old')
-
+          open(unit=fid,file=trim(filepath),position='append',action='write',status='old')
+          
         else
           open(unit=fid,file=trim(filepath),action='write',status='new')
           write(fid,'(a200)') header
-
+          
         end if
 
 end select

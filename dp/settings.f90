@@ -13,8 +13,9 @@ module SETTINGS
 use KINDS, only: dk
 
 implicit none
-! Settings file id
-integer,parameter   ::  id_set = 13
+! Settings file id and path
+integer,parameter      ::  id_set = 13
+character(len=4096)    ::  input_path
 ! Physical model
 integer  ::  insgrav            ! Non-spherical gravity field flag.
 integer  ::  isun               ! 0 = no Sun perturbation, 1 = otherwise.
@@ -48,7 +49,7 @@ character(len=4096)  ::  dummy
 real(dk)  ::  rmxstep
 
 ! Open and skip header lines
-open(unit=id_set,file='./in/input.txt',status='old',action='read')
+open(unit=id_set,file=adjustl(trim(input_path)),status='old',action='read')
 read(id_set,'(a)') (dummy, i = 1,hlines)
 
 read(id_set,'(a11,i3)') dummy, insgrav
