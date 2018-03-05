@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/Users/epicurus/anaconda3/bin/python
 """
 BATCH TOLERANCE SCRIPT FOR THALASSA
 Launches batch propagations in which the tolerance parameter in input.txt
@@ -49,7 +49,7 @@ def readStats(statPath,tol,eqs):
   try:
     stats = np.loadtxt(statPath)
   except ValueError:
-    print 'Warning: invalid statistics file for tol = ',str(tol),', eqs = ',str(eqs)
+    print('Warning: invalid statistics file for tol = ',str(tol),', eqs = ',str(eqs))
     stats = np.ones(10)*np.nan
   statFile.close()
   return stats
@@ -59,7 +59,7 @@ def main():
   
   if not args:
     print ('Usage: ./batch_tol.py MASTER_DIRECTORY [--tmax log10(tolmax)]'
-           '[--tmin log10(tolmin)] [--ntol ntol]')
+           '[--tmin log10(tolmin)] [--ntol ntol] [--eqs eqs]')
     print ('The script reads initial conditions and settings from the '
            '"object.txt" and "input.txt" files, respectively. These *must be '
            'already present* in the MASTER_DIRECTORY.')
@@ -73,8 +73,8 @@ def main():
 
   # Output to user
   date_start = datetime.datetime.now()
-  print 'Thalassa - batch propagation in tolerance and equations.'
-  print 'Batch is starting on', date_start
+  print('Thalassa - batch propagation in tolerance and equations.')
+  print('Batch is starting on', date_start)
   
   # Command line parsing
   if args[0] == '--tmax':
@@ -109,19 +109,19 @@ def main():
   summFile.write('# Legend:\n# Tolerance,Calls,Steps,Avg_CPU[s],MJD_f,SMA[km],'
   'ECC,INC[deg],RAAN[deg],AOP[deg],M[deg]\n# ' + 80*'=' + '\n')
   for tol in tolVec:
-    print '\nStarting propagation',str(np.where(tolVec == tol)[0][0]+1),'out of',str(len(tolVec)),'...'
+    print('\nStarting propagation',str(np.where(tolVec == tol)[0][0]+1),'out of',str(len(tolVec)),'...')
     subDir = '%.5g' % np.log10(tol)
 
     # Generate an input file in the current output folder by copying and
     # modifying the one that is already in the MASTER_FOLDER
     outPath = os.path.join(masterPath,'tol' + subDir)
     if os.path.exists(outPath):
-       print 'Output path exists, its contents will be PURGED.'
+       print('Output path exists, its contents will be PURGED.')
        shutil.rmtree(outPath)
     os.makedirs(outPath)
     inputPath = os.path.join(outPath,'input.txt')
     shutil.copy(os.path.join(masterPath,'input.txt'),inputPath)
-    modifyInput(inputPath,[31,40,43],tol,outPath,eqs)
+    modifyInput(inputPath,[27,36,39],tol,outPath,eqs)
     
     for i in range(0,rep_time):
       
@@ -143,7 +143,7 @@ def main():
     summLine = np.insert(statsFirstLine,0,tol)
     summLine[3] = cpuTAvg
     
-    print 'Propagation', str(np.where(tolVec == tol)[0][0]+1), 'ended.'
+    print('Propagation', str(np.where(tolVec == tol)[0][0]+1), 'ended.')
 
     # Write results to summary file
     try:
@@ -155,8 +155,8 @@ def main():
   summFile.close()
   
   date_end = datetime.datetime.now()
-  print 'Batch ended on', date_end
-  print 'Total duration:', date_end - date_start
+  print('Batch ended on', date_end)
+  print('Total duration:', date_end - date_start)
 
 
 if __name__ == '__main__':
