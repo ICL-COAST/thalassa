@@ -95,7 +95,7 @@ integer              ::  i,j,l,m
 
 ! Set file path
 physFile  = './data/physical_constants.txt'
-earthFile = './data/earth_potential/EGM_GOC_2.txt'
+earthFile = './data/earth_potential/GRIM5-S1.txt'
 
 
 ! ==============================================================================
