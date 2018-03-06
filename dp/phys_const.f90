@@ -12,6 +12,9 @@ module PHYS_CONST
 use KINDS, only: dk
 implicit none
 
+! Kind parameter for quad (needed for NORMFACT)
+integer,parameter   ::  qk = selected_real_kind(33)
+
 ! Physical values file id
 integer,parameter   ::  id_phys = 12, id_earth = 13
 ! Numerical constants
@@ -55,7 +58,7 @@ real(dk)  ::  RE_nd,GE_nd       ! Earth
 
 ! Spherical harmonics (normalized)
 integer               ::  maxDeg, maxOrd
-real(dk),allocatable  ::  Clm(:,:),Slm(:,:)
+real(qk),allocatable  ::  Clm(:,:),Slm(:,:)
 
 ! Mass (kg)
 real(dk)  ::  SCMass
@@ -431,25 +434,25 @@ function NORMFACT(l,m)
 
 ! Arguments and function definition
 integer,intent(in)  ::  l,m
-real(dk)            ::  NORMFACT
+real(qk)            ::  NORMFACT
 ! Locals
-real(dk)            ::  lr,mr
-real(dk)            ::  kron
-real(dk)            ::  numer,denom
+real(qk)            ::  lr,mr
+real(qk)            ::  kron
+real(qk)            ::  numer,denom
 
 ! ==============================================================================
-lr = real(l,dk)
-mr = real(m,dk)
+lr = real(l,qk)
+mr = real(m,qk)
 
-numer = gamma(lr + mr + 1._dk)
+numer = gamma(lr + mr + 1._qk)
 
 if (m == 0) then
-  kron = 1._dk
+  kron = 1._qk
 else
-  kron = 0._dk
+  kron = 0._qk
 end if
 
-denom = (2._dk - kron) * (2._dk*lr + 1._dk) * gamma(lr - mr + 1._dk)
+denom = (2._qk - kron) * (2._qk*lr + 1._qk) * gamma(lr - mr + 1._qk)
 
 NORMFACT = sqrt(numer/denom)
 
