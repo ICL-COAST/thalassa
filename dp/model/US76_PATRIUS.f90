@@ -516,7 +516,7 @@ real(dk),parameter  ::  nAtmo(1:430,1:7) = transpose(reshape([&
     &985._dk,6.703e05_dk,1.182e10_dk, 1.911e03_dk,3.712e-2_dk,5.114e11_dk, 5.033e10_dk,&
     &990._dk,5.922e05_dk,1.101e10_dk, 1.659e03_dk,3.111e-2_dk,5.024e11_dk, 5.011e10_dk,&
     &995._dk,5.234e05_dk,1.026e10_dk, 1.440e03_dk,2.609e-2_dk,4.936e11_dk, 4.989e10_dk,&
-    &1000._dk,4.626e05_dk,9.562e09_dk,1.251e03_dk,2.188e-2_dk,4.850e11_dk,  4.967e10_dk,&
+    &1000._dk,4.626e05_dk,9.562e09_dk,1.251e03_dk,2.188e-2_dk,4.850e11_dk, 4.967e10_dk,&
     &1000._dk,0._dk    ,0._dk    ,0._dk    ,0._dk     ,0._dk    ,0._dk&
     &],[7,430]))
 
@@ -633,6 +633,10 @@ function GET_ATMO_INDEX(z)
 !    Gets the index of the nAtmo array corresponding to the maximum altitude <=
 !    z.
 ! 
+! History:
+! 20180307, DA: The exponent slope is now fixed to that at 1000km for higher
+!               altitudes.
+! 
 ! ==============================================================================
 
 ! VARIABLES
@@ -647,7 +651,7 @@ integer   ::  k
 
 k = 1
 GET_ATMO_INDEX = k
-do while (z > nAtmo(k,1) .and. k < size(nAtmo,1) )
+do while (z > nAtmo(k,1) .and. k < (size(nAtmo,1) - 1) )
   GET_ATMO_INDEX = k
   k = k + 1
 
