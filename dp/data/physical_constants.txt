@@ -20,4 +20,4 @@
 # Re-entry altitude [km]
 120.00000000000E+00
 # Cut-off altitude for drag [km]
-1000.0000000000E+00
+2500.0000000000E+00
