@@ -7,7 +7,7 @@
 # GM [km^3/s^2]:                     3.986004414498200E+05
 # Ellipsoid semi-major axis [km]:    6.378136460000000E+03
 # 1/flattening:                      2.982576500000000E+02
-# Angular velocity [rad/s]:          7.292115000000000E-03
+# Angular velocity [rad/s]:          0.729211585530660E-04
 # Normalized spherical harmonics coefficients:
 #l  m                      Cbar                     Sbar
  1  0   0.00000000000000000E+00  0.00000000000000000E+00
