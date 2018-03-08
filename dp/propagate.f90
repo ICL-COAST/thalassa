@@ -225,11 +225,11 @@ i_print = 1
 ! MAIN LOOP
 do
 
-    ! ! Print message every print_each steps
-    ! if (i_print - print_each == 0) then
-    !   write(*,'(a,f9.2,a)') 'Progress: ',real(iint)/real(nsteps)*100.,'%'
-    !   i_print = 0
-    ! end if
+    ! Print message every print_each steps
+    if (i_print - print_each == 0) then
+      write(*,'(a,f9.2,a)') 'Progress: ',real(iint)/real(nsteps)*100.,'%'
+      i_print = 0
+    end if
 
     call INTSTEP(EOM,EVT,integ,eqs,neq,xprev,yprev,dx,xcur,ycur,rtol,atol,isett,&
     &lrw,rwork,liw,iwork)
@@ -246,6 +246,13 @@ do
         write(*,*) 'WARNING: Maximum number of steps reached.'
         write(*,*) 'mxstep = ',mxstep
         write(*,*) 'xcur   = ',xcur
+        exit
+    
+    else if (any(ycur /= ycur)) then
+        write(*,*) 'ERROR: NaNs detected in the state vector.'
+        write(*,*) 'Try specifying another tolerance, or checking for'
+        write(*,*) 'inconsistencies in your physical model.'
+        write(*,*) 'Propagation is being STOPPED.'
         exit
 
     end if
