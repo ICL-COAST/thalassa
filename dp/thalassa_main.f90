@@ -80,6 +80,12 @@ call READ_IC(MJD0,COE0)
 call READ_SETTINGS(tspan,tstep)
 call READ_PHYS()
 
+! Initialize output (if not done by python script already)
+if (command_arguments == 0) then
+  call SYSTEM('mkdir -p '//trim(outpath))
+  call SYSTEM('cp in/*.txt '//trim(outpath))
+end if
+
 ! Load SPICE kernels
 call FURNSH('./data/kernels_to_load.furnsh')
 
