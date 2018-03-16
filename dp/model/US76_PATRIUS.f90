@@ -45,7 +45,7 @@ real(dk),parameter  ::  rstar = 8314.32_dk
 
 ! Number density of atmospheric components as a function of altitude:
 ! z [km], N2 [m^-3], O [m^-3], O2 [m^-3], Ar [m^-3], He [m^-3], H [m^-3]
-real(dk),parameter  ::  nAtmo(1:430,1:7) = transpose(reshape([&
+real(dk),parameter  ::  nAtmo(1:7,1:430) = reshape([&
     &86.0_dk,1.130e20_dk,8.600e16_dk,3.031e19_dk,1.351e18_dk,7.582e14_dk,0._dk,&
     &86.5_dk,1.034e20_dk,9.939e16_dk,2.772e19_dk,1.236e18_dk,6.976e14_dk,0._dk,&
     &87.0_dk,9.456e19_dk,1.147e17_dk,2.535e19_dk,1.130e18_dk,6.422e14_dk,0._dk,&
@@ -518,7 +518,7 @@ real(dk),parameter  ::  nAtmo(1:430,1:7) = transpose(reshape([&
     &995._dk,5.234e05_dk,1.026e10_dk, 1.440e03_dk,2.609e-2_dk,4.936e11_dk, 4.989e10_dk,&
     &1000._dk,4.626e05_dk,9.562e09_dk,1.251e03_dk,2.188e-2_dk,4.850e11_dk, 4.967e10_dk,&
     &1000._dk,0._dk    ,0._dk    ,0._dk    ,0._dk     ,0._dk    ,0._dk&
-    &],[7,430]))
+    &],[7,430])
 
 public  ::  US76_UPPER
 
@@ -606,9 +606,9 @@ slope = 0._dk
 xmol  = 0._dk
 rn    = 0._dk
 do l=2,6
-  slope = (nAtmo(indexAtmo + 1,l) - nAtmo(indexAtmo,l))/&
-         &(nAtmo(indexAtmo + 1,1) - nAtmo(indexAtmo,1))
-  rnn   = nAtmo(indexAtmo,l) + slope * (z - nAtmo(indexAtmo,1))  ! Number density of species 'l'
+  slope = (nAtmo(l,indexAtmo + 1) - nAtmo(l,indexAtmo))/&
+         &(nAtmo(1,indexAtmo + 1) - nAtmo(1,indexAtmo))
+  rnn   = nAtmo(l,indexAtmo) + slope * (z - nAtmo(1,indexAtmo))  ! Number density of species 'l'
   xmol  = xmol + rnn * molmass(l)  ! Molar mass of species l
   rn    = rn + rnn                 ! Update total number density
 
@@ -651,7 +651,7 @@ integer   ::  k
 
 k = 1
 GET_ATMO_INDEX = k
-do while (z > nAtmo(k,1) .and. k < (size(nAtmo,1) - 1) )
+do while (z > nAtmo(1,k) .and. k < (size(nAtmo,2) - 1) )
   GET_ATMO_INDEX = k
   k = k + 1
 
