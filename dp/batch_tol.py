@@ -54,6 +54,13 @@ def readStats(statPath,tol,eqs):
   statFile.close()
   return stats
 
+def thalassaRep(rep_time,inputPath,ICPath):
+ # Launch the same thalassa propagation several times.
+  for i in range(0,rep_time):
+  
+    subprocess.call(['./thalassa.x',os.path.abspath(inputPath),
+    os.path.abspath(ICPath)])
+
 def main():
   args = sys.argv[1:]
   
@@ -123,11 +130,8 @@ def main():
     shutil.copy(os.path.join(masterPath,'input.txt'),inputPath)
     modifyInput(inputPath,[27,36,39],tol,outPath,eqs)
     
-    for i in range(0,rep_time):
-      
-      # LAUNCH PROPAGATION (this could be parallelised somehow)
-      subprocess.call(['./thalassa.x',os.path.abspath(inputPath),
-      os.path.abspath(ICPath)])
+    # Launch the propagations over the number of available CPUs
+    thalassaRep(rep_time,inputPath,ICPath)
 
     # Save statistics (esp. CPU time) for this run and compute avg CPU time
     stats = readStats(os.path.join(outPath,'stats.dat'),tol,eqs)
