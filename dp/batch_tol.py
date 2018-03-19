@@ -77,7 +77,7 @@ def tolRun(tolVec,tol,eqs,rep_time,masterPath,ICPath,summFile):
   os.makedirs(outPath)
   inputPath = os.path.join(outPath,'input.txt')
   shutil.copy(os.path.join(masterPath,'input.txt'),inputPath)
-  modifyInput(inputPath,[27,36,39],tol,outPath,eqs)
+  modifyInput(inputPath,[27,36,41],tol,outPath,eqs)
   
   # Launch the propagations over the number of available CPUs
   thalassaRep(rep_time,inputPath,ICPath)

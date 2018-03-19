@@ -36,5 +36,7 @@ mxstep:    1.0E+06
 #            5 = KS (t), 6 = KS (l), 7 = Sti-Sche (t), 8 = Sti-Sche (l)
 eqs:       2
 
-# OUTPUT DIRECTORY
+# OUTPUT SETTINGS
+# verb:      1 = Toggle verbose output, 0 = otherwise
+verb:      0
 out:   /Users/epicurus/Documents/Research/THESS/data/Epicurus/Thalassa/Tintin-A/batch_val/

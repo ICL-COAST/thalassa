@@ -183,7 +183,7 @@ subroutine INTLOOP(EOM,EVT,integ,eqs,neq,y0,x0,dx,tstep,yx,rtol,atol,isett,liw,&
 ! MODULES
 use AUXILIARIES, only: MJDnext,MJD0,MJDf
 use INTEGRATE,   only: INTSTEP
-use SETTINGS,    only: mxstep
+use SETTINGS,    only: mxstep,verb
 
 ! VARIABLES
 implicit none
@@ -226,7 +226,7 @@ i_print = 1
 do
 
     ! Print message every print_each steps
-    if (i_print - print_each == 0) then
+    if ((i_print - print_each == 0) .and. (verb == 1)) then
       write(*,'(a,f9.2,a)') 'Progress: ',real(iint)/real(nsteps)*100.,'%'
       i_print = 0
     end if
