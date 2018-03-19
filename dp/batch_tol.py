@@ -1,4 +1,4 @@
-#!/Users/epicurus/anaconda3/bin/python
+#!/usr/bin/env python
 """
 BATCH TOLERANCE SCRIPT FOR THALASSA
 Launches batch propagations in which the tolerance parameter in input.txt
