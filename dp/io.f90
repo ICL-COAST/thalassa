@@ -105,9 +105,9 @@ select case (fid)
     case(14) ! Integration statistics file, id_stat = 14 (see module preamble)
         filepath = adjustl(trim(outpath)//'stats.dat')
         header(1) = '# THALASSA - STATISTICS'
-        write(header(2),'(''#'',195(''=''))')
-        write(header(3),'(''#'',a9,1x,a9,8(a22))')&
-        & 'CALLS', 'STEPS', 'CPUT [s]', 'MJD', 'SMA [km]', 'ECC [-]',&
+        write(header(2),'(''#'',227(''=''))')
+        write(header(3),'(''#'',a9,a11,9(a23))')&
+        & 'CALLS', 'STEPS', 'TOL', 'CPUT [s]', 'MJD', 'SMA [km]', 'ECC [-]',&
         & 'INC [deg]', 'RAAN [deg]', 'AOP [deg]', 'MA [deg]'
         inquire(file=trim(filepath),exist=stat_exists)
         if (stat_exists) then
@@ -115,7 +115,7 @@ select case (fid)
           
         else
           open(unit=fid,file=trim(filepath),action='write',status='new')
-          write(fid,'(a200)') header
+          write(fid,'(a228)') header
           
         end if
 
