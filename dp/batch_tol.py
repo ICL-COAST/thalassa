@@ -14,6 +14,7 @@ import shutil
 import numpy as np
 import datetime
 import time
+from batch_proc import processSummary
 
 def generateTolVec(tolMax,tolMin,ntol):
   # Generates the tolerance vector, logarithmically spaced from 'tolmax' to
@@ -41,19 +42,6 @@ def modifyInput(inpPath,lineN,tol,outPath,eqs):
   inpFile.writelines(lines)
   inpFile.close
 
-
-def readStats(statPath,tol,eqs):
-  # Read integration statistics from Thalassa's output file.
-  
-  statFile = open(statPath,'rU')
-  try:
-    stats = np.loadtxt(statPath)
-  except ValueError:
-    print('Warning: invalid statistics file for tol = ',str(tol),', eqs = ',str(eqs))
-    stats = np.ones(10)*np.nan
-  statFile.close()
-  return stats
-
 def thalassaRep(rep_time,inputPath,ICPath):
  # Launch the same thalassa propagation several times.
   for i in range(0,rep_time):
@@ -61,7 +49,7 @@ def thalassaRep(rep_time,inputPath,ICPath):
     subprocess.call(['./thalassa.x',os.path.abspath(inputPath),
     os.path.abspath(ICPath)])
 
-def tolRun(tolVec,tol,eqs,rep_time,masterPath,ICPath,summFile):
+def tolRun(tolVec,tol,eqs,rep_time,masterPath,ICPath):
   # Execute a run in tolerance.
   # =======
 
@@ -82,28 +70,8 @@ def tolRun(tolVec,tol,eqs,rep_time,masterPath,ICPath,summFile):
   # Launch the propagations over the number of available CPUs
   thalassaRep(rep_time,inputPath,ICPath)
 
-  # Save statistics (esp. CPU time) for this run and compute avg CPU time
-  stats = readStats(os.path.join(outPath,'stats.dat'),tol,eqs)
-  try:
-    cpuT = stats[:,2]
-    statsFirstLine = stats[0]
-  except IndexError:
-    cpuT = stats[2]
-    statsFirstLine = stats
-  cpuTAvg = np.average(cpuT)
+  return outPath
 
-  # Generate line for the summary file
-  summLine = np.insert(statsFirstLine,0,tol)
-  summLine[3] = cpuTAvg
-  
-  print('Propagation', str(np.where(tolVec == tol)[0][0]+1), 'ended.')
-
-  # Write results to summary file
-  try:
-    np.savetxt(summFile,summLine.reshape(1,11),fmt='%13.6G,' + 2*'%i,' + '%13.6g,' + 7*'%22.15E,')
-  except TypeError:
-    summFile.write('%.6G, ' % tol + 9*'NaN, ' + '\n')
-  summFile.flush()
 
 def main():
   args = sys.argv[1:]
@@ -148,27 +116,22 @@ def main():
   
   # Initializations
   rep_time = 3
-  calls = np.zeros(rep_time)
-  steps = np.zeros(rep_time)
-  cpuT  = np.zeros(rep_time)
-
-  # Open summary file and write header
-  #if not os.path.exists(masterPath): os.makedirs(masterPath)
   ICPath   = os.path.join(masterPath,'object.txt')
-  summFile = open(os.path.join(masterPath,'summary.csv'),'w')
-  summFile.write('# THALASSA - BATCH PROPAGATION SUMMARY\n')
-  summFile.write('# Legend:\n# Tolerance,Calls,Steps,Avg_CPU[s],MJD_f,SMA[km],'
-  'ECC,INC[deg],RAAN[deg],AOP[deg],M[deg]\n# ' + 80*'=' + '\n')
   
+  # Launch propagations
+  outDirs = []
   for tol in tolVec:
-    tolRun(tolVec,tol,eqs,rep_time,masterPath,ICPath,summFile)
-
-  summFile.close()
+    outDir = tolRun(tolVec,tol,eqs,rep_time,masterPath,ICPath)
+    outDirs.append(outDir)
   
   date_end = datetime.datetime.now()
   print('Batch ended on', date_end)
   print('Total duration:', date_end - date_start)
-
+  
+  # Process statistics
+  sys.stdout.write('Processing statistics... ')
+  processSummary(masterPath,outDirs)
+  sys.stdout.write('Done.\n')
 
 
 if __name__ == '__main__':
