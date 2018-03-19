@@ -61,6 +61,50 @@ def thalassaRep(rep_time,inputPath,ICPath):
     subprocess.call(['./thalassa.x',os.path.abspath(inputPath),
     os.path.abspath(ICPath)])
 
+def tolRun(tolVec,tol,eqs,rep_time,masterPath,ICPath,summFile):
+  # Execute a run in tolerance.
+  # =======
+
+  print('\nStarting propagation',str(np.where(tolVec == tol)[0][0]+1),'out of',str(len(tolVec)),'...')
+  subDir = '%.5g' % np.log10(tol)
+
+  # Generate an input file in the current output folder by copying and
+  # modifying the one that is already in the MASTER_FOLDER
+  outPath = os.path.join(masterPath,'tol' + subDir)
+  if os.path.exists(outPath):
+      print('Output path exists, its contents will be PURGED.')
+      shutil.rmtree(outPath)
+  os.makedirs(outPath)
+  inputPath = os.path.join(outPath,'input.txt')
+  shutil.copy(os.path.join(masterPath,'input.txt'),inputPath)
+  modifyInput(inputPath,[27,36,39],tol,outPath,eqs)
+  
+  # Launch the propagations over the number of available CPUs
+  thalassaRep(rep_time,inputPath,ICPath)
+
+  # Save statistics (esp. CPU time) for this run and compute avg CPU time
+  stats = readStats(os.path.join(outPath,'stats.dat'),tol,eqs)
+  try:
+    cpuT = stats[:,2]
+    statsFirstLine = stats[0]
+  except IndexError:
+    cpuT = stats[2]
+    statsFirstLine = stats
+  cpuTAvg = np.average(cpuT)
+
+  # Generate line for the summary file
+  summLine = np.insert(statsFirstLine,0,tol)
+  summLine[3] = cpuTAvg
+  
+  print('Propagation', str(np.where(tolVec == tol)[0][0]+1), 'ended.')
+
+  # Write results to summary file
+  try:
+    np.savetxt(summFile,summLine.reshape(1,11),fmt='%13.6G,' + 2*'%i,' + '%13.6g,' + 7*'%22.15E,')
+  except TypeError:
+    summFile.write('%.6G, ' % tol + 9*'NaN, ' + '\n')
+  summFile.flush()
+
 def main():
   args = sys.argv[1:]
   
@@ -115,52 +159,16 @@ def main():
   summFile.write('# THALASSA - BATCH PROPAGATION SUMMARY\n')
   summFile.write('# Legend:\n# Tolerance,Calls,Steps,Avg_CPU[s],MJD_f,SMA[km],'
   'ECC,INC[deg],RAAN[deg],AOP[deg],M[deg]\n# ' + 80*'=' + '\n')
+  
   for tol in tolVec:
-    print('\nStarting propagation',str(np.where(tolVec == tol)[0][0]+1),'out of',str(len(tolVec)),'...')
-    subDir = '%.5g' % np.log10(tol)
-
-    # Generate an input file in the current output folder by copying and
-    # modifying the one that is already in the MASTER_FOLDER
-    outPath = os.path.join(masterPath,'tol' + subDir)
-    if os.path.exists(outPath):
-       print('Output path exists, its contents will be PURGED.')
-       shutil.rmtree(outPath)
-    os.makedirs(outPath)
-    inputPath = os.path.join(outPath,'input.txt')
-    shutil.copy(os.path.join(masterPath,'input.txt'),inputPath)
-    modifyInput(inputPath,[27,36,39],tol,outPath,eqs)
-    
-    # Launch the propagations over the number of available CPUs
-    thalassaRep(rep_time,inputPath,ICPath)
-
-    # Save statistics (esp. CPU time) for this run and compute avg CPU time
-    stats = readStats(os.path.join(outPath,'stats.dat'),tol,eqs)
-    try:
-      cpuT = stats[:,2]
-      statsFirstLine = stats[0]
-    except IndexError:
-      cpuT = stats[2]
-      statsFirstLine = stats
-    cpuTAvg = np.average(cpuT)
-
-    # Generate line for the summary file
-    summLine = np.insert(statsFirstLine,0,tol)
-    summLine[3] = cpuTAvg
-    
-    print('Propagation', str(np.where(tolVec == tol)[0][0]+1), 'ended.')
-
-    # Write results to summary file
-    try:
-      np.savetxt(summFile,summLine.reshape(1,11),fmt='%13.6G,' + 2*'%i,' + '%13.6g,' + 7*'%22.15E,')
-    except TypeError:
-      summFile.write('%.6G, ' % tol + 9*'NaN, ' + '\n')
-    summFile.flush()
+    tolRun(tolVec,tol,eqs,rep_time,masterPath,ICPath,summFile)
 
   summFile.close()
   
   date_end = datetime.datetime.now()
   print('Batch ended on', date_end)
   print('Total duration:', date_end - date_start)
+
 
 
 if __name__ == '__main__':
