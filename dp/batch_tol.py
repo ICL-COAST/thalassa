@@ -98,22 +98,25 @@ def main():
   print('Batch is starting on', date_start)
   
   # Command line parsing
-  if args[0] == '--tmax':
-    l10tMax = args[1]
-    del args[0:2]
+  try:
+    if args[0] == '--tmax':
+      l10tMax = args[1]
+      del args[0:2]
+    
+    if args[0] == '--tmin':
+      l10tMin = args[1]
+      del args[0:2]
+    
+    if args[0] == '--ntol':
+      ntol = args[1]
+      del args[0:2]
+    
+    if args[0] == '--eqs':
+      eqs = args[1]
+      del args[0:2]
+  except IndexError:
+    pass
   
-  if args[0] == '--tmin':
-    l10tMin = args[1]
-    del args[0:2]
-  
-  if args[0] == '--ntol':
-    ntol = args[1]
-    del args[0:2]
-  
-  if args[0] == '--eqs':
-    eqs = args[1]
-    del args[0:2]
-
   tolVec  = generateTolVec(l10tMax,l10tMin,ntol)
   
   # Initializations
