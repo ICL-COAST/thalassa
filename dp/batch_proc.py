@@ -37,7 +37,7 @@ def processSummary(masterPath,dirs):
     try:
       for line in stats:
         saveLine = np.asarray(line)
-        np.savetxt(summFile,saveLine.reshape(1,11),fmt=2*'%10i,' + 2*'%13.6g,' + 7*'%22.15E,')
+        np.savetxt(summFile,saveLine.reshape(1,11),fmt=2*'%12i,' + 2*'%13.6g,' + 7*'%22.15E,')
     
     except TypeError:
       summFile.write(11*'NaN, ' + '\n')
