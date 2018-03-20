@@ -4,7 +4,7 @@ BATCH TOLERANCE SCRIPT FOR THALASSA
 Launches batch propagations in which the tolerance parameter in input.txt
 is progressively varied in the interval [tolmin,tolmax], with logarithmic
 spacing. The output of each propagation is saved to a separate directory.
-The script also compiles a statistics file for the batch propagations.
+The script also compiles a summary file for the batch propagations.
 """
 
 import sys
@@ -14,6 +14,8 @@ import shutil
 import numpy as np
 import datetime
 import time
+import multiprocessing as mp
+import psutil
 from batch_proc import processSummary
 
 def generateTolVec(tolMax,tolMin,ntol):
@@ -119,10 +121,11 @@ def main():
   ICPath   = os.path.join(masterPath,'object.txt')
   
   # Launch propagations
+  nproc = psutil.cpu_count(logical=False)
   outDirs = []
-  for tol in tolVec:
-    outDir = tolRun(tolVec,tol,eqs,rep_time,masterPath,ICPath)
-    outDirs.append(outDir)
+  runArgs = [(tolVec,tol,eqs,rep_time,masterPath,ICPath) for tol in tolVec]
+  with mp.Pool(processes=(nproc-1)) as pool:
+    outDirs = pool.starmap(tolRun,runArgs)
   
   date_end = datetime.datetime.now()
   print('Batch ended on', date_end)
