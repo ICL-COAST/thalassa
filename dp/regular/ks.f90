@@ -55,6 +55,8 @@ real(dk),intent(out)     ::  udot(1:neq)          ! RHS of EoM's, ND.
 real(dk)    ::  x(1:4),xdot(1:4)                  ! Radius and velocity in R^4, ND
 real(dk)    ::  rmag                              ! Radius magnitude, ND
 real(dk)    ::  t                                 ! Physical time, ND
+real(dk)    ::  lte1,lte2,lte20(1:4),lte3         ! LTE, auxiliary quantities
+integer     ::  flag_time                         ! Time element flag
 ! -- Perturbations
 real(dk)    ::  F(1:4)               ! Total perturbation
 real(dk)    ::  P(1:4)               ! Non-potential part
@@ -72,18 +74,20 @@ real(dk)    ::  L(1:4,1:4)           ! KS matrix
 ! u(1:4)        u1,...,u4; KS-position, in R^4
 ! u(5:8)        u1',...,u4'; KS-velocity, in R^4
 ! u(9)          h; (-total energy) = (-Keplerian energy) + (-potential)
-! u(10)         t; non-dimensional physical time
+! u(10)         t or tau; non-dimensional physical time OR time element
 
 ! ==============================================================================
-! 01. COMPUTE CARTESIAN COORDINATES
+! 01. CARTESIAN COORDINATES
 ! ==============================================================================
 
 call KS2CART(u,x,xdot)
 rmag = sqrt(dot_product(x,x))
-t = u(10)
+
+flag_time = eqs - 5
+t = KS_TE2TIME(u,flag_time)
 
 ! ==============================================================================
-! 02. COMPUTE POTENTIAL PERTURBATIONS
+! 02. POTENTIAL PERTURBATIONS
 ! ==============================================================================
 
 Vpot = 0._dk; mdVdr = 0._dk; dVdt = 0._dk
@@ -92,7 +96,7 @@ mdVdr(1:3) = PACC_EJ2K(insgrav,0,0,0,0,x(1:3),xdot(1:3),rmag,t,gradV_sph)
 dVdt = gradV_sph(3) * ERR_constant_nd
 
 ! ==============================================================================
-! 03. COMPUTE NON-POTENTIAL PERTURBATIONS
+! 03. NON-POTENTIAL PERTURBATIONS
 ! ==============================================================================
 
 P = 0._dk
@@ -118,7 +122,19 @@ udot(5:8) = -0.5_dk * ( u(1:4) * (u(9) + Vpot) - rmag * matmul(transpose(L),F) )
 udot(9) = -rmag * dVdt - 2._dk * dot_product(u(5:8),matmul(transpose(L),P))
 
 ! Time
-udot(10) = rmag
+if (flag_time == 0) then
+  ! Generalized Sundman transformation
+  udot(10) = rmag
+
+else if (flag_time == 1) then ! Linear Time Element
+  ! Eq. (19,62) * 2\omega
+  lte1  = (GE_nd - 2._dk*rmag*Vpot)/(2._dk*u(9))
+  lte20 = 2._dk * matmul(transpose(L),-F)
+  lte2  = (rmag/(4._dk * u(9))) * dot_product(u(1:4),lte20)
+  lte3  = udot(9)/(u(9)**2) * dot_product(u(1:4),u(5:8))
+  udot(10) = lte1 - lte2 - lte3
+
+end if
 
 end subroutine KS_RHS
 
@@ -293,14 +309,15 @@ real(dk),intent(out)  ::  roots(1:ng)
 ! Locals
 real(dk)  ::  t         ! Current time [-]
 real(dk)  ::  rmag
+integer   ::  flag_time
 
 ! ==============================================================================
 
 roots = 1._dk
 
 ! Get time
-!flag_time = eqs - 2
-t = u(10)
+flag_time = eqs - 5
+t = KS_TE2TIME(u,flag_time)
 
 ! ==============================================================================
 ! 01. Next timestep
@@ -325,7 +342,7 @@ roots(3) = rmag - reentry_radius_nd
 end subroutine KS_EVT
 
 
-function KS_TE2TIME(u,s,flag_time)
+function KS_TE2TIME(u,flag_time)
 ! Description:
 !    Gets the value of physical time from the KS state vector "u" and
 !    fictitious time "s".
@@ -335,7 +352,7 @@ function KS_TE2TIME(u,s,flag_time)
 ! VARIABLES
 implicit none
 ! Arguments IN
-real(dk),intent(in)     ::  u(1:10),s
+real(dk),intent(in)     ::  u(1:10)
 integer,intent(in)      ::  flag_time
 ! Function definition
 real(dk)                ::  KS_TE2TIME
@@ -347,7 +364,8 @@ if ( flag_time == 0 ) then
     KS_TE2TIME = u(10)
 
 else if  ( flag_time == 1 ) then
-    ! Constant time element (TBD)
+    ! Linear time element
+    KS_TE2TIME = u(10) - dot_product(u(1:4),u(5:8))/u(9)
 
 end if
 

@@ -50,7 +50,7 @@ select case (eqs)
     
     case(5:6)  ! KS
         ftime = eqs - 5
-        PHYSICAL_TIME = KS_TE2TIME(y,x,ftime)
+        PHYSICAL_TIME = KS_TE2TIME(y,ftime)
     
     case(7:8)
         ftime = eqs - 7
