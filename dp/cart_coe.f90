@@ -177,7 +177,7 @@ if (ABS(En) > zero) then
 else ! Exactly parabolic orbit, should be extremely rare
     a  = HUGE(0._dk)
     p  = DOT_PRODUCT(h,h)
-    
+
 end if
 
 ! =============================================================================
@@ -191,12 +191,8 @@ AoP  = ACOS(DOT_PRODUCT(n,ecc)/(nmag*e)); if (ecc(3) < 0._dk) AoP  = twopi - AoP
 
 nu   = ACOS(DOT_PRODUCT(ecc,R)/e/rmag)
 if (DOT_PRODUCT(R,V) < 0._dk) then
-    if ( e < 1._dk-zero ) then
-        nu   = twopi - nu
-    else
-       ! If it's a parabola or hyperbola then nu = -nu
-        nu = -nu
-    end if
+    nu   = twopi - nu
+    
 end if
 
 ! SPECIAL CASES:
