@@ -84,7 +84,7 @@ sinf = (sqrt(1._dk - e**2)*sinE)/(1._dk - e*cosE)
 cosf = (cosE - e)/(1._dk - e*cosE)
 
 ! ==============================================================================
-! 02. COMPUTE POS, VEL IN PERIFOCAL FRAME
+! 02. COMPUTE POS, VEL IN PERifOCAL FRAME
 ! ==============================================================================
 
 R_pf = p*[cosf/(1._dk+e*cosf), sinf/(1._dk+e*cosf), 0._dk]
@@ -126,18 +126,18 @@ subroutine CART2COE(R,V,COE,mu)
 ! VARIABLES
 implicit none
 ! Arguments
-REAL(dk),INTENT(IN)   ::  R(1:3),V(1:3)
-REAL(dk),INTENT(IN)   ::  mu
-REAL(dk),INTENT(OUT)  ::  COE(1:6)
+real(dk),intent(in)   ::  R(1:3),V(1:3)
+real(dk),intent(in)   ::  mu
+real(dk),intent(out)  ::  COE(1:6)
 ! Locals
-REAL(dk)              ::  p,a,e             ! Orbital elements
-REAL(dk)              ::  inc,RAAN,AoP,nu,M ! Orbital elements
-REAL(dk)              ::  En                ! Total energy
-REAL(dk)              ::  h(1:3),n(1:3)     ! Angular momentum and nodal vector
-REAL(dk)              ::  ecc(1:3)          ! Eccentricity vector
+real(dk)              ::  p,a,e             ! Orbital elements
+real(dk)              ::  inc,RAAN,AoP,nu,M ! Orbital elements
+real(dk)              ::  En                ! Total energy
+real(dk)              ::  h(1:3),n(1:3)     ! Angular momentum and nodal vector
+real(dk)              ::  ecc(1:3)          ! Eccentricity vector
 real(dk)              ::  sinn,cosn
 real(dk)              ::  EA,sinE,cosE
-REAL(dk)              ::  rmag,nmag,hmag
+real(dk)              ::  rmag,nmag,hmag
 real(dk)              ::  zero
 
 ! ==============================================================================
@@ -170,13 +170,15 @@ nmag   = sqrt(dot_product(n,n))
 
 En     = 0.5_dk*DOT_PRODUCT(V,V) - mu/rmag
 
-IF (ABS(En) > zero) THEN
+if (ABS(En) > zero) then
     a  = -mu/(2._dk*En)
     p  = a*(1._dk-e**2)
-ELSE ! Exactly parabolic orbit, should be extremely rare
+
+else ! Exactly parabolic orbit, should be extremely rare
     a  = HUGE(0._dk)
     p  = DOT_PRODUCT(h,h)
-END IF
+    
+end if
 
 ! =============================================================================
 ! 03. COMPUTE inc,RAAN,AoP,nu
@@ -184,37 +186,37 @@ END IF
 
 hmag = sqrt(dot_product(h,h))
 inc  = acos(h(3)/hmag)
-RAAN = ACOS(n(1)/nmag); IF (n(2) < 0._dk) RAAN = twopi - RAAN
-AoP  = ACOS(DOT_PRODUCT(n,ecc)/(nmag*e)); IF (ecc(3) < 0._dk) AoP  = twopi - AoP
+RAAN = ACOS(n(1)/nmag); if (n(2) < 0._dk) RAAN = twopi - RAAN
+AoP  = ACOS(DOT_PRODUCT(n,ecc)/(nmag*e)); if (ecc(3) < 0._dk) AoP  = twopi - AoP
 
 nu   = ACOS(DOT_PRODUCT(ecc,R)/e/rmag)
-IF (DOT_PRODUCT(R,V) < 0._dk) THEN
-    IF ( e < 1._dk-zero ) THEN
+if (DOT_PRODUCT(R,V) < 0._dk) then
+    if ( e < 1._dk-zero ) then
         nu   = twopi - nu
-    ELSE
+    else
        ! If it's a parabola or hyperbola then nu = -nu
         nu = -nu
-    END IF
-END IF
+    end if
+end if
 
 ! SPECIAL CASES:
 ! Elliptical, equatorial. AoP = true longitude of periapsis
-IF (ABS(ABS(h(3)/hmag)-1._dk) < zero) THEN
+if (ABS(ABS(h(3)/hmag)-1._dk) < zero) then
     RAAN = 0._dk
-    AoP  = ACOS(ecc(1)/e); IF (ecc(2) < 0._dk) AoP = twopi - AoP
-END IF
+    AoP  = ACOS(ecc(1)/e); if (ecc(2) < 0._dk) AoP = twopi - AoP
+end if
 ! Circular, inclined.   nu = argument of latitude
-IF (e <= zero) THEN
+if (e <= zero) then
     AoP = 0._dk
-    nu  = ACOS(DOT_PRODUCT(n,R)/nmag/rmag); IF (r(3) < 0._dk) nu = twopi - nu
+    nu  = ACOS(DOT_PRODUCT(n,R)/nmag/rmag); if (r(3) < 0._dk) nu = twopi - nu
     M = nu
-END IF
+end if
 ! Circular, equatorial. nu = true longitude.
-IF (ABS(ABS(h(3)/hmag)-1._dk) < zero .AND. e <= zero) THEN
+if (ABS(ABS(h(3)/hmag)-1._dk) < zero .AND. e <= zero) then
     RAAN = 0._dk
     AoP  = 0._dk
-    nu   = ACOS(R(1)/rmag); IF (r(2) < 0._dk) nu = twopi - nu
-END IF
+    nu   = ACOS(R(1)/rmag); if (r(2) < 0._dk) nu = twopi - nu
+end if
 
 ! Compute mean anomaly
 sinn = sin(nu); cosn = cos(nu)
@@ -225,9 +227,9 @@ M = EA - e*sinE
 
 COE = [a,e,inc,RAAN,AoP,M]
 
-CONTAINS
+contains
 
-FUNCTION CROSS_PRODUCT(a,b)
+function CROSS_PRODUCT(a,b)
 ! Description:
 !    Computes cross product of a*b.
 ! ==============================================================================
@@ -235,11 +237,11 @@ FUNCTION CROSS_PRODUCT(a,b)
 ! ==============================================================================
 
 ! VARIABLES
-IMPLICIT NONE
+implicit none
 ! Function definition
-REAL(dk)            :: CROSS_PRODUCT(1:3)
+real(dk)            :: CROSS_PRODUCT(1:3)
 ! Arguments
-REAL(dk)            :: a(1:3),b(1:3)
+real(dk)            :: a(1:3),b(1:3)
 
 ! ==============================================================================
 !                                            EXECUTION
@@ -247,9 +249,9 @@ REAL(dk)            :: a(1:3),b(1:3)
 CROSS_PRODUCT(1) = a(2)*b(3) - a(3)*b(2)
 CROSS_PRODUCT(2) = a(3)*b(1) - a(1)*b(3)
 CROSS_PRODUCT(3) = a(1)*b(2) - a(2)*b(1)
-END FUNCTION CROSS_PRODUCT
+end function CROSS_PRODUCT
 
-END SUBROUTINE CART2COE
+end subroutine CART2COE
 
 
 end module CART_COE
