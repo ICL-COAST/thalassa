@@ -137,6 +137,7 @@ real(dk)              ::  h(1:3),n(1:3)     ! Angular momentum and nodal vector
 real(dk)              ::  ecc(1:3)          ! Eccentricity vector
 real(dk)              ::  sinn,cosn
 real(dk)              ::  EA,sinE,cosE
+real(dk)              ::  GA                ! Gudermannian anomaly
 real(dk)              ::  rmag,nmag,hmag
 real(dk)              ::  zero
 
@@ -192,7 +193,7 @@ AoP  = ACOS(DOT_PRODUCT(n,ecc)/(nmag*e)); if (ecc(3) < 0._dk) AoP  = twopi - AoP
 nu   = ACOS(DOT_PRODUCT(ecc,R)/e/rmag)
 if (DOT_PRODUCT(R,V) < 0._dk) then
     nu   = twopi - nu
-    
+
 end if
 
 ! SPECIAL CASES:
@@ -214,12 +215,20 @@ if (ABS(ABS(h(3)/hmag)-1._dk) < zero .AND. e <= zero) then
     nu   = ACOS(R(1)/rmag); if (r(2) < 0._dk) nu = twopi - nu
 end if
 
-! Compute mean anomaly
+! Mean anomaly (see Battin, Ch. 4)
 sinn = sin(nu); cosn = cos(nu)
-sinE = (sinn*sqrt(1._dk - e**2))/(1._dk + e*cosn)
-cosE = (e + cosn)/(1._dk + e*cosn)
-EA = atan2(sinE,cosE)
-M = EA - e*sinE
+if (e < 1._dk) then
+  sinE = (sinn*sqrt(1._dk - e**2))/(1._dk + e*cosn)
+  cosE = (e + cosn)/(1._dk + e*cosn)
+  EA = atan2(sinE,cosE)
+  M = EA - e*sinE
+
+else if (e > 1._dk) then
+  GA = 2._dk * atan( sqrt( (e - 1._dk) / (e + 1._dk) ) * tan(0.5_dk * nu) )
+  M = e * tan(GA) - log( tan( 0.5_dk * GA + 0.25_dk * pi ))
+  
+end if
+  
 
 COE = [a,e,inc,RAAN,AoP,M]
 
