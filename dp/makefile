@@ -118,7 +118,8 @@ opkdmain.o: ./integ/DLSODAR/opkdmain.f kinds.o
 	$(FC) $(FCFLAGS) -fdefault-real-8 -std=legacy ./integ/DLSODAR/opkdmain.f
 
 # Formulations
-regular_aux.o: ./regular/regular_aux.f90 perturbations.o edromo.o ks.o kinds.o
+regular_aux.o: ./regular/regular_aux.f90 perturbations.o edromo.o ks.o \
+stische.o kinds.o
 	$(FC) $(FCFLAGS) ./regular/regular_aux.f90
 
 cowell.o: ./regular/cowell.f90 perturbations.o auxiliaries.o kinds.o
