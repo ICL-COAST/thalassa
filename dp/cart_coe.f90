@@ -228,7 +228,9 @@ else if (e > 1._dk) then
   M = e * tan(GA) - log( tan( 0.5_dk * GA + 0.25_dk * pi ))
   
 end if
-  
+
+! Wrap M to [0,360]
+M = mod(M + twopi,twopi)
 
 COE = [a,e,inc,RAAN,AoP,M]
 
