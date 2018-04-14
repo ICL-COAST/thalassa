@@ -33,6 +33,7 @@ integer  ::  eqs                ! Equations of motion type. 1 = Cowell,
 ! Output settings
 character(len=512)  ::  outpath
 integer  ::  verb
+integer  ::  iEQUAT,iECLIP
 
 contains
 
@@ -67,7 +68,9 @@ read(id_set,'(a11,e22.15)') dummy, tstep
 read(id_set,'(a11,e10.1,5(/))') dummy, rmxstep
 read(id_set,'(a11,i3,4(/))') dummy, eqs
 read(id_set,'(a11,i3)') dummy, verb
-read(id_set,'(a4,a)') dummy,outpath
+read(id_set,'(a11,a)') dummy, outpath
+read(id_set,'(a11,i3)') dummy, iEQUAT
+read(id_set,'(a11,i3)') dummy, iECLIP
 
 close(id_set)
 

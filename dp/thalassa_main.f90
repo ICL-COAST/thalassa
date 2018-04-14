@@ -30,23 +30,25 @@ use CART_COE,    only: COE2CART,CART2COE
 use PHYS_CONST,  only: READ_PHYS,GMST_UNIFORM
 use PROPAGATE,   only: DPROP_REGULAR
 use SETTINGS,    only: READ_SETTINGS,input_path
-use IO,          only: id_cart,id_orb,id_stat,object_path
-use SETTINGS,    only: gdeg,gord,outpath,tol,eqs
+use IO,          only: id_cEQUAT,id_oEQUAT,id_cECLIP,id_oECLIP,id_stat,object_path
+use SETTINGS,    only: gdeg,gord,outpath,tol,eqs,iEQUAT,iECLIP
 use PHYS_CONST,  only: GE,d2r,r2d,secsPerDay,secsPerSidDay,twopi
+use RFRAMES,     only: EQ2EC
 implicit none
 
 ! VARIABLES
 ! Initial conditions (EMEJ2000)
 real(dk)  ::  COE0(1:6),COE0_rad(1:6)
-real(dk)  ::  R0(1:3),V0(1:3)
+real(dk)  ::  R0_EQUAT(1:3),V0_EQUAT(1:3)
 real(dk)  ::  GMST0,aGEO
 real(dk)  ::  period
 ! Integration span and dt [solar days]
 real(dk)  ::  tspan,tstep
 ! Trajectory
 integer               ::  npts,ipt
-real(dk),allocatable  ::  cart(:,:),orb(:,:)
-real(dk)              ::  R(1:3),V(1:3)
+real(dk),allocatable  ::  cart_EQUAT(:,:),orb_EQUAT(:,:)
+real(dk),allocatable  ::  cart_ECLIP(:,:),orb_ECLIP(:,:)
+real(dk)              ::  R_EQUAT(1:3),V_EQUAT(1:3)
 ! Measurement of CPU time
 integer  ::  rate,tic,toc
 real(dk) ::  cputime
@@ -95,7 +97,7 @@ call FURNSH('./data/kernels_to_load.furnsh')
 
 ! Convert to Cartesian coordinates
 COE0_rad = [COE0(1:2),COE0(3:6)*real(d2r,dk)]
-call COE2CART(COE0_rad,R0,V0,GE)
+call COE2CART(COE0_rad,R0_EQUAT,V0_EQUAT,GE)
 
 ! Output to user
 GMST0 = GMST_UNIFORM(MJD0)
@@ -105,17 +107,17 @@ period = twopi*sqrt(COE0(1)**3/GE)/secsPerSidDay
 write(*,'(a,g15.8)') 'Tolerance: ',tol
 write(*,'(a,i2)') 'Equations: ',eqs
 
-call DPROP_REGULAR(R0,V0,tspan,tstep,cart,int_steps,tot_calls)
+call DPROP_REGULAR(R0_EQUAT,V0_EQUAT,tspan,tstep,cart_EQUAT,int_steps,tot_calls)
 
 ! ==============================================================================
 ! 04. PROCESSING AND OUTPUT
 ! ==============================================================================
 
 ! Initialize orbital elements array
-npts = size(cart,1)
-if (allocated(orb)) deallocate(orb)
-allocate(orb(1:npts,1:7))
-orb = 0._dk
+npts = size(cart_EQUAT,1)
+if (allocated(orb_EQUAT)) deallocate(orb_EQUAT)
+allocate(orb_EQUAT(1:npts,1:7))
+orb_EQUAT = 0._dk
 
 ! End timing BEFORE converting back to orbital elements
 call SYSTEM_CLOCK(toc)
@@ -123,26 +125,52 @@ cputime = real((toc-tic),dk)/real(rate,dk)
 write(*,'(a,g9.2,a)') 'CPU time: ',cputime,' s'
 
 ! Convert to orbital elements.
-! orb(1): MJD,  orb(2): a,  orb(3): e, orb(4): i
-! orb(5): Om,   orb(6): om, orb(7): M
+! orb_EQUAT(1): MJD,  orb_EQUAT(2): a,  orb_EQUAT(3): e, orb_EQUAT(4): i
+! orb_EQUAT(5): Om,   orb_EQUAT(6): om, orb_EQUAT(7): M
 do ipt=1,npts
-    orb(ipt,1) = cart(ipt,1)    ! Copy MJD
-    R = cart(ipt,2:4)
-    V = cart(ipt,5:7)
-    call CART2COE(R,V,orb(ipt,2:7),GE)
-    orb(ipt,4:7) = orb(ipt,4:7)/d2r
+    orb_EQUAT(ipt,1) = cart_EQUAT(ipt,1)    ! Copy MJD
+    R_EQUAT = cart_EQUAT(ipt,2:4)
+    V_EQUAT = cart_EQUAT(ipt,5:7)
+    call CART2COE(R_EQUAT,V_EQUAT,orb_EQUAT(ipt,2:7),GE)
+    orb_EQUAT(ipt,4:7) = orb_EQUAT(ipt,4:7)/d2r
 
 end do
 
-! Dump output and copy input files to the output directory
-call CREATE_OUT(id_cart)
-call CREATE_OUT(id_orb)
-call CREATE_OUT(id_stat)
-call DUMP_TRAJ(id_cart,npts,cart)
-call DUMP_TRAJ(id_orb,npts,orb)
+! If additional output reference frames are selected, transform R,V
+if (iEQUAT == 1) then
+  call CREATE_OUT(id_cEQUAT)
+  call CREATE_OUT(id_oEQUAT)
+  call DUMP_TRAJ(id_cEQUAT,npts,cart_EQUAT)
+  call DUMP_TRAJ(id_oEQUAT,npts,orb_EQUAT)
+
+end if
+
+if (iECLIP == 1) then
+  if (allocated(cart_ECLIP)) deallocate(cart_ECLIP)
+  if (allocated(orb_ECLIP)) deallocate(orb_ECLIP)
+  allocate(cart_ECLIP,source=cart_EQUAT)
+  allocate(orb_ECLIP,source=orb_EQUAT)
+  
+  ! Transform R_EQUAT, V_EQUAT into R_ECLIP, V_ECLIP
+  call EQ2EC(npts,cart_EQUAT,cart_ECLIP)
+  
+  orb_ECLIP(:,1) = cart_EQUAT(:,1)
+  do ipt=1,npts
+    call CART2COE(cart_ECLIP(ipt,2:4),cart_ECLIP(ipt,5:7),orb_ECLIP(ipt,2:7),GE)
+
+  end do
+  orb_ECLIP(:,4:7) = orb_ECLIP(:,4:7)/d2r
+  
+  call CREATE_OUT(id_cECLIP)
+  call CREATE_OUT(id_oECLIP)
+  call DUMP_TRAJ(id_cECLIP,npts,cart_ECLIP)
+  call DUMP_TRAJ(id_oECLIP,npts,orb_ECLIP)
+
+end if
 
 ! Write statistics line: calls, steps, CPU time, final time and orbital elements
-write(id_stat,100) tot_calls, int_steps, tol, cputime, orb(npts,:)
+call CREATE_OUT(id_stat)
+write(id_stat,100) tot_calls, int_steps, tol, cputime, orb_EQUAT(npts,:)
 
 100 format((2(i10,1x),9(es22.15,1x)))
 end program THALASSA

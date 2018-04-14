@@ -10,14 +10,14 @@
 # iephem:    Ephemerides source. 1 = DE431 ephemerides. 2 = Simpl. Meeus & Brown
 # gdeg:      Maximum degree of the gravitational potential.
 # gord:      Maximum order of the gravitational potential.
-insgrav:   1
+insgrav:   0
 isun:      1
-imoon:     1
-idrag:     2
+imoon:     0
+idrag:     0
 iSRP:      0
-iephem:    2
-gdeg:      5
-gord:      5
+iephem:    1
+gdeg:      1
+gord:      0
 
 # INTEGRATION
 # tolref:    Absolute = relative tolerance for the reference propagation
@@ -25,9 +25,9 @@ gord:      5
 # tspan:     Propagation time span (solar days).
 # tstep:     Step size (solar days).
 # mxstep:    Maximum number of integration/output steps.
-tol:       1.000000000000000E-16
-tspan:     7.305000000000000E+04
-tstep:     0.500000000000000E+00
+tol:       1.000000000000000E-15
+tspan:     +365.250000000000E+00
+tstep:     +0.02000000000000E+00
 mxstep:    1.0E+06
 
 # EQUATIONS OF MOTION
@@ -40,4 +40,6 @@ eqs:       5
 # verb:      1 = Toggle verbose output, 0 = otherwise
 # out:       Full path to output directory
 verb:      1
-out:   /Users/epicurus/Documents/Research/THESS/data/Epicurus/Thalassa/Tintin-A/ref_5x5/US76_quad/
+outd:      /Users/epicurus/Documents/Codes/Thalassa_val/
+ieqj2k:    1
+iecj2k:    1

@@ -14,9 +14,9 @@ FORMUL  = cowell.o edromo.o ks.o stische.o regular_aux.o
 J77     = atsu.o soflud.o ja77.o
 
 # Source and object files
-OBJECTS = kinds.o phys_const.o settings.o io.o kepler.o cart_coe.o nsgrav.o \
-sun_moon.o drag_exponential.o US76_PATRIUS.o $(J77) nrlmsise00_sub.o srp.o \
-perturbations.o initialize.o integrate.o $(SLSODAR) $(DLSODAR) $(FORMUL) \
+OBJECTS = kinds.o phys_const.o settings.o io.o kepler.o rframes.o cart_coe.o \
+nsgrav.o sun_moon.o drag_exponential.o US76_PATRIUS.o $(J77) nrlmsise00_sub.o \
+srp.o perturbations.o initialize.o integrate.o $(SLSODAR) $(DLSODAR) $(FORMUL) \
 propagate.o auxiliaries.o thalassa_main.o
 
 # Binaries
@@ -44,6 +44,9 @@ io.o: io.f90 kinds.o settings.o phys_const.o
 
 kepler.o: kepler.f90 kinds.o
 	$(FC) $(FCFLAGS) kepler.f90
+
+rframes.o: rframes.f90 kinds.o
+	$(FC) $(FCFLAGS) rframes.f90
 
 cart_coe.o: cart_coe.f90 phys_const.o kepler.o kinds.o
 	$(FC) $(FCFLAGS) cart_coe.f90
@@ -83,7 +86,7 @@ $(FORMUL) integrate.o initialize.o
 	$(FC) $(FCFLAGS) propagate.f90
 
 thalassa_main.o: thalassa_main.f90 kinds.o io.o phys_const.o settings.o \
-cart_coe.o propagate.o
+cart_coe.o propagate.o rframes.o
 	$(FC) $(FCFLAGS) thalassa_main.f90
 
 # Atmospheric model
@@ -137,6 +140,6 @@ stische.o: ./regular/stische.f90 settings.o auxiliaries.o phys_const.o \
 perturbations.o kinds.o
 	$(FC) $(FCFLAGS) ./regular/stische.f90
 
-.PHONY: cleanks
+.PHONY: clean
 clean:
 	-rm *.x *.o *.mod

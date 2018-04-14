@@ -15,8 +15,11 @@ use SETTINGS, only: outpath
 
 ! VARIABLES
 implicit none
-integer,parameter    ::  id_ic = 10, id_in = 11, id_cart = 12, id_orb = 13
-integer,parameter    ::  id_stat = 14
+integer,parameter    ::  id_ic = 10, id_in = 11
+integer,parameter    ::  id_cEQUAT = 12, id_oEQUAT = 13
+integer,parameter    ::  id_cECLIP = 14, id_oECLIP = 15
+! integer,parameter    ::  id_cIAUMOON = 16, id_oIAUMOON = 17
+integer,parameter    ::  id_stat = 18
 character(len=512)   ::  object_path
 
 contains
@@ -84,25 +87,43 @@ logical                  ::  stat_exists
 ! ==============================================================================
 
 select case (fid)
-    case(12) ! Cartesian trajectory file, id_cart = 12 (see module preamble)
-        filepath = adjustl(trim(outpath)//'cart.dat')
-        header(1) = '# THALASSA - CARTESIAN COORDINATES'
+    case(12) ! Cartesian trajectory file, EQUATORIAL, id_cEQUAT = 12
+        filepath = adjustl(trim(outpath)//'cart_EQUATJ2K.dat')
+        header(1) = '# THALASSA - CARTESIAN COORDINATES (MEAN EQUATOR AND EQUINOX OF J2000)'
         write(header(2),'(''#'',160(''=''))')
         write(header(3),'(''#'',a21,1x,6(a22,1x))') &
         & 'MJD', 'X [km]', 'Y [km]', 'Z [km]', 'VX [km]', 'VY [km]', 'VZ [km]'
         open(unit=fid,file=trim(filepath),action='write',status='replace')
         write(fid,'(a200)') header
 
-    case(13) ! Orbital elements file, id_orb = 13 (see module preamble)
-        filepath = adjustl(trim(outpath)//'orbels.dat')
-        header(1) = '# THALASSA - ORBITAL ELEMENTS'
+    case(13) ! Orbital elements file, EQUATORIAL, id_oEQUAT = 13
+        filepath = adjustl(trim(outpath)//'orbels_EQUATJ2K.dat')
+        header(1) = '# THALASSA - ORBITAL ELEMENTS (MEAN EQUATOR AND EQUINOX OF J2000)'
+        write(header(2),'(''#'',160(''=''))')
+        write(header(3),'(''#'',a21,1x,6(a22,1x))') &
+        & 'MJD', 'SMA [km]', 'ECC [-]', 'INC [deg]', 'RAAN [deg]', 'AOP [deg]', 'MA [deg]'
+        open(unit=fid,file=trim(filepath),action='write',status='replace')
+        write(fid,'(a200)') header
+    
+    case(14) ! Cartesian trajectory file, ECLIPTIC, id_cECLIP = 14
+        filepath = adjustl(trim(outpath)//'cart_ECLIPJ2K.dat')
+        header(1) = '# THALASSA - CARTESIAN COORDINATES (MEAN ECLIPTIC AND EQUINOX OF J2000)'
+        write(header(2),'(''#'',160(''=''))')
+        write(header(3),'(''#'',a21,1x,6(a22,1x))') &
+        & 'MJD', 'SMA [km]', 'ECC [-]', 'INC [deg]', 'RAAN [deg]', 'AOP [deg]', 'MA [deg]'
+        open(unit=fid,file=trim(filepath),action='write',status='replace')
+        write(fid,'(a200)') header
+    
+    case(15) ! Orbital elements file, ECLIPTIC, id_oECLIP = 15
+        filepath = adjustl(trim(outpath)//'orbels_ECLIPJ2K.dat')
+        header(1) = '# THALASSA - ORBITAL ELEMENTS (MEAN ECLIPTIC AND EQUINOX OF J2000)'
         write(header(2),'(''#'',160(''=''))')
         write(header(3),'(''#'',a21,1x,6(a22,1x))') &
         & 'MJD', 'SMA [km]', 'ECC [-]', 'INC [deg]', 'RAAN [deg]', 'AOP [deg]', 'MA [deg]'
         open(unit=fid,file=trim(filepath),action='write',status='replace')
         write(fid,'(a200)') header
 
-    case(14) ! Integration statistics file, id_stat = 14 (see module preamble)
+    case(18) ! Integration statistics file, id_stat = 18
         filepath = adjustl(trim(outpath)//'stats.dat')
         header(1) = '# THALASSA - STATISTICS'
         write(header(2),'(''#'',227(''=''))')
