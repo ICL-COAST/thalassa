@@ -1,0 +1,23 @@
+# THALASSA - GRID DEFINITION FILE
+# Defines the grid of initial epoch and orbital elements to be used in the
+# THALASSA batch propagations. For each quantity, assign the extremes of the
+# interval and the number of points to be gridded.
+# The initial epoch is expressed in MJD (TT), the semi-major axis in kilometers,
+# and all angles are in degrees.
+#
+# Author:
+#    Davide Amato
+#    davideamato@email.arizona.edu
+#
+# Revisions:
+#    180518: File created.
+#
+# ==============================================================================
+
+MJD   = 58256,58257,1
+SMA   = 6871,6971,10
+ECC   = 0,0.2,10
+INC   = 80,82,2
+RAAN  = 0,180,1
+AOP   = 0,180,1
+M     = 0,180,1
