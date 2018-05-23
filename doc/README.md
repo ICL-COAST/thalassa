@@ -10,7 +10,7 @@ THALASSA reads settings and initial conditions from two text files. Their paths 
 
     ./thalassa.x [settings_file] [object_file]
 
-If no arguments are provided, THALASSA will read settings and initial conditions from the files `in/input.txt` and `in/object.txt`. Sample files are included in the repository.
+If no arguments are provided, THALASSA will read settings and initial conditions from the files `./in/input.txt` and `./in/object.txt`. Sample files are included in the repository.
 
 Fortran is quite strict when interpreting text. When changing the input files, make sure to respect *all* columns and *do not* insert additional rows without changing the code. Explanatory comments in the files are preceded by pound characters.
 
