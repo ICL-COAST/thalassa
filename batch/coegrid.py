@@ -11,160 +11,126 @@ Author:
   davideamato@email.arizona.edu
 
 Revisions:
-  1805118: Script creation.
+  180518: Script creation.
+  180523: Parse arguments; create grid table from input file in JSON format.
 
 """
 
-# import sys
+import sys
 import os
-# import subprocess
-# import shutil
-# import numpy as np
-# import datetime
-# import time
-# import multiprocessing as mp
-# import psutil
-# from batch_proc import processSummary
+import json
+import numpy as np
+import datetime
+import argparse
 
-# def generateTolVec(tolMax,tolMin,ntol):
-#   # Generates the tolerance vector, logarithmically spaced from 'tolmax' to
-#   # tolmin.
-#   tolVec = np.logspace(float(tolMax),float(tolMin),num=ntol)
-#   return tolVec
+def genGrid(nTot,gDict):
+  """
+  Creates a grid.dat file containing the grid of orbital elements in tabular
+  format, starting from the grid specifications contained in gDict.
 
-# def modifyInput(inpPath,lineN,tol,outPath,eqs):
-#   # Modifies the line 'lineN' (counted from zero) in the input file to assign
-#   # the specified tolerance 'tol'.
-#   # TODO: Use regex to find the lines to modify.
+  Author:
+    Davide Amato
+    The University of Arizona
+    davideamato@email.arizona.edu
   
-#   # Read contents of input file
-#   inpFile = open(inpPath,'rU')
-#   lines   = inpFile.readlines()
-#   inpFile.close
+  Revisions:
+    180523: function created.
+  """
   
-#   # Change tolerance, equations, and output path
-#   lines[lineN[0]] = lines[lineN[0]][:11] + '%.15E\n' % (tol)
-#   lines[lineN[1]] = lines[lineN[1]][:11] + str(eqs) + '\n'
-#   lines[lineN[2]] = lines[lineN[2]][:5]  + outPath + '/\n'
+  # Generate nTot-by-8 array, and dump to disk.
+  grid = np.empty([nTot,8])
   
-#   # Write contents to input file
-#   inpFile = open(inpPath,'w')
-#   inpFile.writelines(lines)
-#   inpFile.close
+  # Initialize Simulation ID (SID) to keep track of the number of propagations.
+  SID = 1
 
-# def thalassaRep(rep_time,inputPath,ICPath):
-#  # Launch the same thalassa propagation several times.
-#   for i in range(0,rep_time):
-  
-#     subprocess.call(['./thalassa.x',os.path.abspath(inputPath),
-#     os.path.abspath(ICPath)])
+  # The grid array is filled in the order: MA, AOP, RAAN, INC, ECC, SMA, MJD.
+ 
+  # Get deltas
+  for key in gDict:
+    if gDict[key]['points'] > 1:
+      gDict[key]['delta'] = (gDict[key]['end'] - gDict[key]['start']) / (gDict[key]['points'] - 1)
+    else:
+      gDict[key]['delta'] = 0.
+    
+  # Here's the Big Nested Loop.
+  for i0 in range(0, gDict['MJD']['points']):
+    MJD = gDict['MJD']['start'] + i0 * gDict['MJD']['delta']
 
-# def tolRun(tolVec,tol,eqs,rep_time,masterPath,ICPath):
-#   # Execute a run in tolerance.
-#   # =======
+    for i1 in range(0, gDict['SMA']['points']):
+      SMA = gDict['SMA']['start'] + i1 * gDict['SMA']['delta']
 
-#   print('\nStarting propagation',str(np.where(tolVec == tol)[0][0]+1),'out of',str(len(tolVec)),'...')
-#   subDir = '%.5g' % np.log10(tol)
+      for i2 in range(0, gDict['ECC']['points']):
+        ECC = gDict['ECC']['start'] + i2 * gDict['ECC']['delta']
 
-#   # Generate an input file in the current output folder by copying and
-#   # modifying the one that is already in the MASTER_FOLDER
-#   outPath = os.path.join(masterPath,'tol' + subDir)
-#   if os.path.exists(outPath):
-#       print('Output path exists, its contents will be PURGED.')
-#       shutil.rmtree(outPath)
-#   os.makedirs(outPath)
-#   inputPath = os.path.join(outPath,'input.txt')
-#   shutil.copy(os.path.join(masterPath,'input.txt'),inputPath)
-#   modifyInput(inputPath,[27,36,42],tol,outPath,eqs)
-  
-#   # Launch the propagations over the number of available CPUs
-#   thalassaRep(rep_time,inputPath,ICPath)
+        for i3 in range(0, gDict['INC']['points']):
+          INC = gDict['INC']['start'] + i3 * gDict['INC']['delta']
 
-#   return outPath
+          for i4 in range(0, gDict['RAAN']['points']):
+            RAAN = gDict['RAAN']['start'] + i4 * gDict['RAAN']['delta']
+
+            for i5 in range(0, gDict['AOP']['points']):
+              AOP = gDict['AOP']['start'] + i5 * gDict['AOP']['delta']
+
+              for i6 in range(0, gDict['MA']['points']):
+                MA = gDict['MA']['start'] + i6 * gDict['MA']['delta']
+                
+                grid[SID - 1,:] = [SID,MJD,SMA,ECC,INC,RAAN,AOP,MA]
+                SID  = SID + 1
+
+  return grid
 
 
 def main():
   
-#   args = sys.argv[1:]
+  parser = argparse.ArgumentParser(description='Generate a grid of orbital '
+  'elements for propagation with THALASSA.')
   
-#   if not args:
-#     print ('Usage: ./batch_tol.py MASTER_DIRECTORY [--tmax log10(tolmax)]'
-#            '[--tmin log10(tolmin)] [--ntol ntol] [--eqs eqs]')
-#     print ('The script reads initial conditions and settings from the '
-#            '"object.txt" and "input.txt" files, respectively. These *must be '
-#            'already present* in the MASTER_DIRECTORY.')
-#     sys.exit(1)
+  parser.add_argument('outDir',nargs='?',default='grid.dat',\
+  help='path to the output directory for the batch propagations')
+  args = parser.parse_args()
   
-  gridDefFile = 'griddef.txt'
 
+
+
+
+  gridDefFile = 'griddef.json'
   print('THALASSA GRID CREATION SCRIPT')
-  print('Reading grid definition from ' + os.path.abspath(gridDefFile) + '...')
+  print('Reading grid definition from ' + os.path.abspath(gridDefFile) + '...', end=" ")
 
-  # Read grid definition from the griddef file, possibly using a try/catch.
+  # Read grid definition from the griddef file in JSON format. SMA is in km,
+  # and angles are in degrees.
+  with open(gridDefFile,'r') as f:
+    gridDefDict = json.load(f)
+  
+  print('Done.\n')
 
-  # Call function to generate the grid.dat file.
+  nTot = 1
+  for icVal in gridDefDict:
+    nTot = nTot * gridDefDict[icVal]['points']
+  
+  print('Preparing a grid for {0} propagations...'.format(nTot), end=" ")
+  
+  grid = genGrid(nTot,gridDefDict)
 
-  # Output to user: number of simulations, estimated time??.
-  
-  # User confirmation and name of simulation
 
-  # Make dirs
 
-  # End and goodbye
 
   
-#   masterPath = os.path.abspath(args[0]); del args[0]
-#   l10tMax = -4.
-#   l10tMin = -15.
-#   ntol    = 12
-#   eqs     = 1
+  if not os.path.exists(os.path.dirname(args.outDir)):
+    os.makedirs(os.path.dirname(args.outDir))
 
-#   # Output to user
-#   date_start = datetime.datetime.now()
-#   print('Thalassa - batch propagation in tolerance and equations.')
-#   print('Batch is starting on', date_start)
+  now = datetime.datetime.now()
+  gridHeader = '# THALASSA GRID FILE\n# Generated on ' + \
+  now.isoformat() +  '.\n# Columns: SID, MJD (TT), SMA (km), ECC, INC (deg), ' \
+  'RAAN (deg), AOP (deg), MA (deg)\n'
+
+  with open(os.path.join(args.outDir,'grid.dat'),'w') as f:
+    f.write(gridHeader)
+    np.savetxt(f,grid[:,:],fmt='%010u,' + 7*'%22.15E,')
+
+  print('Done.')
+  print('Grid table written to ' + os.path.join(args.outDir,'grid.dat'))
   
-#   # Command line parsing
-#   try:
-#     if args[0] == '--tmax':
-#       l10tMax = args[1]
-#       del args[0:2]
-    
-#     if args[0] == '--tmin':
-#       l10tMin = args[1]
-#       del args[0:2]
-    
-#     if args[0] == '--ntol':
-#       ntol = args[1]
-#       del args[0:2]
-    
-#     if args[0] == '--eqs':
-#       eqs = args[1]
-#       del args[0:2]
-#   except IndexError:
-#     pass
-  
-#   tolVec  = generateTolVec(l10tMax,l10tMin,ntol)
-  
-#   # Initializations
-#   rep_time = 3
-#   ICPath   = os.path.join(masterPath,'object.txt')
-  
-#   # Launch propagations
-#   nproc = psutil.cpu_count(logical=False)
-#   outDirs = []
-#   runArgs = [(tolVec,tol,eqs,rep_time,masterPath,ICPath) for tol in tolVec]
-#   with mp.Pool(processes=(nproc-1)) as pool:
-#     outDirs = pool.starmap(tolRun,runArgs)
-  
-#   date_end = datetime.datetime.now()
-#   print('Batch ended on', date_end)
-#   print('Total duration:', date_end - date_start)
-  
-#   # Process statistics
-#   sys.stdout.write('Processing statistics... ')
-#   processSummary(masterPath,outDirs)
-#   sys.stdout.write('Done.\n')
 
 if __name__ == '__main__':
   main()

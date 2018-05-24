@@ -1,0 +1,43 @@
+{
+  "MJD": {
+    "start":   58256,
+    "end":     58257,
+    "points": 1
+    },
+  
+  "SMA": {
+    "start":   6871,
+    "end":     6971,
+    "points": 1
+    },
+  
+  "ECC": {
+    "start":   0,
+    "end":     0.2,
+    "points": 1
+    },
+  
+  "INC": {
+    "start":   80,
+    "end":     82,
+    "points": 1
+    },
+  
+  "RAAN": {
+    "start":   0,
+    "end":     180,
+    "points": 1
+    },
+  
+  "AOP": {
+    "start":   0,
+    "end":     180,
+    "points": 2
+    },
+  
+  "MA": {
+    "start":   0,
+    "end":     180,
+    "points": 2
+    }
+}
