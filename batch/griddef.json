@@ -1,4 +1,4 @@
-{
+{"Grid":{
   "MJD": {
     "start":   58256,
     "end":     58257,
@@ -14,7 +14,7 @@
   "ECC": {
     "start":   0,
     "end":     0.2,
-    "points": 1
+    "points": 3200
     },
   
   "INC": {
@@ -32,12 +32,51 @@
   "AOP": {
     "start":   0,
     "end":     180,
-    "points": 2
+    "points": 1
     },
   
   "MA": {
     "start":   0,
     "end":     180,
-    "points": 2
+    "points": 1
     }
+  },
+
+  "Model":{
+    "NS gravity": {
+      "Flag": true,
+      "Degree": 5,
+      "Order": 7
+    },
+    
+    "Drag":{
+      "Flag": true,
+      "Model": "MSIS00"
+    },
+
+    "Lunisolar":{
+      "Sun": true,
+      "Moon": true,
+      "Ephemerides": "DE431"
+    },
+    
+    "SRP":{
+      "Flag": false
+    }
+
+  },
+
+  "Spacecraft":{
+    "Mass": 100,
+    "Area": 1,
+    "CD": 2.0,
+    "CR": 1.1
+  },
+
+  "Integration":{
+    "Tolerance": 1E-8,
+    "Duration": 1.5,
+    "Step": 1,
+    "Equations": 3
+  }
 }

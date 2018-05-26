@@ -13,11 +13,13 @@ Author:
 Revisions:
   180518: Script creation.
   180523: Parse arguments; create grid table from input file in JSON format.
+  180526: Create directory structure, add fields to JSON input
 
 """
 
 import sys
 import os
+import shutil
 import json
 import numpy as np
 import datetime
@@ -80,6 +82,9 @@ def genGrid(nTot,gDict):
   return grid
 
 
+
+
+
 def main():
   
   parser = argparse.ArgumentParser(description='Generate a grid of orbital '
@@ -87,6 +92,9 @@ def main():
   
   parser.add_argument('outDir',nargs='?',default='grid.dat',\
   help='path to the output directory for the batch propagations')
+  if len(sys.argv)==1:
+    parser.print_help(sys.stderr)
+    sys.exit(1)
   args = parser.parse_args()
   
 
@@ -105,20 +113,31 @@ def main():
   print('Done.\n')
 
   nTot = 1
-  for icVal in gridDefDict:
-    nTot = nTot * gridDefDict[icVal]['points']
+  for icVal in gridDefDict["Grid"]:
+    nTot = nTot * gridDefDict["Grid"][icVal]['points']
+
+  proceedMsg = """You are creating a grid for {0} propagations.
+**WARNING**: This will also delete everything in the output directory.
+Do you want to continue? (Y/N)\n""".format(nTot)
+
+  proceed = input(proceedMsg)
+  if proceed.lower() != 'y':
+    sys.exit(1)
+
   
-  print('Preparing a grid for {0} propagations...'.format(nTot), end=" ")
+  print('Preparing a grid for {0} propagations...'.format(nTot), end=" ", \
+  flush=True)
   
-  grid = genGrid(nTot,gridDefDict)
+  grid = genGrid(nTot,gridDefDict["Grid"])
 
 
 
 
-  
-  if not os.path.exists(os.path.dirname(args.outDir)):
+  # Create grid file
+  if os.path.exists(os.path.dirname(args.outDir)):
+    shutil.rmtree(args.outDir)
     os.makedirs(os.path.dirname(args.outDir))
-
+  
   now = datetime.datetime.now()
   gridHeader = '# THALASSA GRID FILE\n# Generated on ' + \
   now.isoformat() +  '.\n# Columns: SID, MJD (TT), SMA (km), ECC, INC (deg), ' \
@@ -130,6 +149,28 @@ def main():
 
   print('Done.')
   print('Grid table written to ' + os.path.join(args.outDir,'grid.dat'))
+
+  
+
+
+  print('Creating output directories...', end=" ", flush=True)
+  # Chunk directories
+  chunkSize = 100
+  # Divide the grid into chunks of "chunkSize" simulations each
+  nChunks = nTot // chunkSize
+  for iDir in range(1,nChunks + 2):
+    chunkTxt = 'C{:03d}'.format(iDir)
+    subDir = os.path.join(args.outDir,chunkTxt)
+    os.makedirs(subDir)
+    
+    startSID = (iDir - 1) * chunkSize
+    endSID   = min((iDir * chunkSize),nTot)
+    
+    for SID in grid[startSID:endSID,0]:
+      SIDtxt = '{:010d}'.format(int(SID))
+      subSubDir = os.path.join(subDir,SIDtxt)
+      os.makedirs(subSubDir)
+  print("Done.")
   
 
 if __name__ == '__main__':
