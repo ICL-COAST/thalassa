@@ -45,7 +45,7 @@
   "Model":{
     "NS gravity": {
       "Flag": true,
-      "Degree": 5,
+      "Degree": 7,
       "Order": 7
     },
     
@@ -68,7 +68,8 @@
 
   "Spacecraft":{
     "Mass": 100,
-    "Area": 1,
+    "Drag area": 1,
+    "SRP area": 1,
     "CD": 2.0,
     "CR": 1.1
   },

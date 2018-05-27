@@ -13,7 +13,8 @@ Author:
 Revisions:
   180518: Script creation.
   180523: Parse arguments; create grid table from input file in JSON format.
-  180526: Create directory structure, add fields to JSON input
+  180526: Create directory structure, add fields to JSON input, create input.txt
+          and object.txt in each subdirectory.
 
 """
 
@@ -81,7 +82,123 @@ def genGrid(nTot,gDict):
 
   return grid
 
+def createInput(dirPath,gSettings):
+  """
+  Creates an input.txt file in a format readable by the THALASSA Fortran
+  executable, using the settings in the grid definition dictionary.
+  It reads the input file template from ../in/input.txt, so keep this up to date
+  in case that changes!
 
+  Author:
+    Davide Amato
+    The University of Arizona
+    davideamato@email.arizona.edu
+  
+  Revisions:
+    180526: function created.
+  
+  """
+  
+  with open(os.path.join('../in','input.txt')) as f:
+    inpFile = f.readlines()
+  
+
+  # Model settings
+  model = gSettings["Model"]
+  inpFile[12] = "insgrav:   {:1d}\n".format(int(model["NS gravity"]["Flag"]))
+  inpFile[13] = "isun:      {:1d}\n".format(int(model["Lunisolar"]["Sun"]))
+  inpFile[14] = "imoon:     {:1d}\n".format(int(model["Lunisolar"]["Moon"]))
+
+  if model["Drag"]["Flag"] == False:
+    inpFile[15] = "idrag:     0\n"
+  else:
+    dm = model["Drag"]["Model"].lower()
+    if dm == "wertz":
+      idrag = 1
+    elif dm == "us76":
+      idrag = 2
+    elif dm == "j77":
+      idrag = 3
+    elif dm == "msis00":
+      idrag = 4
+    else:
+      raise ValueError('Value "' + model["Drag"]["Model"] + '" invalid.')
+    inpFile[15] = "idrag:     {:1d}\n".format(idrag)
+  
+  inpFile[16] = "iSRP:      {:1d}\n".format(int(model["SRP"]["Flag"]))
+  
+  if model["Lunisolar"]["Ephemerides"] == "DE431":
+    inpFile[17] = "iephem:    1\n"
+  elif model["Lunisolar"]["Ephemerides"] == "Meeus":
+    inpFile[17] = "iephem:    2\n"
+  else:
+    raise ValueError('Value "' + model["Lunisolar"]["Ephemerides"] + '" invalid.')
+  
+  inpFile[18] = "gdeg:    {:3d}\n".format(model["NS gravity"]["Degree"])
+  if model["NS gravity"]["Order"] <= model["NS gravity"]["Degree"]:
+    inpFile[19] = "gord:    {:3d}\n".format(model["NS gravity"]["Order"])
+  else:
+    raise ValueError("Order {0:d} of the gravity field is greater than degree {1:d}".format(model["NS gravity"]["Order"],model["NS gravity"]["Degree"]))
+  
+
+
+  # Integration settings
+  integ = gSettings["Integration"]
+  inpFile[27] = "tol:      {:22.15E}\n".format(integ["Tolerance"])
+  inpFile[28] = "tspan:    {:22.15E}\n".format(integ["Duration"] * 365.25)
+  inpFile[29] = "tstep:    {:22.15E}\n".format(integ["Step"])
+  inpFile[36] = "eqs:      {:2d}\n".format(integ["Equations"])
+
+
+
+  # Output settings
+  inpFile[41] = "verb:     0\n"
+  inpFile[42] = "out:   " + os.path.abspath(os.path.join(dirPath, ' '))
+
+
+  with open(os.path.join(dirPath,'input.txt'),'w') as f:
+    f.writelines(inpFile)
+  
+
+
+
+def createObject(dirPath,gSettings,ICs):
+  """
+  Creates an object.txt file in a format readable by the THALASSA Fortran
+  executable, using the settings in the grid definition dictionary.
+  It reads the input file template from ../in/object.txt, so keep this up to date
+  in case that changes!
+
+  Author:
+    Davide Amato
+    The University of Arizona
+    davideamato@email.arizona.edu
+  
+  Revisions:
+    180526: function created.
+  """
+  
+  with open(os.path.join('../in','object.txt')) as f:
+    objFile = f.readlines()
+  
+  objFile[3] = "{:+22.15E}; MJD  [TT]\n".format(ICs[0])
+  objFile[4] = "{:+22.15E}; SMA  [km]\n".format(ICs[1])
+  objFile[5] = "{:+22.15E}; ECC  [-]\n".format(ICs[2])
+  objFile[6] = "{:+22.15E}; INC  [deg]\n".format(ICs[3])
+  objFile[7] = "{:+22.15E}; RAAN [deg]\n".format(ICs[4])
+  objFile[8] = "{:+22.15E}; AOP  [deg]\n".format(ICs[5])
+  objFile[9] = "{:+22.15E}; M    [deg]\n".format(ICs[6])
+
+  SCraft = gSettings["Spacecraft"]
+  objFile[11] = "{:+22.15E}; Mass        [kg]\n".format(SCraft["Mass"])
+  objFile[12] = "{:+22.15E}; Area (drag) [m^2]\n".format(SCraft["Drag area"])
+  objFile[13] = "{:+22.15E}; Area (SRP)  [m^2]\n".format(SCraft["SRP area"])
+  objFile[14] = "{:+22.15E}; CD          [-]\n".format(SCraft["CD"])
+  objFile[15] = "{:+22.15E}; CR          [-]\n".format(SCraft["CR"])
+
+  with open(os.path.join(dirPath,'object.txt'),'w') as f:
+    f.writelines(objFile)
+  
 
 
 
@@ -117,7 +234,7 @@ def main():
     nTot = nTot * gridDefDict["Grid"][icVal]['points']
 
   proceedMsg = """You are creating a grid for {0} propagations.
-**WARNING**: This will also delete everything in the output directory.
+**WARNING**: This will also delete everything in the output directory, if it exists.
 Do you want to continue? (Y/N)\n""".format(nTot)
 
   proceed = input(proceedMsg)
@@ -154,8 +271,9 @@ Do you want to continue? (Y/N)\n""".format(nTot)
 
 
   print('Creating output directories...', end=" ", flush=True)
+
   # Chunk directories
-  chunkSize = 100
+  chunkSize = 10000
   # Divide the grid into chunks of "chunkSize" simulations each
   nChunks = nTot // chunkSize
   for iDir in range(1,nChunks + 2):
@@ -165,11 +283,18 @@ Do you want to continue? (Y/N)\n""".format(nTot)
     
     startSID = (iDir - 1) * chunkSize
     endSID   = min((iDir * chunkSize),nTot)
-    
+    igrid    = 0
+
     for SID in grid[startSID:endSID,0]:
-      SIDtxt = '{:010d}'.format(int(SID))
+      SIDtxt = 'S{:010d}'.format(int(SID))
       subSubDir = os.path.join(subDir,SIDtxt)
       os.makedirs(subSubDir)
+      
+      createInput(subSubDir,gridDefDict)
+      createObject(subSubDir,gridDefDict,grid[igrid,1:])
+      
+      igrid += 1
+
   print("Done.")
   
 
