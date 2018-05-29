@@ -15,6 +15,7 @@ Revisions:
   180523: Parse arguments; create grid table from input file in JSON format.
   180526: Create directory structure, add fields to JSON input, create input.txt
           and object.txt in each subdirectory.
+  180529: chunkSize is now global.
 
 """
 
@@ -25,6 +26,9 @@ import json
 import numpy as np
 import datetime
 import argparse
+
+# Globals
+chunkSize = 10
 
 def genGrid(nTot,gDict):
   """
@@ -276,8 +280,6 @@ Do you want to continue? (Y/N)\n""".format(nTot)
 
   print('Creating output directories...', end=" ", flush=True)
 
-  # Chunk directories
-  chunkSize = 10000
   # Divide the grid into chunks of "chunkSize" simulations each
   nChunks = nTot // chunkSize
   for iDir in range(1,nChunks + 2):
