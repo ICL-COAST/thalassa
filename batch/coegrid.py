@@ -207,7 +207,7 @@ def main():
   parser = argparse.ArgumentParser(description='Generate a grid of orbital '
   'elements for propagation with THALASSA.')
   
-  parser.add_argument('outDir',nargs='?',default='grid.dat',\
+  parser.add_argument('outDir',nargs='?',\
   help='path to the output directory for the batch propagations')
   if len(sys.argv)==1:
     parser.print_help(sys.stderr)
