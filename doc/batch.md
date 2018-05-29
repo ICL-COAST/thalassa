@@ -3,6 +3,8 @@ In the `batch` directory you will find Python3 scripts to launch THALASSA over a
 
 ## Grid creation
 To create a grid of orbital elements, edit the file `griddef.json`. The file specifies the extremes of each dimension in the 7-dimensional grid, and the points for each dimension.
+The semi-major axis is expressed in kilometers, the angles are expressed in degrees, the duration is expressed in years, and the output time step is expressed in days.
+
 Once this is specified, launch `./coegrid.py [outDir]`, where `outDir` is the directory where the output trajectories will be saved.
 The script displays the total number of propagations that will be prepared, and asks for confirmation to the user before creating a `grid.dat` file in the output directory, which is just a text table in which the initial conditions for each point of the grid are saved.
 Along with `grid.dat`, the script also saves the `griddef.json` to the output directory in order to ensure full reproducibility.
