@@ -33,3 +33,9 @@ To avoid extremely long dirtrees that could case problems on some file systems, 
 By default, each `CYYY` directory contains 10000 `SXXXXXXXXXX` subdirectory.
      
 **WARNING!!** The number of propagations can quickly get _big_. Think carefully about the size of your grid and the available computational and storage resources before starting a batch.
+
+## Launching propagations over a grid
+To launch propagations over the grid of orbital elements defined with `coegrid.py`, execute `./launchgrid.py [outDir]`, where `outDir` is the same as before.
+`launchgrid.py` expects to find `grid.dat` and `griddef.json` in the output directory, so make sure that both files are there and the directory structure has already been created.
+After displaying some information on the requested propagation batch and asking for confirmation to the user, `launchgrid.py` launches THALASSA propagations for each element in the grid.
+The propagations are performed in parallel over all the available CPU cores by using `pool.starmap`.
