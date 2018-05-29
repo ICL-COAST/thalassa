@@ -171,7 +171,7 @@ Do you want to continue? (Y/N)
   # print(runArgs)
 
   os.chdir('../')
-  with mp.Pool(processes=(nproc-1)) as pool:
+  with mp.Pool(processes=(nproc)) as pool:
     pool.starmap(runThalassa,runArgs)
 
   
