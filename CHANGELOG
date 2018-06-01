@@ -1,0 +1,5 @@
+New in version 0.9.2:
+* THALASSA now outputs an additional log file in the output directory,
+containing useful diagnostics for the current propagation.
+* Fixed an issue in atsu.for that could cause a syntax error with newer gfortran
+versions.
