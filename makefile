@@ -79,7 +79,7 @@ integrate.o: ./integ/integrate.f90 kinds.o phys_const.o $(SLSODAR) $(DLSODAR)
 	$(FC) $(FCFLAGS) ./integ/integrate.f90
 
 propagate.o: propagate.f90 kinds.o settings.o auxiliaries.o phys_const.o \
-$(FORMUL) integrate.o initialize.o
+$(FORMUL) integrate.o initialize.o io.o
 	$(FC) $(FCFLAGS) propagate.f90
 
 thalassa_main.o: thalassa_main.f90 kinds.o io.o phys_const.o settings.o \

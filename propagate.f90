@@ -10,8 +10,12 @@ module PROPAGATE
 !
 ! Author:
 !    Davide Amato
+!    The University of Arizona
 !    Space Dynamics Group - Technical University of Madrid
-!    d.amato@upm.es
+!    davideamato@email.arizona.edu
+! 
+! Revisions:
+!    180531: Add logging facilities, exit code.
 !
 ! ==============================================================================
 
@@ -50,10 +54,18 @@ end interface
 contains
 
 
-subroutine DPROP_REGULAR(R0,V0,tspan,tstep,cart,int_steps,tot_calls)
+subroutine DPROP_REGULAR(R0,V0,tspan,tstep,cart,int_steps,tot_calls,exitcode)
 ! Description:
 !    Propagates an orbit for "tspan" days, starting from MJD0. The propagation
 !    is performed using either regularized formulations or unregularized Cowell.
+! 
+! Author:
+!    Davide Amato
+!    The University of Arizona
+!    davideamato@email.arizona.edu
+!    
+! Revisions:
+!    180531: Add logging facilities, exit code.
 !
 ! ==============================================================================
 
@@ -67,6 +79,8 @@ use KUST_STI,    only: KS_RHS,KS_EVT
 use STI_SCHE,    only: STISCHE_RHS,STISCHE_EVT
 use REGULAR_AUX, only: PHYSICAL_TIME,CARTESIAN
 use AUXILIARIES, only: MJD0,MJDnext,MJDf,DU,TU
+use IO,          only: EXIT_MSG
+use IO,          only: id_log
 use PHYS_CONST,  only: GE,secsPerDay,GE,RE,GE_nd,RE_nd,ERR_constant,&
 &ERR_constant_nd,pi,reentry_height,reentry_radius_nd
 use SETTINGS,    only: eqs,tol
@@ -77,7 +91,7 @@ implicit none
 real(dk),intent(in)  ::  R0(1:3),V0(1:3)
 real(dk),intent(in)  ::  tspan,tstep
 real(dk),intent(out),allocatable  ::  cart(:,:)
-integer,intent(out)   ::  int_steps,tot_calls
+integer,intent(out)   ::  int_steps,tot_calls,exitcode
 ! LOCALS
 integer   ::  neq                  ! N. of equations
 real(dk)  ::  x0                   ! Initial value of indep. variable
@@ -119,6 +133,8 @@ MJDnext = MJD0 + tstep
 ! Initialize state vector and independent variable
 call INIT_STATE(eqs,R0,V0,MJD0,neq,y0,x0)
 
+write(id_log,'(a,i2)') 'Initialized the state vector for eqs = ',eqs
+
 ! ==============================================================================
 ! 02. INTEGRATION LOOP
 ! ==============================================================================
@@ -128,25 +144,29 @@ call SET_SOLV(1,eqs,neq,tol,isett,iwork,rwork,rtols,atols)
 
 dx = SET_DX(eqs,tstep,TU)
 
+write(id_log,'(a)') 'Initialized solver settings, entering the integration loop.'
+
 ! Choose equations of motion and start MAIN INTEGRATION LOOP
 select case (eqs)
     case(1)   ! Cowell, 1st order
         call INTLOOP(COWELL_RHS,COWELL_EVT,1,eqs,neq,y0,x0,dx,tstep,yx,rtols,&
-        &atols,isett,liw,iwork,lrw,rwork)
+        &atols,isett,liw,iwork,lrw,rwork,exitcode)
 
     case(2:4) ! EDromo
         call INTLOOP(EDROMO_RHS,EDROMO_EVT,1,eqs,neq,y0,x0,dx,tstep,yx,rtols,&
-        &atols,isett,liw,iwork,lrw,rwork)
+        &atols,isett,liw,iwork,lrw,rwork,exitcode)
     
     case(5:6) ! KS
         call INTLOOP(KS_RHS,KS_EVT,1,eqs,neq,y0,x0,dx,tstep,yx,rtols,&
-        &atols,isett,liw,iwork,lrw,rwork)
+        &atols,isett,liw,iwork,lrw,rwork,exitcode)
     
     case(7:8) ! Stiefel-Scheifele
         call INTLOOP(STISCHE_RHS,STISCHE_EVT,1,eqs,neq,y0,x0,dx,tstep,yx,rtols,&
-        &atols,isett,liw,iwork,lrw,rwork)
+        &atols,isett,liw,iwork,lrw,rwork,exitcode)
     
 end select
+
+call EXIT_MSG(exitcode)
 
 ! ==============================================================================
 ! 03. OFFLINE PROCESSING
@@ -172,11 +192,19 @@ end subroutine DPROP_REGULAR
 
 
 subroutine INTLOOP(EOM,EVT,integ,eqs,neq,y0,x0,dx,tstep,yx,rtol,atol,isett,liw,&
-&iwork,lrw,rwork)
+&iwork,lrw,rwork,exitcode)
 ! Description:
 !    Performs the integration loop for the equations of motion specified through
 !    the subroutine EOM. The stop condition is detected through event location.
 !    The user also supplies the event function EVT.
+! 
+! Author:
+!    Davide Amato
+!    The University of Arizona
+!    davideamato@email.arizona.edu
+!    
+! Revisions:
+!    180531: Add logging facilities, exit code.
 !
 ! ==============================================================================
 
@@ -188,16 +216,17 @@ use SETTINGS,    only: mxstep,verb
 ! VARIABLES
 implicit none
 ! Arguments
-integer,intent(in)   ::  integ,eqs             ! Integrator flag and type of equations
-integer,intent(in)   ::  neq                   ! Number of equations
-integer,intent(in)   ::  liw,lrw               ! Length of work arrays
-real(dk),intent(in)  ::  y0(1:neq),x0,dx       ! Initial values and step size in independent var.
-real(dk),intent(in)  ::  tstep                 ! Step size in phys. time (days)
-real(dk),intent(in)  ::  rtol(:),atol(:)       ! Integration tolerances
+integer,intent(in)      ::  integ,eqs          ! Integrator flag and type of equations
+integer,intent(in)      ::  neq                ! Number of equations
+integer,intent(in)      ::  liw,lrw            ! Length of work arrays
+real(dk),intent(in)     ::  y0(1:neq),x0,dx    ! Initial values and step size in independent var.
+real(dk),intent(in)     ::  tstep              ! Step size in phys. time (days)
+real(dk),intent(in)     ::  rtol(:),atol(:)    ! Integration tolerances
 integer,intent(inout)   ::  isett(:)           ! Integrator settings
 integer,intent(inout)   ::  iwork(1:liw)       ! Integer work array
 real(dk),intent(inout)  ::  rwork(1:lrw)       ! Real work array
 real(dk),intent(out),allocatable  ::  yx(:,:)  ! Output trajectory
+integer,intent(out)     ::  exitcode           ! Exit code for diagnostics
 procedure(FTYPE1)    ::  EOM
 procedure(EVENTS)    ::  EVT
 ! Locals
@@ -216,6 +245,7 @@ auxy = 0._dk
 iint = 1
 auxy(1,1:neq+1) = [x0,y0]
 quit_flag = .false.
+exitcode  = -10
 
 ! Approximate number of steps to be taken
 nsteps = int((MJDf - MJD0)/(MJDnext - MJD0))
@@ -238,7 +268,7 @@ do
     auxy(iint+1,1:neq+1) = [xcur,ycur]
 
     ! Exit conditions
-    quit_flag = QUIT_LOOP(eqs,neq,integ,isett,xcur,ycur)
+    quit_flag = QUIT_LOOP(eqs,neq,integ,isett,exitcode,xcur,ycur)
     if (quit_flag) then
         exit
 
@@ -246,6 +276,8 @@ do
         write(*,*) 'WARNING: Maximum number of steps reached.'
         write(*,*) 'mxstep = ',mxstep
         write(*,*) 'xcur   = ',xcur
+
+        exitcode = -3
         exit
     
     else if (any(ycur /= ycur)) then
@@ -253,6 +285,8 @@ do
         write(*,*) 'Try specifying another tolerance, or checking for'
         write(*,*) 'inconsistencies in your physical model.'
         write(*,*) 'Propagation is being STOPPED.'
+
+        exitcode = -2
         exit
 
     end if
@@ -277,9 +311,17 @@ end do
 end subroutine INTLOOP
 
 
-function QUIT_LOOP(eqs,neq,integ,isett,x,y)
+function QUIT_LOOP(eqs,neq,integ,isett,exitcode,x,y)
 ! Description:
 !    Quits the integration loop when satisfying an exit condition.
+! 
+! Author:
+!    Davide Amato
+!    The University of Arizona
+!    davideamato@email.arizona.edu
+!    
+! Revisions:
+!    180531: Add logging facilities, exit code.
 !
 ! ==============================================================================
 
@@ -290,9 +332,10 @@ use PHYS_CONST,  only: mzero,secsPerDay,reentry_height
 ! VARIABLES
 implicit none
 ! Arguments
-integer,intent(in)   ::  neq,eqs,integ,isett(:)
-real(dk),intent(in)  ::  y(:),x
-logical              ::  QUIT_LOOP
+integer,intent(in)     ::  neq,eqs,integ,isett(:)
+real(dk),intent(in)    ::  y(:),x
+integer,intent(inout)  ::  exitcode
+logical                ::  QUIT_LOOP
 ! Locals
 integer   :: jroot(1:10)
 real(dk)  :: tcur,MJDcur
@@ -312,12 +355,15 @@ select case (integ)
         ! Nominal exit conditions.
         if (jroot(2) == 1 .or. jroot(3) == 1) then
             QUIT_LOOP = .true.
+            exitcode = 0
             if (jroot(3) == 1) then
               tcur = PHYSICAL_TIME(eqs,neq,x,y)
               MJDcur = MJD0 + tcur/TU/secsPerDay
               write(*,*) 'Reentry detected, height <= ',&
               &reentry_height,' km, MJD = ',MJDcur,', duration = ',&
               &tcur/TU/secsPerDay/365.25_dk
+
+              exitcode = 1
 
             end if
 
@@ -327,6 +373,8 @@ select case (integ)
         ! For LSODAR, these are signalled by istate (= isett(3)) < 0.
         if (isett(3) < 0) then
             QUIT_LOOP = .true.
+
+            exitcode = -1
 
         end if
 
