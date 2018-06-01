@@ -75,7 +75,8 @@ initialize.o: initialize.f90 kinds.o settings.o auxiliaries.o $(FORMUL) \
 phys_const.o perturbations.o
 	$(FC) $(FCFLAGS) initialize.f90
 
-integrate.o: ./integ/integrate.f90 kinds.o phys_const.o $(SLSODAR) $(DLSODAR)
+integrate.o: ./integ/integrate.f90 kinds.o phys_const.o io.o $(SLSODAR) \
+$(DLSODAR)
 	$(FC) $(FCFLAGS) ./integ/integrate.f90
 
 propagate.o: propagate.f90 kinds.o settings.o auxiliaries.o phys_const.o \
