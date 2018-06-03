@@ -28,7 +28,7 @@ import datetime
 import argparse
 
 # Globals
-chunkSize = 10
+chunkSize = 10000
 
 def genGrid(nTot,gDict):
   """
