@@ -17,7 +17,13 @@ program THALASSA
 ! Author:
 !    Davide Amato
 !    Space Dynamics Group - Technical University of Madrid
-!    d.amato@upm.es
+!    The University of Arizona
+!    davideamato@email.arizona.edu
+! 
+! Revisions:
+!    180409: v0.9
+!    180523: v0.9.1
+!    180531: v0.9.2. Add output of log file.
 !
 ! ==============================================================================
 
@@ -25,14 +31,15 @@ program THALASSA
 ! MODULES
 use KINDS,       only: dk
 use AUXILIARIES, only: MJD0
-use IO,          only: READ_IC,CREATE_OUT,DUMP_TRAJ
+use IO,          only: READ_IC,CREATE_OUT,DUMP_TRAJ,CREATE_LOG
 use CART_COE,    only: COE2CART,CART2COE
 use PHYS_CONST,  only: READ_PHYS,GMST_UNIFORM
 use PROPAGATE,   only: DPROP_REGULAR
 use SETTINGS,    only: READ_SETTINGS,input_path
-use IO,          only: id_cart,id_orb,id_stat,object_path
+use IO,          only: id_cart,id_orb,id_stat,id_log,object_path
 use SETTINGS,    only: gdeg,gord,outpath,tol,eqs
 use PHYS_CONST,  only: GE,d2r,r2d,secsPerDay,secsPerSidDay,twopi
+
 implicit none
 
 ! VARIABLES
@@ -47,14 +54,19 @@ real(dk)  ::  tspan,tstep
 integer               ::  npts,ipt
 real(dk),allocatable  ::  cart(:,:),orb(:,:)
 real(dk)              ::  R(1:3),V(1:3)
-! Measurement of CPU time
+real(dk)              ::  lifetime_yrs
+! Measurement of CPU time, diagnostics
 integer  ::  rate,tic,toc
 real(dk) ::  cputime
+integer  ::  exitcode
 ! Function calls and integration steps
 integer  ::  int_steps,tot_calls
 ! Command arguments
 integer  ::  command_arguments
-
+! Date & time
+character(len=8)   :: date_start, date_end
+character(len=10)  :: time_start, time_end
+character(len=5)   :: zone
 
 ! ==============================================================================
 
@@ -86,8 +98,17 @@ if (command_arguments == 0) then
   call SYSTEM('cp in/*.txt '//trim(outpath))
 end if
 
+! Log start of propagation
+call CREATE_LOG(id_log,outpath)
+call DATE_AND_TIME(date_start,time_start,zone)
+write(id_log,'(a)') 'Start logging on '//date_start//'T'//time_start//' UTC'&
+//zone//'.'
+write(id_log,'(a)') 'Location of settings file: '//input_path
+write(id_log,'(a)') 'Location of initial conditions file: '//object_path
+
 ! Load SPICE kernels
 call FURNSH('./data/kernels_to_load.furnsh')
+write(id_log,'(a)') 'SPICE kernels loaded through '//'./data/kernels_to_load.furnsh'
 
 ! ==============================================================================
 ! 03. TEST PROPAGATION
@@ -105,7 +126,9 @@ period = twopi*sqrt(COE0(1)**3/GE)/secsPerSidDay
 write(*,'(a,g15.8)') 'Tolerance: ',tol
 write(*,'(a,i2)') 'Equations: ',eqs
 
-call DPROP_REGULAR(R0,V0,tspan,tstep,cart,int_steps,tot_calls)
+call DPROP_REGULAR(R0,V0,tspan,tstep,cart,int_steps,tot_calls,exitcode)
+
+write(*,'(a,i3)') 'Propagation terminated with exit code = ',exitcode
 
 ! ==============================================================================
 ! 04. PROCESSING AND OUTPUT
@@ -120,7 +143,8 @@ orb = 0._dk
 ! End timing BEFORE converting back to orbital elements
 call SYSTEM_CLOCK(toc)
 cputime = real((toc-tic),dk)/real(rate,dk)
-write(*,'(a,g9.2,a)') 'CPU time: ',cputime,' s'
+write(*,'(a,g11.4,a)') 'CPU time: ',cputime,' s'
+write(id_log,'(a,g11.4,a)') 'CPU time: ',cputime,' s'
 
 ! Convert to orbital elements.
 ! orb(1): MJD,  orb(2): a,  orb(3): e, orb(4): i
@@ -135,6 +159,8 @@ do ipt=1,npts
 end do
 
 ! Dump output and copy input files to the output directory
+write(id_log,'(a)') 'Dumping output to disk.'
+
 call CREATE_OUT(id_cart)
 call CREATE_OUT(id_orb)
 call CREATE_OUT(id_stat)
@@ -143,6 +169,20 @@ call DUMP_TRAJ(id_orb,npts,orb)
 
 ! Write statistics line: calls, steps, CPU time, final time and orbital elements
 write(id_stat,100) tot_calls, int_steps, tol, cputime, orb(npts,:)
+
+lifetime_yrs = (cart(npts,1) - cart(1,1))/365.25
+
+write(id_log,'(a23,g11.4)')  'Integration tolerance: ',tol
+write(id_log,'(a23,i10)')    'Total function calls: ',tot_calls
+write(id_log,'(a23,i10)')    'Integration steps: ',int_steps
+write(id_log,'(a23,g11.4)')  'Integration steps: ',int_steps
+write(id_log,'(a23,g22.15)') 'Lifetime (years): ',lifetime_yrs
+
+call DATE_AND_TIME(date_end,time_end,zone)
+write(id_log,'(a)') 'End logging on '//date_end//'T'//time_end//' UTC'&
+//zone//'.'
+
+close(id_log)
 
 100 format((2(i10,1x),9(es22.15,1x)))
 end program THALASSA

@@ -55,6 +55,11 @@ The choice of equations depends on the type of orbit being integrated. For LEOs 
 As a rule of thumb, weakly-perturbed orbits can be integrated most efficiently by using orbital elements.
 Strongly-perturbed orbits should be integrated using coordinates, i.e. sets 1, 5, 6.
 
+## Physical data files
+The directory `data/` stores files containing information on the physical model used by THALASSA. `data/earth_potential/GRIM5-S1.txt` contains the harmonic coefficients of the GRIM5-S1 potential, in its native format.
+The file `data/physical_constants.txt` contains several astronomical and physical constants that are used during the integration.
+The constant values of the solar flux and of the planetary index and amplitude are specified here, along with the height at which the orbiter is considered to have re-entered the atmosphere of the Earth.
+
 ### Output
 The last section contains settings for the output of THALASSA.
 *  `verb`: 1 toggles the printing of the current propagation progress, 0 otherwise
@@ -68,6 +73,14 @@ THALASSA is launched by executing `thalassa.x` as specified above.
 ![Launching THALASSA](/uploads/f2f23ecd72642545bd1774f31ca36602/thalassa_instructions.gif)
 
 The code will write the files `cart.dat` and `orbels.dat` to the directory specified by the user. These contain the numerically integrated trajectory in cartesian coordinates and orbital elements respectively, in the EMEJ2000 reference frame.
+Additionally, the code writes a file `stats.dat` containing integration statistics along with the value of the orbital elements at the final epoch, and a `propagation.log` file which contains diagnostics for the current propagation.
+
+You should check the `stats.dat` file for any errors that might have taken place during the execution. In particular, THALASSA will write to the log file and to stdout the exit code of the propagation. This is an integer number with the following meaning:
+* `0`: nominal exit, reached end time specified in `input.txt`
+* `1`: nominal exit, collided with the Earth (atmospheric re-entry).
+* `-2`: floating point exception, detected NaNs in the state vector. This is usually caused by the orbit having become hyperbolic when using EDromo, or in some more exotic cases due to a solver tolerance that's too large.
+* `-3`: maximum number of steps reached. Try specifying a larger time step in the input file.
+* `-10`: unknown exception, try debugging to check what's the problem.
 
 ## References
 1.  <a name="Montenbruck2000"></a>Montenbruck, O. and Gill, E. "Satellite Orbits. Models, Methods, and Applications". Springer-Verlag Berlin Heidelberg, 2000.

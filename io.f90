@@ -5,7 +5,11 @@ module IO
 ! Author:
 !    Davide Amato
 !    Space Dynamics Group - Technical University of Madrid
-!    d.amato@upm.es
+!    The University of Arizona
+!    davideamato@email.arizona.edu
+! 
+! Revisions:
+!    180531: Add log file (CREATE_LOG), EXIT_MSG.
 !
 ! ==============================================================================
 
@@ -13,10 +17,11 @@ module IO
 use KINDS, only: dk
 use SETTINGS, only: outpath
 
+
 ! VARIABLES
 implicit none
 integer,parameter    ::  id_ic = 10, id_in = 11, id_cart = 12, id_orb = 13
-integer,parameter    ::  id_stat = 14
+integer,parameter    ::  id_stat = 14, id_log = 15
 character(len=512)   ::  object_path
 
 contains
@@ -127,13 +132,103 @@ end select
 end subroutine CREATE_OUT
 
 
+
+
+subroutine CREATE_LOG(fid,path)
+! Description:
+!    Opens the log file and writes a header.
+! 
+! Author:
+!    Davide Amato
+!    The University of Arizona
+!    davideamato@email.arizona.edu
+! 
+! Revisions:
+!    180531: Subroutine created.
+!     
+! ==============================================================================
+
+! Modules
+use SETTINGS, only: THALASSA_ver
+
+! Variables
+implicit none
+integer,intent(in)           ::  fid
+character(len=*),intent(in)  ::  path
+integer,parameter            ::  hlines = 2
+character(len=512)           ::  header(hlines)
+
+! ==============================================================================
+
+header(1) = '# THALASSA LOG FILE'
+header(2) = '# THALASSA version: '//trim(THALASSA_ver)
+
+open(unit=fid,file=adjustl(trim(path)//'propagation.log'),action='write',status='replace')
+
+write(fid,'(a)') header
+
+end subroutine CREATE_LOG
+
+
+
+
+subroutine EXIT_MSG(exitcode)
+! Description:
+!    Write an exit message on the log file according to the propagation
+!    exit code.
+!
+! Author:
+!    Davide Amato
+!    The University of Arizona
+!    davideamato@email.arizona.edu
+!    
+! Revisions:
+!    180531: Subroutine created.
+!
+! ==============================================================================
+
+! Variables
+integer,intent(in)  ::  exitcode
+character(len=128)  ::  exitmsg(1:2)
+
+! ==============================================================================
+
+write(exitmsg(1),'(a,i3)') 'Propagation terminated with exit code = ',exitcode
+select case(exitcode)
+  case default
+    write(exitmsg(2),'(a)') 'Unknown error.'
+  
+  case(0)
+    write(exitmsg(2),'(a)') 'Final time reached.'
+  
+  case(1)
+    write(exitmsg(2),'(a)') 'Earth collision detected.'
+  
+  case(-1)
+    write(exitmsg(2),'(a)') 'Solver error.'
+
+  case(-2)
+    write(exitmsg(2),'(a)') 'Floating point exception (NaNs detected).'
+  
+  case(-3)
+    write(exitmsg(2),'(a)') 'Max number of steps reached.'
+
+end select
+
+write(id_log,'(a)') exitmsg
+
+end subroutine EXIT_MSG
+
+
+
+
 subroutine DUMP_TRAJ(fid,npts,yx)
 ! Description:
 !    Dumps trajectory to the ASCII file specified by fid, and closes the file.
 !
 ! ==============================================================================
 
-! variables
+! Variables
 implicit none
 integer,intent(in)   ::  fid,npts
 real(dk),intent(in)  ::  yx(1:npts,1:7)

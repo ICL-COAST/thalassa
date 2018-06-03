@@ -102,7 +102,7 @@ select case (integ)
 
     y = yi; x = xi; xf = xi + dx
     rwork(5) = rwork(5)*(dx/abs(dx))
-
+    
     ! Switch for quad or double precision
     if (dk == 8) then
 
@@ -136,10 +136,21 @@ end subroutine INTSTEP
 subroutine SET_SOLV(integ,eqs,neq,tol,isett,iwork,rwork,rtols,atols)
 ! Description:
 !    Sets solver settings.
+! 
+! Author:
+!    Davide Amato
+!    The University of Arizona
+!    davideamato@email.arizona.edu
+!
+! Revisions:
+!    180531: Set LSODAR unit to log file.
+!    
 ! ==============================================================================
 
 ! MODULES
 use PHYS_CONST, only: twopi
+use IO,         only: id_log
+
 ! VARIABLES
 implicit none
 ! Arguments
@@ -150,6 +161,8 @@ real(dk),intent(inout)  ::  rwork(:)
 real(dk),allocatable,intent(out)  ::  rtols(:),atols(:)
 ! Locals
 real(dk)    ::  liw,lrw
+
+external XSETUN
 
 ! ==============================================================================
 
@@ -197,6 +210,9 @@ select case (integ)
               if (eqs == 3) rtols(8) = 1._dk
 
       end select
+      
+      ! Send error messages to log file
+      call XSETUN(id_log)
 
 end select
 

@@ -5,7 +5,11 @@ module SETTINGS
 ! Author:
 !    Davide Amato
 !    Space Dynamics Group - Technical University of Madrid
-!    d.amato@upm.es
+!    The University of Arizona
+!    davideamato@email.arizona.edu
+! 
+! Revisions:
+!    180531: Add THALASSA version.
 !
 ! ==============================================================================
 
@@ -33,6 +37,9 @@ integer  ::  eqs                ! Equations of motion type. 1 = Cowell,
 ! Output settings
 character(len=512)  ::  outpath
 integer  ::  verb
+
+! THALASSA version
+character(len=20),parameter   ::  THALASSA_ver = 'v0.9.2'
 
 contains
 
