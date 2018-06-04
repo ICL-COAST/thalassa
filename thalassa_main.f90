@@ -173,8 +173,7 @@ write(id_stat,100) tot_calls, int_steps, tol, cputime, orb(npts,:)
 lifetime_yrs = (cart(npts,1) - cart(1,1))/365.25
 
 write(id_log,'(a23,g11.4)')  'Integration tolerance: ',tol
-write(id_log,'(a23,i10)')    'Total function calls: ',tot_calls
-write(id_log,'(a23,i10)')    'Integration steps: ',int_steps
+write(id_log,'(a23,g11.4)')  'Total function calls: ',tot_calls
 write(id_log,'(a23,g11.4)')  'Integration steps: ',int_steps
 write(id_log,'(a23,g22.15)') 'Lifetime (years): ',lifetime_yrs
 
