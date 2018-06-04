@@ -114,11 +114,15 @@ def main():
   
   parser.add_argument('outDir',nargs='?',\
   help='path to the output directory for the batch propagations')
+  parser.add_argument('--nproc',\
+  help='number of parallel processes to be launched. If absent, it defaults with'\
+  ' the number of available CPUs.',type=int)
   if len(sys.argv)==1:
     parser.print_help(sys.stderr)
     sys.exit(1)
   args = parser.parse_args()
   
+
   gridDefFile = os.path.join(args.outDir,'griddef.json')
 
   print('THALASSA GRID PROPAGATION SCRIPT')
@@ -153,15 +157,18 @@ Do you want to continue? (Y/N)
   if proceed.lower() != 'y':
     sys.exit(1)
   
+  # Launch propagations in parallel
+  if args.nproc:
+    nproc = args.nproc
+  else:
+    nproc = psutil.cpu_count(logical=False)
+  
   log = open(os.path.join(args.outDir,'grid.log'),'w')
   startTime = datetime.datetime.now()
   log.writelines('THALASSA GRID PROPAGATION - LOG FILE\n')
   log.writelines('Start of logging on {0}.\n'.format(startTime.isoformat()))
   log.writelines('OS: {0}.\n'.format(platform.platform()))
     
-  # Launch propagations in parallel
-  
-  nproc = psutil.cpu_count(logical=False)
   log.writelines('Physical cores: {0:d}.\n'.format(nproc))
   log.writelines('Number of propagations: {0:d}.\n'.format(nTot))
   log.writelines('Duration: {0:d} years.\n'.format(duration))
