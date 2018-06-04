@@ -255,9 +255,9 @@ Do you want to continue? (Y/N)\n""".format(nTot)
 
 
   # Create grid file and copy griddef.json in the output directory
-  if os.path.exists(os.path.dirname(args.outDir)):
+  if os.path.exists(os.path.abspath(args.outDir)):
     shutil.rmtree(args.outDir)
-    os.makedirs(os.path.dirname(args.outDir))
+  os.makedirs(os.path.abspath(args.outDir))
   
   now = datetime.datetime.now()
   gridHeader = '# THALASSA GRID FILE\n# Generated on ' + \
