@@ -138,6 +138,6 @@ stische.o: ./regular/stische.f90 settings.o auxiliaries.o phys_const.o \
 perturbations.o kinds.o
 	$(FC) $(FCFLAGS) ./regular/stische.f90
 
-.PHONY: cleanks
+.PHONY: clean
 clean:
 	-rm *.x *.o *.mod
