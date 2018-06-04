@@ -153,10 +153,10 @@ use SETTINGS, only: THALASSA_ver
 
 ! Variables
 implicit none
-integer,intent(in)           ::  fid
-character(len=*),intent(in)  ::  path
-integer,parameter            ::  hlines = 2
-character(len=512)           ::  header(hlines)
+integer,intent(in)          ::  fid
+character(len=*),intent(in) ::  path
+integer,parameter           ::  hlines = 2
+character(len=30)           ::  header(hlines)
 
 ! ==============================================================================
 

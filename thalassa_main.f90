@@ -103,8 +103,8 @@ call CREATE_LOG(id_log,outpath)
 call DATE_AND_TIME(date_start,time_start,zone)
 write(id_log,'(a)') 'Start logging on '//date_start//'T'//time_start//' UTC'&
 //zone//'.'
-write(id_log,'(a)') 'Location of settings file: '//input_path
-write(id_log,'(a)') 'Location of initial conditions file: '//object_path
+write(id_log,'(a)') 'Location of settings file: '//trim(input_path)
+write(id_log,'(a)') 'Location of initial conditions file: '//trim(object_path)
 
 ! Load SPICE kernels
 call FURNSH('./data/kernels_to_load.furnsh')
