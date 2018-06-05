@@ -12,6 +12,7 @@ Author:
 
 Revisions:
   180529: Script creation.
+  180605: Various bugs fixed. Added output of current SID.
 
 """
 
