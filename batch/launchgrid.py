@@ -89,6 +89,7 @@ def runThalassa(outDir,SID):
 
   Revisions:
   180529: Script creation.
+  180605: Add output of SID.
 
   """
   
@@ -97,7 +98,7 @@ def runThalassa(outDir,SID):
   subDir = 'C{:03d}'.format(iChunk)
   subSubDir = 'S{:010d}'.format(int(SID))
   
-
+  print('Launching simulation SID = {0}'.format(SID))
   # Launch THALASSA
   subprocess.call([thalassaPath,
   os.path.abspath(os.path.join(outDir,subDir,subSubDir,'input.txt')),
