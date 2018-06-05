@@ -172,8 +172,8 @@ Do you want to continue? (Y/N)
     
   log.writelines('Physical cores: {0:d}.\n'.format(nproc))
   log.writelines('Number of propagations: {0:d}.\n'.format(nTot))
-  log.writelines('Duration: {0:d} years.\n'.format(duration))
-  log.writelines('Step size: {0:d} days.\n'.format(dt))
+  log.writelines('Duration: {0:g} years.\n'.format(duration))
+  log.writelines('Step size: {0:g} days.\n'.format(dt))
 
   runArgs = [(args.outDir,SID) for SID in range(1,nTot + 1)]
   # print(runArgs)
