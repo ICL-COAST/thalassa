@@ -119,6 +119,9 @@ def main():
   parser.add_argument('--nproc',\
   help='number of parallel processes to be launched. If absent, it defaults with'\
   ' the number of available CPUs.',type=int)
+  parser.add_argument('--force',\
+  help='don''t ask for user confirmation before starting the simulation.',
+  action='store_true')
   if len(sys.argv)==1:
     parser.print_help(sys.stderr)
     sys.exit(1)
@@ -155,9 +158,10 @@ This will take approximately {3:s} on disk.
 Do you want to continue? (Y/N)
 """.format(nTot,duration,dt,sizeTot)
 
-  proceed = input(proceedMsg)
-  if proceed.lower() != 'y':
-    sys.exit(1)
+  if not args.force:
+    proceed = input(proceedMsg)
+    if proceed.lower() != 'y':
+      sys.exit(1)
   
   # Launch propagations in parallel
   if args.nproc:
