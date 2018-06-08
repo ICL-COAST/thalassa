@@ -5,7 +5,11 @@ module COWELL
 ! Author:
 !    Davide Amato
 !    Space Dynamics Group - Technical University of Madrid
+!    The University of Arizona
 !    d.amato@upm.es
+!
+! Revisions:
+!     180608: change interface to PACC_EJ2K to add iF107.
 !
 ! ==============================================================================
 
@@ -21,11 +25,19 @@ subroutine COWELL_RHS(neq,t,y,ydot)
 !    Computes the value of the right-hand side of the 1st-order equations of
 !    motion of the Cowell formulation.
 !
+! Author:
+!    Davide Amato
+!    The University of Arizona
+!    davideamato@email.arizona.edu
+!
+! Revisions:
+!     180608: change interface to PACC_EJ2K to add iF107.
+!
 ! ==============================================================================
 
 ! MODULES
 use AUXILIARIES,   only: DU,TU
-use SETTINGS,      only: insgrav,isun,imoon,idrag,iSRP
+use SETTINGS,      only: insgrav,isun,imoon,idrag,iSRP,iF107
 use PERTURBATIONS, only: PACC_EJ2K
 
 ! VARIABLES
@@ -50,7 +62,7 @@ rMag = sqrt(dot_product(y(1:3),y(1:3)))
 ! ==============================================================================
 
 p_EJ2K = 0._dk
-p_EJ2K = PACC_EJ2K(insgrav,isun,imoon,idrag,iSRP,y(1:3),y(4:6),rMag,t)
+p_EJ2K = PACC_EJ2K(insgrav,isun,imoon,idrag,iF107,iSRP,y(1:3),y(4:6),rMag,t)
 
 ! ==============================================================================
 ! 02. EVALUATE RIGHT-HAND SIDE

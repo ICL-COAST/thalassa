@@ -6,11 +6,15 @@ module KUST_STI
 ! References:
 ! [1] Stiefel, E. L. and Scheifele, G. "Linear and Regular Celestial Mechanics",
 !     Springer-Verlag, 1971.
-! 
+!
 ! Author:
 !    Davide Amato
 !    Space Dynamics Group - Technical University of Madrid
+!    The University of Arizona
 !    d.amato@upm.es
+!
+! Revisions:
+!     180608: change interface to PACC_EJ2K to add iF107.
 !
 ! ==============================================================================
 
@@ -36,11 +40,19 @@ subroutine KS_RHS(neq,s,u,udot)
 !    where F = P - dV/dx is the total perturbation. This is equivalent to
 !    Eq. (9, 53) of Ref. [1].
 !
+! Author:
+!    Davide Amato
+!    The University of Arizona
+!    davideamato@email.arizona.edu
+!
+! Revisions:
+!     180608: change interface to PACC_EJ2K to add iF107.
+!
 ! ==============================================================================
 
 ! MODULES
 use PHYS_CONST,    only: GE_nd,RE_nd,ERR_constant_nd
-use SETTINGS,      only: eqs,insgrav,isun,imoon,idrag,iSRP
+use SETTINGS,      only: eqs,insgrav,isun,imoon,idrag,iF107,iSRP
 use PERTURBATIONS, only: PPOTENTIAL,PACC_EJ2K
 
 ! VARIABLES
@@ -92,7 +104,7 @@ t = KS_TE2TIME(u,flag_time)
 
 Vpot = 0._dk; mdVdr = 0._dk; dVdt = 0._dk
 Vpot = PPOTENTIAL(insgrav,GE_nd,RE_nd,x(1:3),rmag,t)
-mdVdr(1:3) = PACC_EJ2K(insgrav,0,0,0,0,x(1:3),xdot(1:3),rmag,t,gradV_sph)
+mdVdr(1:3) = PACC_EJ2K(insgrav,0,0,0,0,0,x(1:3),xdot(1:3),rmag,t,gradV_sph)
 dVdt = gradV_sph(3) * ERR_constant_nd
 
 ! ==============================================================================
@@ -100,7 +112,7 @@ dVdt = gradV_sph(3) * ERR_constant_nd
 ! ==============================================================================
 
 P = 0._dk
-P(1:3) = PACC_EJ2K(0,isun,imoon,idrag,iSRP,x(1:3),xdot(1:3),rmag,t)
+P(1:3) = PACC_EJ2K(0,isun,imoon,idrag,iF107,iSRP,x(1:3),xdot(1:3),rmag,t)
 F = mdVdr + P; 
 
 ! ==============================================================================

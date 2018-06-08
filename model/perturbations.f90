@@ -64,18 +64,27 @@ end function
 
 
 
-function PACC_EJ2K(insgrav,isun,imoon,idrag,iSRP,r,v,rm,t,gradU_sph_out)
+function PACC_EJ2K(insgrav,isun,imoon,idrag,iF107,iSRP,r,v,rm,t,gradU_sph_out)
 ! Description:
 !    Computes the perturbing acceleration in the EMEJ2000 frame due to a non-sph
 !    gravity field, Sun and Moon, drag and solar radiation pressure.
 !    Units are DIMENSIONLESS.
 !
+! Author:
+!    Davide Amato
+!    The University of Arizona
+!    davideamato@email.arizona.edu
+!
+! Revisions:
+!     180608: add variable solar flux.
+! 
 ! ==============================================================================
 
 ! MODULES
 use PHYS_CONST,  only: GE,GE_nd,GS,GM,RE_nd,ERR_constant,secsPerDay,twopi,RE,&
-&CD,A2M_Drag,pSRP_1au,au,CR,A2M_SRP,MJD_J1950,GMST_UNIFORM,F107,Kp,Ap,JD2CAL,&
+&CD,A2M_Drag,pSRP_1au,au,CR,A2M_SRP,MJD_J1950,GMST_UNIFORM,Kp,Ap,JD2CAL,&
 &r2d,cutoff_height
+use PHYS_CONST,  only: F107DAILY
 use AUXILIARIES, only: DU,TU,MJD0
 
 ! VARIABLES
@@ -86,6 +95,7 @@ real(dk),intent(in)  ::  v(1:3)              ! Velocity vector
 real(dk),intent(in)  ::  t                   ! Time (dimensionless)
 integer,intent(in)   ::  insgrav,isun        ! Perturbation flags
 integer,intent(in)   ::  imoon,idrag,iSRP    ! More perturbation flags
+integer,intent(in)   ::  iF107               ! F107 flag
 ! OPTIONAL OUTPUT: gradient of potential in sph. coordinates, used by
 ! EDromo right-hand-side.
 real(dk),optional,intent(out)  ::  gradU_sph_out(1:3)
@@ -105,11 +115,12 @@ real(dk)  ::  density,pressure,temperature
 ! Drag and associated q.ties (J77, NRLMSISE-00)
 real(dk)  ::  RA,DEC
 real(dk)  ::  RA_sun,DEC_sun,r_sun_m
-real(dk)  ::  JD_UT1,MJD_UT1,RJUD,DAFR,GMST,GMST_deg
+real(dk)  ::  JD_UT1,MJD_TT,RJUD,DAFR,GMST,GMST_deg
 real(dk)  ::  tempK(1:2),nDens(1:6),wMol
 real(dk)  ::  SEC
 real(dk)  ::  GLAT_deg,GLONG_deg,RA_deg,STL_hrs
 real(dk)  ::  dens_MSIS00(1:6),temp_MSIS00(1:2)
+real(dk)  ::  F107
 integer   ::  IYD
 ! Time and date
 integer   ::  year,month
@@ -174,8 +185,10 @@ PACC_EJ2K = p_sun + p_moon + PACC_EJ2K
 ! NOTE:
 ! Currently, the following approximations are made in the computation of the
 ! atmospheric drag:
-! - Solar flux and geomagnetic activity are both constant (their values are
-!   specified in ./in/physical_constants.txt)
+! - TT = UT1
+! - Average F10.7 is equal to daily
+! - Geomagnetic activity is constant (its value is specified in 
+!   ./data/physical_constants.txt)
 ! - Geodetic height is assumed = geometric height and geodetic
 !   latitude/longitude = geometric, i.e. the ellipticity of the Earth is
 !   neglected.
@@ -212,10 +225,11 @@ if (idrag /= 0 .and. h_D <= cutoff_height) then
         RA_sun  = atan2(r_sun(2),r_sun(1))
         RA_sun  = mod(RA_sun +twopi,twopi)
         DEC_sun = asin(r_sun(3)/r_sun_m)
-        MJD_UT1 = MJD0 + t/TU/secsPerDay
-        RJUD    = MJD_UT1 - MJD_J1950
+        MJD_TT = MJD0 + t/TU/secsPerDay
+        RJUD    = MJD_TT - MJD_J1950
         DAFR    = RJUD - int(RJUD)
-        GMST    = GMST_UNIFORM(MJD_UT1)
+        GMST    = GMST_UNIFORM(MJD_TT)
+        F107    = F107DAILY(iF107,MJD_TT)
         call ISDAMO([RA,DEC,h_D*1.E3_dk],[RA_sun,DEC_sun],&
         & [F107,F107,Kp],RJUD,DAFR,GMST,tempK,nDens,wMol,density)
       
@@ -225,18 +239,19 @@ if (idrag /= 0 .and. h_D <= cutoff_height) then
       ! NRLMSISE-00 atmospheric model
       density = 0._dk
       ! Get date and year
-      MJD_UT1 = MJD0 + t/TU/secsPerDay
-      JD_UT1  = MJD_UT1 + 2400000.5_dk
+      MJD_TT = MJD0 + t/TU/secsPerDay
+      JD_UT1  = MJD_TT + 2400000.5_dk
       call JD2CAL(JD_UT1,year,month,dayOfMonth,dayOfYear)
       
       ! Note: year number is ignored in NRLMSISE-00.
       IYD       = int(dayOfYear)
       SEC       = (dayOfYear - IYD)*secsPerDay
-      GMST_deg  = GMST_UNIFORM(MJD_UT1)*r2d
+      GMST_deg  = GMST_UNIFORM(MJD_TT)*r2d
       GLAT_deg  = asin(r(3)/rm)*r2d
       RA_deg    = mod(atan2(r(2),r(1)) + twopi, twopi)*r2d
       GLONG_deg = mod(RA_deg - GMST_deg + 360._dk,360._dk)
-      STL_hrs  = SEC/3600._dk + GLONG_deg/15._dk
+      STL_hrs   = SEC/3600._dk + GLONG_deg/15._dk
+      F107      = F107DAILY(iF107,MJD_TT)
       ! Compute density
       call METERS(.true.)
       if (h_D <= 500._dk) then
