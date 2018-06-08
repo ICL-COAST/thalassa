@@ -3,7 +3,7 @@ module EDROMO
 !    Contains subroutines necessary for the EDromo formulation.
 !
 ! References:
-! [1] Ba� G., Bombardelli, C., Peláez, J., and Lorenzini, E., "Nonsingular
+! [1] Baù, G., Bombardelli, C., Peláez, J., and Lorenzini, E., "Nonsingular
 !     orbital elements for special perturbations in the two-body problem".
 !     MNRAS 454(3), pp. 2890-2908. 2015.
 !
@@ -31,10 +31,19 @@ subroutine EDROMO_RHS(neq,phi,z,zdot)
 !    Computes the value of the right-hand side of the equations of motion of the
 !    EDromo formulation.
 !
+! Author:
+!    Davide Amato
+!    Space Dynamics Group - Technical University of Madrid
+!    The University of Arizona
+!    d.amato@upm.es
+!
+! Revisions:
+!     180608: change interface to PACC_EJ2K to add iF107.
+!
 ! ==============================================================================
 
 ! MODULES
-use SETTINGS,      only: eqs,insgrav,isun,imoon,idrag,iSRP
+use SETTINGS,      only: eqs,insgrav,isun,imoon,idrag,iSRP,iF107
 use PHYS_CONST,    only: GE_nd,RE_nd,ERR_constant_nd
 use PERTURBATIONS, only: PPOTENTIAL,PACC_EJ2K
 
@@ -144,7 +153,7 @@ Upot = 0._dk; dUdt = 0._dk; dUdr = 0._dk
 ! Evaluate potential
 Upot = PPOTENTIAL(insgrav,GE_nd,RE_nd,rV,rmag,t)
 ! Evaluate time and spatial derivatives (note that velocity is not needed here)
-dUdr = PACC_EJ2K(insgrav,0,0,0,0,rV,vV,rmag,t,gradU_sph)
+dUdr = PACC_EJ2K(insgrav,0,0,0,0,0,rV,vV,rmag,t,gradU_sph)
 dUdr = INERT2ORB_EDROMO(dUdr,z,cnu,snu)
 dUdt = gradU_sph(3)*ERR_constant_nd
 
@@ -167,7 +176,7 @@ cosg = v_rad/vmag; sing = v_tan/vmag
 
 ! Initializations
 p = 0._dk; f = 0._dk
-p = PACC_EJ2K(0,isun,imoon,idrag,iSRP,rV,vV,rmag,t)
+p = PACC_EJ2K(0,isun,imoon,idrag,iF107,iSRP,rV,vV,rmag,t)
 p = INERT2ORB_EDROMO(p,z,cnu,snu)
 
 ! ==============================================================================

@@ -5,7 +5,11 @@ module PHYS_CONST
 ! Author:
 !    Davide Amato
 !    Space Dynamics Group - Technical University of Madrid
-!    d.amato@upm.es
+!    The University of Arizona
+!    davideamato@email.arizona.edu
+!
+! Revisions:
+!     180608: rename F107 -> F107Const. Add F107DAILY.
 !
 ! ==============================================================================
 
@@ -67,7 +71,7 @@ real(dk)  ::  SCMass
 real(dk)  ::  CD,ADrag,A2M_Drag
 
 ! Drag: observed solar flux @ 10.7cm (SFU), geomagnetic planetary index Kp, planetary amplitude Ap
-real(dk)  ::  F107,Kp,Ap
+real(dk)  ::  F107Const,Kp,Ap
 
 ! Cutoff height for drag [km]
 real(dk)  ::  cutoff_height
@@ -86,6 +90,14 @@ contains
 subroutine READ_PHYS()
 ! Description:
 !    Read values for the physical parameters from text file.
+!
+! Author:
+!    Davide Amato
+!    The University of Arizona
+!    davideamato@email.arizona.edu
+!
+! Revisions:
+!     180608: rename F107 -> F107Const.
 !
 ! ==============================================================================
 
@@ -112,7 +124,7 @@ read(id_phys,'(e20.13,/)') au
 read(id_phys,'(e20.13)') GS
 read(id_phys,'(e20.13,/)') GM
 read(id_phys,'(e20.13,/)') pSRP_1au
-read(id_phys,'(e20.13,/)') F107
+read(id_phys,'(e20.13,/)') F107Const
 read(id_phys,'(e20.13,/)') Kp
 read(id_phys,'(e20.13,/)') Ap
 read(id_phys,'(e20.13,/)') reentry_height
@@ -460,6 +472,55 @@ end function NORMFACT
 
 
 
-  
+
+function F107DAILY(iF107,MJD)
+! Description:
+!    If iF107 = 1, computes the time-varying daily F10.7 flux using Eq. (8-32) of
+!    [1]. If iF107 == 0, returns the constant value assigned
+!    in ./data/physical_constants.txt.
+!    Units are SFU.
+! 
+! Author:
+!    Davide Amato
+!    The University of Arizona
+!    davideamato@email.arizona.edu
+!
+! Revisions:
+!     180608: procedure created.
+! 
+! References:
+!     [1] Vallado D. A. and McClain, W. D., 'Fundamentals of Astrodynamics',
+!         Microcosm Press, 2013.
+!
+! ==============================================================================
+
+implicit none
+! Arguments
+integer,intent(in)   ::  iF107    ! Variable solar flux flag
+real(dk),intent(in)  ::  MJD      ! Constant value of F10.7 and current MJD
+! Returns
+real(dk)  ::  F107DAILY
+
+! Variables
+real(dk),parameter  ::  MJD0 = 44605.0  ! January 1, 1981, 00:00.000
+real(dk)            ::  t
+
+! ==============================================================================
+
+select case (iF107)
+  case (0)
+    F107DAILY = F107Const
+
+  case (1)
+    t = int(MJD - MJD0)
+    F107DAILY = 145._dk + 75._dk * &
+    &cos(0.001696_dk * t + 0.35_dk * sin(0.00001695_dk * t))
+
+end select
+
+end function F107DAILY
+
+
+
 
 end module PHYS_CONST

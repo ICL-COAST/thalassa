@@ -8,7 +8,11 @@ module STI_SCHE
 ! Author:
 !    Davide Amato
 !    Space Dynamics Group - Technical University of Madrid
+!    The University of Arizona
 !    d.amato@upm.es
+!
+! Revisions:
+!     180608: change interface to PACC_EJ2K to add iF107.
 !
 ! ==============================================================================
 
@@ -29,10 +33,18 @@ subroutine STISCHE_RHS(neq,phi,z,zdot)
 !    Computes the value of the right-hand side of the equations of motion of the
 !    EDromo formulation.
 !
+! Author:
+!    Davide Amato
+!    The University of Arizona
+!    davideamato@email.arizona.edu
+!
+! Revisions:
+!     180608: change interface to PACC_EJ2K to add iF107.
+!
 ! ==============================================================================
 
 ! ! MODULES
-use SETTINGS,      only: eqs,insgrav,isun,imoon,idrag,iSRP
+use SETTINGS,      only: eqs,insgrav,isun,imoon,idrag,iF107,iSRP
 use PHYS_CONST,    only: GE_nd,RE_nd,ERR_constant_nd
 use PERTURBATIONS, only: PPOTENTIAL,PACC_EJ2K
 
@@ -123,7 +135,7 @@ Vpot = 0._dk; dVdt = 0._dk; mdVdr = 0._dk
 ! Evaluate potential
 Vpot = PPOTENTIAL(insgrav,GE_nd,RE_nd,rV,rmag,t)
 ! Evaluate time and spatial derivatives (note that velocity is not needed here)
-mdVdr = PACC_EJ2K(insgrav,0,0,0,0,rV,vV,rmag,t,gradV_sph)
+mdVdr = PACC_EJ2K(insgrav,0,0,0,0,0,rV,vV,rmag,t,gradV_sph)
 dVdt = gradV_sph(3)*ERR_constant_nd
 
 ! ==============================================================================
@@ -132,7 +144,7 @@ dVdt = gradV_sph(3)*ERR_constant_nd
 
 ! Initializations
 p = 0._dk
-p = PACC_EJ2K(0,isun,imoon,idrag,iSRP,rV,vV,rmag,t)
+p = PACC_EJ2K(0,isun,imoon,idrag,iF107,iSRP,rV,vV,rmag,t)
 
 ! ==============================================================================
 ! 05. COMPUTE AUXILIARY QUANTITIES (2)
