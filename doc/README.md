@@ -28,6 +28,7 @@ The first section contains integer flags that allow the user to tune the paramet
 *  `isun`: 1 toggles gravitational perturbation from the Sun, 0 otherwise
 *  `imoon`: 1 toggles gravitational perturbation from the Moon, 0 otherwise
 *  `idrag`: 1 toggles atmospheric drag perturbation, 0 otherwise
+*  `iF107`: 1 toggles variable F10.7 flux, 0 uses the constant value specified in `data/physical_constants.txt`
 *  `iSRP`: 1 toggles solar radiation pressure perturbation, 0 otherwise
 *  `iephem`: select the source of ephemerides of the Sun and the Moon. 1 uses SPICE-read ephemerides (DE431 by default), 2 uses a set of simplified analytical ephemerides by [Meeus (1998)](#Meeus1998).
 *  `gdeg`: selects the degree of the Earth's gravitational field (up to 95, although a maximum degree of 15 is recommended).

@@ -6,6 +6,7 @@
 # isun:      0 = no Sun perturbation, 1 = otherwise.
 # imoon:     0 = no Moon perturbation, 1 = otherwise.
 # idrag:     0 = no atmospheric drag, 1 = Vallado model, 2 = US76 (PATRIUS), 3 = J77 (Carrara - INPE), 4 = NRLMSISE-00 (Picone - NRL)
+# iF107:     0 = constant F10.7 flux, 1 = variable F10.7 flux
 # iSRP:      0 = no SRP perturbation, 1 = otherwise.
 # iephem:    Ephemerides source. 1 = DE431 ephemerides. 2 = Simpl. Meeus & Brown
 # gdeg:      Maximum degree of the gravitational potential.
@@ -14,6 +15,7 @@ insgrav:   1
 isun:      1
 imoon:     1
 idrag:     2
+iF107:     1
 iSRP:      0
 iephem:    2
 gdeg:      5
