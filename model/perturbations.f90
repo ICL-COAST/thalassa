@@ -77,15 +77,17 @@ function PACC_EJ2K(insgrav,isun,imoon,idrag,iF107,iSRP,r,v,rm,t,gradU_sph_out)
 !
 ! Revisions:
 !     180608: add variable solar flux.
+!     180610: add geodetic longitude and altitude.
 ! 
 ! ==============================================================================
 
 ! MODULES
 use PHYS_CONST,  only: GE,GE_nd,GS,GM,RE_nd,ERR_constant,secsPerDay,twopi,RE,&
 &RS,CD,A2M_Drag,pSRP_1au,au,CR,A2M_SRP,MJD_J1950,GMST_UNIFORM,Kp,Ap,JD2CAL,&
-&r2d,cutoff_height
+&r2d,cutoff_height,flatt
 use PHYS_CONST,  only: F107DAILY
 use AUXILIARIES, only: DU,TU,MJD0
+
 
 ! VARIABLES
 implicit none
@@ -121,6 +123,8 @@ real(dk)  ::  SEC
 real(dk)  ::  GLAT_deg,GLONG_deg,RA_deg,STL_hrs
 real(dk)  ::  dens_MSIS00(1:6),temp_MSIS00(1:2)
 real(dk)  ::  F107
+real(dk)  ::  hGeod_D
+integer   ::  GDStat
 integer   ::  IYD
 ! Time and date
 integer   ::  year,month
@@ -132,6 +136,10 @@ real(dk)  ::  r_D(1:3),v_D(1:3),h_D
 real(dk)  ::  wE_D
 ! Solar radiation pressure
 real(dk)  ::  p_SRP(1:3)
+
+
+! SOFA routine to compute geodetic coordinates
+external iau_GC2GDE
 
 
 ! ==============================================================================
@@ -247,20 +255,26 @@ if (idrag /= 0 .and. h_D <= cutoff_height) then
       IYD       = int(dayOfYear)
       SEC       = (dayOfYear - IYD)*secsPerDay
       GMST_deg  = GMST_UNIFORM(MJD_TT)*r2d
-      GLAT_deg  = asin(r(3)/rm)*r2d
       RA_deg    = mod(atan2(r(2),r(1)) + twopi, twopi)*r2d
       GLONG_deg = mod(RA_deg - GMST_deg + 360._dk,360._dk)
       STL_hrs   = SEC/3600._dk + GLONG_deg/15._dk
+      
       F107      = F107DAILY(iF107,MJD_TT)
+      
+      ! Geodetic altitude and latitude
+      call iau_GC2GDE(RE,flatt,r_D,RA_deg,GLAT_deg,hGeod_D,GDStat)
+      RA_deg   = RA_deg * r2d
+      GLAT_deg = GLAT_deg * r2d 
+
       ! Compute density
       call METERS(.true.)
       if (h_D <= 500._dk) then
-        call GTD7(IYD,SEC,h_D,GLAT_deg,GLONG_deg,STL_hrs,F107,F107,Ap,48,&
+        call GTD7(IYD,SEC,hGeod_D,GLAT_deg,GLONG_deg,STL_hrs,F107,F107,Ap,48,&
         &dens_MSIS00,temp_MSIS00)
       
       else
         ! Do not neglect contribution from anomalous oxygen
-        call GTD7D(IYD,SEC,h_D,GLAT_deg,GLONG_deg,STL_hrs,F107,F107,Ap,48,&
+        call GTD7D(IYD,SEC,hGeod_D,GLAT_deg,GLONG_deg,STL_hrs,F107,F107,Ap,48,&
         &dens_MSIS00,temp_MSIS00)
       
       end if

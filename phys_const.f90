@@ -11,6 +11,7 @@ module PHYS_CONST
 ! Revisions:
 !     180608: rename F107 -> F107Const. Add F107DAILY.
 !     180609: add radius of the Sun.
+!     180610: add flattening.
 !
 ! ==============================================================================
 
@@ -34,9 +35,9 @@ real(dk),parameter  ::  mzero = epsilon(0._dk)
 real(dk)  ::  au
 ! Sun, Earth, Moon grav. parameters (km^3/s^2)
 real(dk)  ::  GS,GE,GM
-! Earth radius (km), inverse flattening and angular velocity (rad/s)
+! Earth equatorial and polar radii (km), flattening, eccentricity, and angular velocity (rad/s)
 real(dk)  ::  RE
-real(dk)  ::  invFlatt
+real(dk)  ::  flatt
 real(dk)  ::  omegaE
 ! Sun radius (km)
 real(dk)  ::  RS
@@ -101,6 +102,7 @@ subroutine READ_PHYS()
 !
 ! Revisions:
 !     180608: rename F107 -> F107Const.
+!     180610: compute flattening.
 !
 ! ==============================================================================
 
@@ -110,6 +112,7 @@ implicit none
 character(len=4096)  ::  physFile,earthFile,dummy
 integer,parameter    ::  hlines = 7
 integer              ::  i,j,l,m
+real(dk)             ::  invFlatt
 
 ! Set file path
 physFile  = './data/physical_constants.txt'
@@ -148,6 +151,8 @@ read(id_earth,'(a36,e22.15)') dummy, GE
 read(id_earth,'(a36,e22.15)') dummy, RE
 read(id_earth,'(a36,e22.15)') dummy, invFlatt
 read(id_earth,'(a36,e22.15)') dummy, omegaE
+
+flatt    = 1._dk/invFlatt
 
 ! Read and de-normalize spherical harmonics coefficients
 ! Initialize
@@ -270,10 +275,10 @@ function GRHOAN(JD)
 implicit none
 ! Arguments
 real(dk),intent(in)  ::  JD        ! Julian Date
-real(dk)			 ::  GRHOAN
+real(dk)             ::  GRHOAN
 ! Locals
 real(dk),parameter   ::  JD1900 = 2415020.0_dk  ! JD of Jan 0.5, 1900.
-real(dk)			 ::  T1900
+real(dk)             ::  T1900
 real(dk)             ::  JDfrac
 real(dk)             ::  UT                     ! UT (hours)
 real(dk)             ::  GSTsW					! GST (seconds)
