@@ -7,6 +7,9 @@ module SRP
 !    Space Dynamics Group - Technical University of Madrid
 !    The University of Arizona
 !    davideamato@email.arizona.edu
+!
+! Revisions:
+!     180609: add calculation of eclipse conditions.
 ! 
 ! ==============================================================================
 
@@ -22,21 +25,32 @@ contains
 
 
 
-function SRP_ACC(pSRP_1au,au,CR,A2M_SRP,r,r_sun)
+function SRP_ACC(iSRP,sunRadius,occRadius,pSRP_1au,au,CR,A2M_SRP,r,r_sun)
 ! Description:
 !    Computes the perturbing acceleration due to solar radiation pressure.
 !    Input units have to be consistent.
+!
+! Author:
+!    Davide Amato
+!    The University of Arizona
+!    davideamato@email.arizona.edu
+!
+! Revisions:
+!     180609: add call to ECLIPSE, change arguments.
 ! 
 ! ==============================================================================
 
 ! VARIABLES
 implicit none
 ! Arguments IN
+integer,intent(in)   ::  iSRP
+real(dk),intent(in)  ::  occRadius,sunRadius
 real(dk),intent(in)  ::  pSRP_1au,au,CR,A2M_SRP,r(1:3),r_sun(1:3)
 ! Function definition
 real(dk)  ::  SRP_ACC(1:3)
 
 ! Locals
+real(dk)  :: nu    ! Shadowing factor
 real(dk)  :: pSRP
 real(dk)  :: dSun(1:3),dSunNorm
 
@@ -50,7 +64,12 @@ dSunNorm = sqrt(dot_product(dSun,dSun))
 pSRP = pSRP_1au*(au/dSunNorm)**2
 
 ! Perturbing acceleration
-SRP_ACC = pSRP*CR*A2M_SRP*(dSun/dSunNorm)
+nu = 1._dk
+if (iSRP == 2) then
+  nu = ECLIPSE(sunRadius,occRadius,r,r_sun)
+
+end if
+SRP_ACC = nu * pSRP * CR * A2M_SRP * (dSun/dSunNorm)
 
 end function SRP_ACC
 

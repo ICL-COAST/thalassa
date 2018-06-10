@@ -82,7 +82,7 @@ function PACC_EJ2K(insgrav,isun,imoon,idrag,iF107,iSRP,r,v,rm,t,gradU_sph_out)
 
 ! MODULES
 use PHYS_CONST,  only: GE,GE_nd,GS,GM,RE_nd,ERR_constant,secsPerDay,twopi,RE,&
-&CD,A2M_Drag,pSRP_1au,au,CR,A2M_SRP,MJD_J1950,GMST_UNIFORM,Kp,Ap,JD2CAL,&
+&RS,CD,A2M_Drag,pSRP_1au,au,CR,A2M_SRP,MJD_J1950,GMST_UNIFORM,Kp,Ap,JD2CAL,&
 &r2d,cutoff_height
 use PHYS_CONST,  only: F107DAILY
 use AUXILIARIES, only: DU,TU,MJD0
@@ -290,14 +290,14 @@ PACC_EJ2K = p_drag + PACC_EJ2K
 ! ==============================================================================
 
 p_SRP = 0._dk
-if (iSRP == 1) then
-  ! If the Sun gravitational perturbation is disabled, get its ephemerides
+if (iSRP /= 0) then
+  ! If the Sun gravitational perturbation is disabled, get its ephemerides anyway
   if (isun == 0) then
     call EPHEM(1,DU,TU,t,r_sun,v_sun)
 
   end if
   ! Computation is in dimensional units (m/s^2).
-  p_SRP = SRP_ACC(pSRP_1au,au,CR,A2M_SRP,r*DU,r_sun*DU)
+  p_SRP = SRP_ACC(iSRP,RS,RE,pSRP_1au,au,CR,A2M_SRP,r*DU,r_sun*DU)
   p_SRP = p_SRP/((DU*1.E3_dk)*TU**2)
 
 end if
