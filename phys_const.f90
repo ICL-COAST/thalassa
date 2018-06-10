@@ -10,6 +10,7 @@ module PHYS_CONST
 !
 ! Revisions:
 !     180608: rename F107 -> F107Const. Add F107DAILY.
+!     180609: add radius of the Sun.
 !
 ! ==============================================================================
 
@@ -37,6 +38,8 @@ real(dk)  ::  GS,GE,GM
 real(dk)  ::  RE
 real(dk)  ::  invFlatt
 real(dk)  ::  omegaE
+! Sun radius (km)
+real(dk)  ::  RS
 ! Seconds per day (tropical)
 real(dk),parameter  ::  secsPerDay = 86400._dk
 ! Seconds per day (sidereal)
@@ -123,6 +126,7 @@ read(id_phys,'(a)') (dummy, i=1,hlines)
 read(id_phys,'(e20.13,/)') au
 read(id_phys,'(e20.13)') GS
 read(id_phys,'(e20.13,/)') GM
+read(id_phys,'(e20.13,/)') RS
 read(id_phys,'(e20.13,/)') pSRP_1au
 read(id_phys,'(e20.13,/)') F107Const
 read(id_phys,'(e20.13,/)') Kp
