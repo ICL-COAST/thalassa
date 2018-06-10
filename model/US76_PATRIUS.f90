@@ -537,7 +537,7 @@ subroutine US76_UPPER(z,temp76,press76,dens76)
 ! Author:
 !    Davide Amato
 !    Technical University of Madrid (UPM)
-!    d.amato@upm.es
+!    davideamato@email.arizona.edu
 ! 
 ! References:
 !    [1] Technical Report NASA-TM-X-7433b, "U.S. Standard Atmosphere 1976",

@@ -10,7 +10,7 @@ module SUN_MOON
 ! Author:
 !    Davide Amato
 !    Space Dynamics Group - Technical University of Madrid
-!    d.amato@upm.es
+!    davideamato@email.arizona.edu
 !
 ! Based on original code by:
 !    Florent Deleflie
