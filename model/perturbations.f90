@@ -115,7 +115,7 @@ real(dk)  ::  density,pressure,temperature
 ! Drag and associated q.ties (J77, NRLMSISE-00)
 real(dk)  ::  RA,DEC
 real(dk)  ::  RA_sun,DEC_sun,r_sun_m
-real(dk)  ::  JD_UT1,MJD_TT,RJUD,DAFR,GMST,GMST_deg
+real(dk)  ::  JD_TT,MJD_TT,RJUD,DAFR,GMST,GMST_deg
 real(dk)  ::  tempK(1:2),nDens(1:6),wMol
 real(dk)  ::  SEC
 real(dk)  ::  GLAT_deg,GLONG_deg,RA_deg,STL_hrs
@@ -200,7 +200,7 @@ h_D = sqrt(dot_product(r_D,r_D)) - RE
 if (idrag /= 0 .and. h_D <= cutoff_height) then
   select case (idrag)
     case (1)
-      ! Piecewise exponential density model (Vallado)
+      ! Piecewise exponential density model (Wertz)
       density = ATMOS_VALLADO(h_D)
     
     case (2)
@@ -240,8 +240,8 @@ if (idrag /= 0 .and. h_D <= cutoff_height) then
       density = 0._dk
       ! Get date and year
       MJD_TT = MJD0 + t/TU/secsPerDay
-      JD_UT1  = MJD_TT + 2400000.5_dk
-      call JD2CAL(JD_UT1,year,month,dayOfMonth,dayOfYear)
+      JD_TT  = MJD_TT + 2400000.5_dk
+      call JD2CAL(JD_TT,year,month,dayOfMonth,dayOfYear)
       
       ! Note: year number is ignored in NRLMSISE-00.
       IYD       = int(dayOfYear)
