@@ -51,7 +51,8 @@
     
     "Drag":{
       "Flag": true,
-      "Model": "MSIS00"
+      "Model": "MSIS00",
+      "Solar flux": "Variable"
     },
 
     "Lunisolar":{
@@ -61,7 +62,8 @@
     },
     
     "SRP":{
-      "Flag": false
+      "Flag": false,
+      "Eclipses": true
     }
 
   },

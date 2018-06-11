@@ -16,6 +16,7 @@ Revisions:
   180526: Create directory structure, add fields to JSON input, create input.txt
           and object.txt in each subdirectory.
   180529: chunkSize is now global.
+  180610: add settings for variable solar flux and SRP eclipses to JSON input.
 
 """
 
@@ -42,6 +43,7 @@ def genGrid(nTot,gDict):
   
   Revisions:
     180523: function created.
+    180610: add settings for variable solar flux and SRP eclipses.
   """
   
   # Generate nTot-by-8 array, and dump to disk.
@@ -109,12 +111,12 @@ def createInput(dirPath,gSettings):
 
   # Model settings
   model = gSettings["Model"]
-  inpFile[12] = "insgrav:   {:1d}\n".format(int(model["NS gravity"]["Flag"]))
-  inpFile[13] = "isun:      {:1d}\n".format(int(model["Lunisolar"]["Sun"]))
-  inpFile[14] = "imoon:     {:1d}\n".format(int(model["Lunisolar"]["Moon"]))
+  inpFile[13] = "insgrav:   {:1d}\n".format(int(model["NS gravity"]["Flag"]))
+  inpFile[14] = "isun:      {:1d}\n".format(int(model["Lunisolar"]["Sun"]))
+  inpFile[15] = "imoon:     {:1d}\n".format(int(model["Lunisolar"]["Moon"]))
 
   if model["Drag"]["Flag"] == False:
-    inpFile[15] = "idrag:     0\n"
+    inpFile[16] = "idrag:     0\n"
   else:
     dm = model["Drag"]["Model"].lower()
     if dm == "wertz":
@@ -127,20 +129,31 @@ def createInput(dirPath,gSettings):
       idrag = 4
     else:
       raise ValueError('Value "' + model["Drag"]["Model"] + '" invalid.')
-    inpFile[15] = "idrag:     {:1d}\n".format(idrag)
-  
-  inpFile[16] = "iSRP:      {:1d}\n".format(int(model["SRP"]["Flag"]))
+    inpFile[16] = "idrag:     {:1d}\n".format(idrag)
+  if model["Drag"]["Solar flux"].lower() == "constant":
+    inpFile[17] = "iF107:     0"
+  elif model["Drag"]["Solar flux"].lower() == "variable":
+    inpFile[17] = "iF107:     1"
+  else:
+    raise ValueError('Value "' + model["Drag"]["Solar flux"] + '" invalid.')
+
+  if model["SRP"]["Flag"] == False:
+    inpFile[18] = "iSRP:      {:1d}\n".format(int(model["SRP"]["Flag"]))
+  else:
+    inpFile[18] = "iSRP:      {:1d}\n".format(int(model["SRP"]["Flag"]))
+    if model["SRP"]["Eclipses"]:
+       inpFile[18] = "iSRP:      2\n"
   
   if model["Lunisolar"]["Ephemerides"] == "DE431":
-    inpFile[17] = "iephem:    1\n"
+    inpFile[19] = "iephem:    1\n"
   elif model["Lunisolar"]["Ephemerides"] == "Meeus":
-    inpFile[17] = "iephem:    2\n"
+    inpFile[19] = "iephem:    2\n"
   else:
     raise ValueError('Value "' + model["Lunisolar"]["Ephemerides"] + '" invalid.')
   
-  inpFile[18] = "gdeg:    {:3d}\n".format(model["NS gravity"]["Degree"])
+  inpFile[20] = "gdeg:    {:3d}\n".format(model["NS gravity"]["Degree"])
   if model["NS gravity"]["Order"] <= model["NS gravity"]["Degree"]:
-    inpFile[19] = "gord:    {:3d}\n".format(model["NS gravity"]["Order"])
+    inpFile[21] = "gord:    {:3d}\n".format(model["NS gravity"]["Order"])
   else:
     raise ValueError("Order {0:d} of the gravity field is greater than degree {1:d}".format(model["NS gravity"]["Order"],model["NS gravity"]["Degree"]))
   
@@ -148,16 +161,16 @@ def createInput(dirPath,gSettings):
 
   # Integration settings
   integ = gSettings["Integration"]
-  inpFile[27] = "tol:      {:22.15E}\n".format(integ["Tolerance"])
-  inpFile[28] = "tspan:    {:22.15E}\n".format(integ["Duration"] * 365.25)
-  inpFile[29] = "tstep:    {:22.15E}\n".format(integ["Step"])
-  inpFile[36] = "eqs:      {:2d}\n".format(integ["Equations"])
+  inpFile[29] = "tol:      {:22.15E}\n".format(integ["Tolerance"])
+  inpFile[30] = "tspan:    {:22.15E}\n".format(integ["Duration"] * 365.25)
+  inpFile[31] = "tstep:    {:22.15E}\n".format(integ["Step"])
+  inpFile[38] = "eqs:      {:2d}\n".format(integ["Equations"])
 
 
 
   # Output settings
-  inpFile[41] = "verb:     0\n"
-  inpFile[42] = "out:   " + os.path.abspath(os.path.join(dirPath, ' '))
+  inpFile[43] = "verb:     0\n"
+  inpFile[44] = "out:   " + os.path.abspath(os.path.join(dirPath, ' '))
 
 
   with open(os.path.join(dirPath,'input.txt'),'w') as f:
