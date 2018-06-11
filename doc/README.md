@@ -27,9 +27,9 @@ The first section contains integer flags that allow the user to tune the paramet
 *  `insgrav`: 1 toggles non-spherical gravity, 0 otherwise
 *  `isun`: 1 toggles gravitational perturbation from the Sun, 0 otherwise
 *  `imoon`: 1 toggles gravitational perturbation from the Moon, 0 otherwise
-*  `idrag`: 1 toggles atmospheric drag perturbation, 0 otherwise
+*  `idrag`: select atmospheric model. 0 = no drag, 1 = patched exponential model [(table 8-4 of Vallado and McClain, 2013)](#Vallado2013), 2 = US 1976 Standard Atmosphere [(NASA et al., 1976)](#US1976), 3 = Jacchia 1977 [(Jacchia, 1977)](#Jacchia1977), 4 = NRLMSISE-00 [(Picone et al., 2000)](#Picone2000).
 *  `iF107`: 1 toggles variable F10.7 flux, 0 uses the constant value specified in `data/physical_constants.txt`
-*  `iSRP`: 1 toggles solar radiation pressure perturbation, 0 otherwise
+*  `iSRP`: select SRP model. 0 = no SRP, 1 = SRP with no eclipses, 2 = SRP with conical shadow using the $\nu$ factor from [Montenbruck and Gill (2000)](#Montenbruck2000).
 *  `iephem`: select the source of ephemerides of the Sun and the Moon. 1 uses SPICE-read ephemerides (DE431 by default), 2 uses a set of simplified analytical ephemerides by [Meeus (1998)](#Meeus1998).
 *  `gdeg`: selects the degree of the Earth's gravitational field (up to 95, although a maximum degree of 15 is recommended).
 *  `gord`: selects the order of the Earth's gravitational field (has to be less than min(`gdeg`,95)).
@@ -84,8 +84,12 @@ You should check the `stats.dat` file for any errors that might have taken place
 * `-10`: unknown exception, try debugging to check what's the problem.
 
 ## References
-1.  <a name="Montenbruck2000"></a>Montenbruck, O. and Gill, E. "Satellite Orbits. Models, Methods, and Applications". Springer-Verlag Berlin Heidelberg, 2000.
-2.  <a name="Meeus1998"></a>Meeus, J. "Astronomical Algorithms", 2nd Ed. Willmann-Bell, 1998.
-3.  <a name="Bau2015"></a>Baù, G., Bombardelli, C., Peláez, J., and Lorenzini, E. "Non-singular orbital elements for special perturbations in the two-body problem". Monthly Notices of the Royal Astronomical Society **454**, pp. 2890-2908, 2015.
-3.  <a name="Radhakrishnan1993"></a> Radhakrishnan, K. and Hindmarsh, A. C. "Description and use of LSODE, the Livermore Solver for Ordinary Differential Equations". NASA Reference Publication 1327, Lawrence Livermore National Laboratory Report UCRL-ID-113855, 1993.
-4.  <a name="Stiefel1971"></a> Stiefel E. G. and Scheifele G. "Linear and Regular Celestial Mechanics". Springer-Verlag New York Heidelberg Berlin, 1971.
+1.  <a name="Montenbruck2000"></a>Montenbruck, O., and Gill, E. "Satellite Orbits. Models, Methods, and Applications". Springer-Verlag Berlin Heidelberg, 2000.
+2.  <a name="Vallado2013"></a>Vallado, D. A., and McClain, W. D. "Fundamentals of Astrodynamics and Applications". Microcosm Press, 2013.
+3. <a name="US1976"></a> NASA, NOAA, and US Air Force, "U.S. Standard Atmosphere, 1976". Technical Report NASA-TM-X-74335, October 1976.
+4. <a name="Jacchia1977"></a> Jacchia, L. G. "Thermospheric Temperature, Density, and Composition: New Models". SAO Special Report, **375**, 1977.
+5. <a name="Picone2000"></a> Picone, J. M., Hedin, A. E., Drob, D .P., and Aikin, A. C. "NRLMSISE-00 empirical model of the atmosphere: Statistical comparisons and scientific issues". Journal of Geophysical Research: Space Physics, **107**(A12):15–1–16, 2002.
+6.  <a name="Meeus1998"></a>Meeus, J. "Astronomical Algorithms", 2nd Ed. Willmann-Bell, 1998.
+7.  <a name="Bau2015"></a>Baù, G., Bombardelli, C., Peláez, J., and Lorenzini, E. "Non-singular orbital elements for special perturbations in the two-body problem". Monthly Notices of the Royal Astronomical Society **454**, pp. 2890-2908, 2015.
+8.  <a name="Radhakrishnan1993"></a> Radhakrishnan, K. and Hindmarsh, A. C. "Description and use of LSODE, the Livermore Solver for Ordinary Differential Equations". NASA Reference Publication 1327, Lawrence Livermore National Laboratory Report UCRL-ID-113855, 1993.
+9.  <a name="Stiefel1971"></a> Stiefel E. G. and Scheifele G. "Linear and Regular Celestial Mechanics". Springer-Verlag New York Heidelberg Berlin, 1971.

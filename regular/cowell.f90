@@ -6,7 +6,7 @@ module COWELL
 !    Davide Amato
 !    Space Dynamics Group - Technical University of Madrid
 !    The University of Arizona
-!    d.amato@upm.es
+!    davideamato@email.arizona.edu
 !
 ! Revisions:
 !     180608: change interface to PACC_EJ2K to add iF107.

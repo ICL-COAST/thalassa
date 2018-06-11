@@ -5,7 +5,8 @@ FC = gfortran
 FCFLAGS = -c -O3 -g
 FLFLAGS = -g -O3 -o
 # Link flags
-LIBS = ~/Documents/Codes/SPICE/toolkit/lib/spicelib.a
+LIBS = ~/Documents/Codes/SPICE/toolkit/lib/spicelib.a \
+~/Documents/Codes/sofa/lib/libsofa.a
 
 # Numerical integrators
 SLSODAR = opksa1.o opksa2.o opksmain.o
@@ -63,7 +64,7 @@ US76_PATRIUS.o: ./model/US76_PATRIUS.f90 kinds.o
 nrlmsise00_sub.o: ./model/nrlmsise00_sub.for
 	$(FC) $(FCFLAGS) -fdefault-real-8 -std=legacy -w ./model/nrlmsise00_sub.for
 
-srp.o: ./model/srp.f90 kinds.o
+srp.o: ./model/srp.f90 phys_const.o kinds.o
 	$(FC) $(FCFLAGS) ./model/srp.f90
 
 perturbations.o: ./model/perturbations.f90 kinds.o nsgrav.o sun_moon.o \

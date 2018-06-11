@@ -6,7 +6,7 @@ module AUXILIARIES
 ! Author:
 !    Davide Amato
 !    Space Dynamics Group - Technical University of Madrid
-!    d.amato@upm.es
+!    davideamato@email.arizona.edu
 !
 ! ==============================================================================
 

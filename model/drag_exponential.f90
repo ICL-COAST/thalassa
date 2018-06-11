@@ -40,7 +40,7 @@ module DRAG_EXPONENTIAL
     ! Davide Amato
     ! Space Dynamics Group
     ! E.T.S.I.A.E. - UPM
-    ! d.amato@upm.es
+    ! davideamato@email.arizona.edu
     !
     ! =========================================================================================
 

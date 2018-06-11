@@ -1652,7 +1652,7 @@ C-----------------------------------------------------------------------
       BLOCK DATA GTD7BK
 C          MSISE-00 01-FEB-02   
 C     Modification: 10/10/2017
-C     Author:       Davide Amato, d.amato@upm.es
+C     Author:       Davide Amato, davideamato@email.arizona.edu
 C     Description:  Declare character arrays ISDATE, ISTIME, NAME before COMMON.
       CHARACTER(LEN=4) ISDATE(3),ISTIME(2),NAME(2)
       COMMON/PARM7/PT1(50),PT2(50),PT3(50),PA1(50),PA2(50),PA3(50),
