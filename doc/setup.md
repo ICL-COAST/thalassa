@@ -1,7 +1,7 @@
 # General requirements
 THALASSA has been developed and tested on MacOS and Linux, using the ``gfortran`` compiler. No support for Windows or other compilers (such as ``ifort``) is available, although an experienced user should be able to make the necessary (few) modifications to the makefile and code.
 
-THALASSA requires a ``gfortran`` installation (version 6 or higher), the NAIF ``SPICE`` Fortran toolkit (version N0065 or higher), and the associated SPICE kernels (see the next section).
+THALASSA requires a ``gfortran`` installation (version 6 or higher), the NAIF ``SPICE`` Fortran toolkit (version N0065 or higher) and the associated SPICE kernels (see the next section), and the [``SOFA`` (Standards Of Fundamental Astronomy) Fortran 77 library](http://www.iausofa.org/current_F.html#Downloads "SOFA library download").
 
 # SPICE toolkit overview
 SPICE is a powerful library containing a wide array of subroutines for space mission design, observation planning, and astrodynamics. SPICE is used in THALASSA to read the JPL ephemerides which provide the position of the Sun and the Moon. This is necessary to accurately compute perturbations due to their gravitational field, solar radiation pressure, and atmospheric drag.
@@ -15,9 +15,9 @@ The latest version of the toolkit, N0066, is downloadable from [here](https://na
 
         git clone https://gitlab.com/souvlaki/thalassa.git/ thalassa_dir
 
-2.  Edit the ``makefile`` by assigning the path to the SPICE library (``spicelib.a``) to the ``LIBS`` variable:
+1.  Edit the ``makefile`` by assigning the path to the SPICE and SOFA libraries (``spicelib.a`` and ``libsofa.a``) to the ``LIBS`` variable:
 
-        LIBS = $SPICE_PATH/toolkit/lib/spicelib.a
+        LIBS = $SPICE_PATH/toolkit/lib/spicelib.a $SOFA_PATH/lib/libsofa.a
 
 3.  Also edit ``data/kernels_to_load.furnsh``, inserting the path to the required SPICE kernels in the ``PATH_VALUES`` variable.
 ``THALASSA`` requires three types of kernels:
