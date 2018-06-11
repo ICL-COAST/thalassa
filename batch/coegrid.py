@@ -131,9 +131,9 @@ def createInput(dirPath,gSettings):
       raise ValueError('Value "' + model["Drag"]["Model"] + '" invalid.')
     inpFile[16] = "idrag:     {:1d}\n".format(idrag)
   if model["Drag"]["Solar flux"].lower() == "constant":
-    inpFile[17] = "iF107:     0"
+    inpFile[17] = "iF107:     0\n"
   elif model["Drag"]["Solar flux"].lower() == "variable":
-    inpFile[17] = "iF107:     1"
+    inpFile[17] = "iF107:     1\n"
   else:
     raise ValueError('Value "' + model["Drag"]["Solar flux"] + '" invalid.')
 
