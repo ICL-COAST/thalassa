@@ -99,7 +99,7 @@ def runThalassa(outDir,SID):
   subDir = 'C{:03d}'.format(iChunk)
   subSubDir = 'S{:010d}'.format(int(SID))
   
-  print('Launching simulation SID = {0}'.format(SID))
+  print('Launching simulation SID = {0}'.format(SID),flush=True)
   # Launch THALASSA
   subprocess.call([thalassaPath,
   os.path.abspath(os.path.join(outDir,subDir,subSubDir,'input.txt')),
@@ -169,7 +169,7 @@ Do you want to continue? (Y/N)
   else:
     nproc = psutil.cpu_count(logical=False)
   
-  log = open(os.path.join(args.outDir,'grid.log'),'w')
+  log = open(os.path.join(args.outDir,'grid.log'),'w',1)
   startTime = datetime.datetime.now()
   log.writelines('THALASSA GRID PROPAGATION - LOG FILE\n')
   log.writelines('Start of logging on {0}.\n'.format(startTime.isoformat()))
