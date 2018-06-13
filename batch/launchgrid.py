@@ -13,6 +13,7 @@ Author:
 Revisions:
   180529: Script creation.
   180605: Various bugs fixed. Added output of current SID.
+  180610: Add resume flag.
 
 """
 
@@ -79,7 +80,7 @@ def sizeOfPropagation(Ntot,dt,duration):
 
 
 
-def runThalassa(outDir,SID):
+def runThalassa(outDir,resume,SID):
   """
   Launch THALASSA for the propagation identified by 'SID'.
 
@@ -91,6 +92,7 @@ def runThalassa(outDir,SID):
   Revisions:
   180529: Script creation.
   180605: Add output of SID.
+  180610: Add skipping of propagations if resume flag is true.
 
   """
   
@@ -98,12 +100,18 @@ def runThalassa(outDir,SID):
   iChunk = (SID - 1) // chunkSize + 1
   subDir = 'C{:03d}'.format(iChunk)
   subSubDir = 'S{:010d}'.format(int(SID))
-  
-  print('Launching simulation SID = {0}'.format(SID),flush=True)
-  # Launch THALASSA
-  subprocess.call([thalassaPath,
-  os.path.abspath(os.path.join(outDir,subDir,subSubDir,'input.txt')),
-  os.path.abspath(os.path.join(outDir,subDir,subSubDir,'object.txt'))])
+  outfile = os.path.join(outDir,subDir,subSubDir,'orbels.dat')
+
+  if (resume and os.path.isfile(outfile)):
+    print('Simulation SID {0} already exists. Skipping...'.format(SID),flush=True)
+
+  else:
+    print('Launching simulation SID = {0}'.format(SID),flush=True)
+    # Launch THALASSA
+    subprocess.call([thalassaPath,
+    os.path.abspath(os.path.join(outDir,subDir,subSubDir,'input.txt')),
+    os.path.abspath(os.path.join(outDir,subDir,subSubDir,'object.txt'))])
+
 
 
 
@@ -121,6 +129,9 @@ def main():
   ' the number of available CPUs.',type=int)
   parser.add_argument('--force',\
   help='don''t ask for user confirmation before starting the simulation.',
+  action='store_true')
+  parser.add_argument('--resume',\
+  help='resume previous simulation. This skips directories where the file "propagation.log" is present.',
   action='store_true')
   if len(sys.argv)==1:
     parser.print_help(sys.stderr)
@@ -169,18 +180,23 @@ Do you want to continue? (Y/N)
   else:
     nproc = psutil.cpu_count(logical=False)
   
-  log = open(os.path.join(args.outDir,'grid.log'),'w',1)
   startTime = datetime.datetime.now()
-  log.writelines('THALASSA GRID PROPAGATION - LOG FILE\n')
+  if args.resume:
+    log = open(os.path.join(args.outDir,'grid.log'),'a',1)
+    log.writelines('\nResuming the simulation... ')
+
+  else:
+    log = open(os.path.join(args.outDir,'grid.log'),'w',1)
+    log.writelines('THALASSA GRID PROPAGATION - LOG FILE\n')
+
   log.writelines('Start of logging on {0}.\n'.format(startTime.isoformat()))
   log.writelines('OS: {0}.\n'.format(platform.platform()))
-    
-  log.writelines('Physical cores: {0:d}.\n'.format(nproc))
+  log.writelines('Number of parallel processes: {0:d}.\n'.format(nproc))
   log.writelines('Number of propagations: {0:d}.\n'.format(nTot))
   log.writelines('Duration: {0:g} years.\n'.format(duration))
   log.writelines('Step size: {0:g} days.\n'.format(dt))
 
-  runArgs = [(args.outDir,SID) for SID in range(1,nTot + 1)]
+  runArgs = [(args.outDir,args.resume,SID) for SID in range(1,nTot + 1)]
   # print(runArgs)
 
   os.chdir('../')
