@@ -93,6 +93,7 @@ def runThalassa(outDir,resume,SID):
   180529: Script creation.
   180605: Add output of SID.
   180610: Add skipping of propagations if resume flag is true.
+  180618: Overwrite output directory in the input file with resume flag.
 
   """
   
@@ -106,6 +107,13 @@ def runThalassa(outDir,resume,SID):
     print('Simulation SID {0} already exists. Skipping...'.format(SID),flush=True)
 
   else:
+    if (resume):
+      with open(os.path.join(outDir,subDir,subSubDir,'input.txt'),'r') as f:
+        inpFile = f.readlines()
+      inpFile[44] = "out:   " + os.path.abspath(os.path.join(outDir,subDir,subSubDir,' '))
+      with open(os.path.join(outDir,subDir,subSubDir,'input.txt'),'w') as f:
+        f.writelines(inpFile)
+    
     print('Launching simulation SID = {0}'.format(SID),flush=True)
     # Launch THALASSA
     subprocess.call([thalassaPath,
