@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 LAUNCH BATCH PROPAGATIONS OVER A GRID OF INITIAL CONDITIONS
 Launch propagations with THALASSA for the initial conditions specified by the

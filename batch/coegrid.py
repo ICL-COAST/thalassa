@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 GENERATE GRID OF INITIAL CONDITIONS
 Generate a grid file of initial conditions starting from user-assigned intervals
