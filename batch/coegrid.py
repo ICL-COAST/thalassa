@@ -310,7 +310,7 @@ Do you want to continue? (Y/N)\n""".format(nTot)
       os.makedirs(subSubDir)
       
       createInput(subSubDir,gridDefDict)
-      createObject(subSubDir,gridDefDict,grid[igrid,1:])
+      createObject(subSubDir,gridDefDict,grid[startSID + igrid,1:])
       
       igrid += 1
 
