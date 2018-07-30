@@ -2,10 +2,10 @@
 FC = gfortran
 
 # Compile flags
-FCFLAGS = -c -O3
-FLFLAGS = -O3 -o
+FCFLAGS = -c -g
+FLFLAGS = -g -o
 # Link flags
-LIBS = ~/Documents/Codes/SPICE/toolkit/lib/spicelib.a \
+LIBS = ~/Documents/Codes/SPICE_N0066/toolkit/lib/spicelib.a \
 ~/Documents/Codes/sofa/lib/libsofa.a
 
 # Numerical integrators
@@ -49,7 +49,7 @@ kepler.o: kepler.f90 kinds.o
 cart_coe.o: cart_coe.f90 phys_const.o kepler.o kinds.o
 	$(FC) $(FCFLAGS) cart_coe.f90
 
-nsgrav.o: ./model/nsgrav.f90 kinds.o settings.o phys_const.o auxiliaries.o
+nsgrav.o: ./model/nsgrav.f90 kinds.o settings.o phys_const.o auxiliaries.o io.o
 	$(FC) $(FCFLAGS) ./model/nsgrav.f90
 
 sun_moon.o: ./model/sun_moon.f90 kinds.o phys_const.o settings.o auxiliaries.o

@@ -16,7 +16,7 @@ use SUN_MOON
 use DRAG_EXPONENTIAL
 use US76_PATRIUS
 use SRP
-use PHYS_CONST,  only: Clm,Slm
+use NSGRAV,  only: Clm,Slm
 use AUXILIARIES, only: DU,TU
 implicit none
 

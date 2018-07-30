@@ -1,12 +1,162 @@
 module NSGRAV
 
-! VARIABLES
+! MODULES
 use KINDS,      only: dk
 use SETTINGS,   only: gdeg,gord
-use PHYS_CONST, only: qk,maxDeg,maxOrd
+use IO,         only: id_earth
+use PHYS_CONST, only: qk,GE,RE,flatt,omegaE,secsPerDay,secsPerSidDay,twopi,&
+&ERR_constant
 implicit none
 
+! VARIABLES
+! Spherical harmonics (unnormalized) 
+integer               ::  maxDeg, maxOrd
+real(qk),allocatable  ::  Clm(:,:),Slm(:,:)
+
+! Pines algorithm matrices
+real(dk),allocatable  ::  Alm(:,:),Dlm(:,:),Elm(:,:),Flm(:,:),Rl(:),Il(:),Pl(:)
+real(dk),allocatable  ::  Aux1(:),Aux2(:),Aux3(:),Aux4(:,:)
+
 contains
+
+
+
+subroutine INITIALIZE_NSGRAV(earthFile)
+! Description:
+!    Reads Earth gravity data from a text file. Initializes the gravitational
+!    parameter, equatorial radius, flattening, rotational velocity, spherical
+!    harmonics coefficients, and auxiliary matrices for Pines' algorithm. The
+!    latter computes the Earth potential in Cartesian coordinates, avoiding
+!    singularities due to the spherical harmonics.
+! 
+! Author:
+!    Davide Amato
+!    The University of Arizona
+!    davideamato@email.arizona.edu
+! 
+! Revisions:
+!    180730: Subroutine created from part of READ_PHYS().
+! 
+! ==============================================================================
+
+! Arguments
+character(len=*),intent(in)  ::  earthFile
+
+! Locals
+character(len=72)  ::  dummy
+real(dk)           ::  invFlatt
+integer            ::  i,j,l,m,n
+
+
+! ==============================================================================
+
+open(unit=id_earth,file=trim(earthFile),status='old',action='read')
+read(id_earth,'(a)') (dummy, i=1,4)
+read(id_earth,'(a37,i3)') dummy, maxDeg
+read(id_earth,'(a37,i3)') dummy, maxOrd
+read(id_earth,'(a36,e22.15)') dummy, GE
+read(id_earth,'(a36,e22.15)') dummy, RE
+read(id_earth,'(a36,e22.15)') dummy, invFlatt
+read(id_earth,'(a36,e22.15)') dummy, omegaE
+
+flatt    = 1._dk/invFlatt
+
+! Read and de-normalize spherical harmonics coefficients and auxiliary matrices
+! for Pines' algorithm.
+! Initialize
+l = 1; m = 0;
+allocate(Clm(1:maxDeg,0:maxDeg)); Clm = 0._dk
+allocate(Slm(1:maxDeg,0:maxDeg)); Slm = 0._dk
+allocate(Alm(0:maxDeg+2, 0:maxDeg+2))
+allocate(Dlm(1:maxDeg,   0:maxDeg))
+allocate(Elm(1:maxDeg,   1:maxDeg))
+allocate(Flm(1:maxDeg,   1:maxDeg))
+allocate(Rl(0:maxDeg)    )
+allocate(Il(0:maxDeg)    )
+allocate(Pl(0:maxDeg + 1))
+allocate(Aux1(1:maxDeg+1))
+allocate(Aux2(1:maxDeg+1))
+allocate(Aux3(1:maxDeg+1))
+allocate(Aux4(1:maxDeg+1, 0:maxDeg+1))
+
+read(id_earth,'(a)') (dummy, i=1,2)
+do i=1,maxDeg
+  do j=0,minval([i,maxOrd])
+    read(id_earth,'(2(1x,i2),2(1x,e24.17))') l,m,Clm(i,j),Slm(i,j)
+    Clm(i,j) = Clm(i,j)/NORMFACT(i,j)
+    Slm(i,j) = Slm(i,j)/NORMFACT(i,j)
+  end do
+end do
+
+close(id_earth)
+
+! Fill coefficient arrays for Pines algorithm
+Alm(:,:) = 0._dk
+Dlm(:,:) = 0._dk
+Elm(:,:) = 0._dk
+Flm(:,:) = 0._dk
+Alm(0,0) = 1._dk
+Alm(1,1) = 1._dk
+do n = 1,maxDeg + 1
+  Aux1(n) = 2._dk*n + 1._dk
+  Aux2(n) = Aux1(n) / (n+1._dk)
+  Aux3(n) = n / (n+1._dk)
+  do m = 0, n-1
+    Aux4(n,m) = (n+m+1._dk)
+  end do
+end do
+
+! Earth Rotation Rate (revolutions per tropical day)
+secsPerSidDay = twopi/omegaE
+ERR_constant = secsPerDay/secsPerSidDay
+
+end subroutine INITIALIZE_NSGRAV
+
+
+
+
+function NORMFACT(l,m)
+! Description:
+!    Normalization factor for the spherical harmonics coefficients and
+!    associated Legendre functions:
+! 
+!    sqrt( (l + m)! / ( (2 - delta_{0,m}) * (2n  + 1) * (n - m)! ) )
+! 
+! Reference:
+!    [1] Montenbruck, O., Gill, E., "Satellite Orbits", p. 58, Springer, 2000.
+! 
+! Author:
+!    Davide Amato
+!    The University of Arizona
+!    davideamato@email.arizona.edu
+! 
+! ==============================================================================
+
+! Arguments and function definition
+integer,intent(in)  ::  l,m
+real(qk)            ::  NORMFACT
+! Locals
+real(qk)            ::  lr,mr
+real(qk)            ::  kron
+real(qk)            ::  numer,denom
+
+! ==============================================================================
+lr = real(l,qk)
+mr = real(m,qk)
+
+numer = gamma(lr + mr + 1._qk)
+
+if (m == 0) then
+	kron = 1._qk
+else
+	kron = 0._qk
+end if
+
+denom = (2._qk - kron) * (2._qk*lr + 1._qk) * gamma(lr - mr + 1._qk)
+
+NORMFACT = sqrt(numer/denom)
+
+end function NORMFACT
 
 
 

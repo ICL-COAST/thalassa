@@ -12,6 +12,7 @@ module PHYS_CONST
 !     180608: rename F107 -> F107Const. Add F107DAILY.
 !     180609: add radius of the Sun.
 !     180610: add flattening.
+!     180730: move Earth data initialization to routine INITIALIZE_NSGRAV.
 !
 ! ==============================================================================
 
@@ -20,9 +21,7 @@ implicit none
 
 ! Kind parameter for quad (needed for NORMFACT)
 integer,parameter   ::  qk = selected_real_kind(33)
-
-! Physical values file id
-integer,parameter   ::  id_phys = 12, id_earth = 13
+integer,parameter   ::  id_phys = 22
 ! Numerical constants
 real(dk),parameter  ::  pi    = acos(-1._dk)
 real(dk),parameter  ::  twopi = 2._dk*acos(-1._dk)
@@ -64,10 +63,6 @@ real(dk)            ::  ERR_constant_nd
 ! Physical parameters (dimensionless)
 real(dk)  ::  RE_nd,GE_nd       ! Earth
 
-! Spherical harmonics (normalized)
-integer               ::  maxDeg, maxOrd
-real(qk),allocatable  ::  Clm(:,:),Slm(:,:)
-
 ! Mass (kg)
 real(dk)  ::  SCMass
 
@@ -91,7 +86,7 @@ contains
 
 
 
-subroutine READ_PHYS()
+subroutine READ_PHYS(physFile)
 ! Description:
 !    Read values for the physical parameters from text file.
 !
@@ -103,21 +98,19 @@ subroutine READ_PHYS()
 ! Revisions:
 !     180608: rename F107 -> F107Const.
 !     180610: compute flattening.
+!     180730: move Earth data initialization to routine INITIALIZE_NSGRAV.
 !
 ! ==============================================================================
 
 ! VARIABLES
 implicit none
+! Arguments
+character(len=*),intent(in)     ::  physFile
 ! Locals
-character(len=4096)  ::  physFile,earthFile,dummy
+character(len=4096)  ::  dummy
 integer,parameter    ::  hlines = 7
-integer              ::  i,j,l,m
+integer              ::  i,j,l,m,n
 real(dk)             ::  invFlatt
-
-! Set file path
-physFile  = './data/physical_constants.txt'
-earthFile = './data/earth_potential/GRIM5-S1.txt'
-
 
 ! ==============================================================================
 ! 01. PHYSICAL CONSTANTS
@@ -138,42 +131,6 @@ read(id_phys,'(e20.13,/)') reentry_height
 read(id_phys,'(e20.13)') cutoff_height
 
 close(id_phys)
-
-! ==============================================================================
-! 02. EARTH DATA
-! ==============================================================================
-
-open(unit=id_earth,file=trim(earthFile),status='old',action='read')
-read(id_earth,'(a)') (dummy, i=1,4)
-read(id_earth,'(a37,i3)') dummy, maxDeg
-read(id_earth,'(a37,i3)') dummy, maxOrd
-read(id_earth,'(a36,e22.15)') dummy, GE
-read(id_earth,'(a36,e22.15)') dummy, RE
-read(id_earth,'(a36,e22.15)') dummy, invFlatt
-read(id_earth,'(a36,e22.15)') dummy, omegaE
-
-flatt    = 1._dk/invFlatt
-
-! Read and de-normalize spherical harmonics coefficients
-! Initialize
-l = 1; m = 0;
-allocate(Clm(1:maxDeg,0:maxOrd)); Clm = 0._dk
-allocate(Slm(1:maxDeg,0:maxOrd)); Slm = 0._dk
-
-read(id_earth,'(a)') (dummy, i=1,2)
-do i=1,maxDeg
-  do j=0,minval([i,maxOrd])
-    read(id_earth,'(2(1x,i2),2(1x,e24.17))') l,m,Clm(i,j),Slm(i,j)
-    Clm(i,j) = Clm(i,j)/NORMFACT(i,j)
-    Slm(i,j) = Slm(i,j)/NORMFACT(i,j)
-  end do
-end do
-
-close(id_earth)
-    
-! Earth Rotation Rate (revolutions per tropical day)
-secsPerSidDay = twopi/omegaE
-ERR_constant = secsPerDay/secsPerSidDay
 
 end subroutine READ_PHYS
 
@@ -439,45 +396,6 @@ dayOfYear = int((275._dk*real(month,dk)) / 9._dk) - &
 &           K * int((real(month,dk) + 9._dk)/12._dk ) + dayofMonth - 30._dk
 
 end subroutine JD2CAL
-
-
-
-function NORMFACT(l,m)
-! Normalization factor for the spherical harmonics coefficients and associated
-! Legendre functions:
-! 
-! sqrt( (l + m)! / ( (2 - delta_{0,m}) * (2n  + 1) * (n - m)! ) )
-! 
-! Reference:
-! [1] Montenbruck, O., Gill, E., "Satellite Orbits", p. 58, Springer, 2000.
-! 
-! ==============================================================================
-
-! Arguments and function definition
-integer,intent(in)  ::  l,m
-real(qk)            ::  NORMFACT
-! Locals
-real(qk)            ::  lr,mr
-real(qk)            ::  kron
-real(qk)            ::  numer,denom
-
-! ==============================================================================
-lr = real(l,qk)
-mr = real(m,qk)
-
-numer = gamma(lr + mr + 1._qk)
-
-if (m == 0) then
-  kron = 1._qk
-else
-  kron = 0._qk
-end if
-
-denom = (2._qk - kron) * (2._qk*lr + 1._qk) * gamma(lr - mr + 1._qk)
-
-NORMFACT = sqrt(numer/denom)
-
-end function NORMFACT
 
 
 

@@ -24,6 +24,9 @@ program THALASSA
 !    180409: v0.9
 !    180523: v0.9.1
 !    180531: v0.9.2. Add output of log file.
+!    180703: v1.0. Add time-dependent solar flux for J77 and MSIS-00. Consider
+!            geodetic height for MSIS-00. Add batch scripts for large-scale
+!            propagation.
 !
 ! ==============================================================================
 
@@ -34,6 +37,7 @@ use AUXILIARIES, only: MJD0
 use IO,          only: READ_IC,CREATE_OUT,DUMP_TRAJ,CREATE_LOG
 use CART_COE,    only: COE2CART,CART2COE
 use PHYS_CONST,  only: READ_PHYS,GMST_UNIFORM
+use NSGRAV,      only: INITIALIZE_NSGRAV
 use PROPAGATE,   only: DPROP_REGULAR
 use SETTINGS,    only: READ_SETTINGS,input_path
 use IO,          only: id_cart,id_orb,id_stat,id_log,object_path
@@ -67,6 +71,8 @@ integer  ::  command_arguments
 character(len=8)   :: date_start, date_end
 character(len=10)  :: time_start, time_end
 character(len=5)   :: zone
+! Paths
+character(len=512) :: earth_path,phys_path
 
 ! ==============================================================================
 
@@ -77,6 +83,8 @@ character(len=5)   :: zone
 command_arguments = COMMAND_ARGUMENT_COUNT()
 input_path  = './in/input.txt'
 object_path = './in/object.txt'
+earth_path = './data/earth_potential/GRIM5-S1.txt'
+phys_path = './data/physical_constants.txt'
 if (command_arguments > 0) call GET_COMMAND_ARGUMENT(1,input_path)
 if (command_arguments > 1) call GET_COMMAND_ARGUMENT(2,object_path)
 
@@ -90,7 +98,10 @@ call SYSTEM_CLOCK(tic,rate)
 ! Read initial conditions, settings and physical model data.
 call READ_IC(MJD0,COE0)
 call READ_SETTINGS(tspan,tstep)
-call READ_PHYS()
+call READ_PHYS(phys_path)
+
+! Initialize Earth data
+call INITIALIZE_NSGRAV(earth_path)
 
 ! Initialize output (if not done by python script already)
 if (command_arguments == 0) then
