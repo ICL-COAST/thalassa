@@ -30,7 +30,7 @@ program THALASSA
 
 ! MODULES
 use KINDS,       only: dk
-use AUXILIARIES, only: MJD0
+use AUXILIARIES, only: MJD0, DU, TU
 use IO,          only: READ_IC,CREATE_OUT,DUMP_TRAJ,CREATE_LOG
 use CART_COE,    only: COE2CART,CART2COE
 use PHYS_CONST,  only: READ_PHYS,GMST_UNIFORM
@@ -38,7 +38,8 @@ use PROPAGATE,   only: DPROP_REGULAR
 use SETTINGS,    only: READ_SETTINGS,input_path
 use IO,          only: id_cart,id_orb,id_stat,id_log,object_path
 use SETTINGS,    only: gdeg,gord,outpath,tol,eqs
-use PHYS_CONST,  only: GE,d2r,r2d,secsPerDay,secsPerSidDay,twopi
+use PHYS_CONST,  only: GS,GE,GM,d2r,r2d,secsPerDay,secsPerSidDay,twopi
+use SUN_MOON,    only: EPHEM,ACC_THBOD_EJ2K_ND
 
 implicit none
 
@@ -67,6 +68,10 @@ integer  ::  command_arguments
 character(len=8)   :: date_start, date_end
 character(len=10)  :: time_start, time_end
 character(len=5)   :: zone
+
+! Debug
+real(dk)  ::  MJD, t, r_moon(1:3), v_moon(1:3), r_sun(1:3), v_sun(1:3)
+real(dk)  ::  a_sun(1:3), a_moon(1:3)
 
 ! ==============================================================================
 
@@ -149,14 +154,36 @@ write(id_log,'(a,g11.4,a)') 'CPU time: ',cputime,' s'
 ! Convert to orbital elements.
 ! orb(1): MJD,  orb(2): a,  orb(3): e, orb(4): i
 ! orb(5): Om,   orb(6): om, orb(7): M
+open(unit=81,file='r_sun.txt',status='new',action='write')
+open(unit=82,file='r_moon.txt',status='new',action='write')
+open(unit=83,file='a_sun.txt',status='new',action='write')
+open(unit=84,file='a_moon.txt',status='new',action='write')
 do ipt=1,npts
     orb(ipt,1) = cart(ipt,1)    ! Copy MJD
     R = cart(ipt,2:4)
     V = cart(ipt,5:7)
     call CART2COE(R,V,orb(ipt,2:7),GE)
     orb(ipt,4:7) = orb(ipt,4:7)/d2r
+    
+    MJD = orb(ipt,1)
+    t   = (MJD - MJD0)*secsPerDay*TU
+    ! Debug for Sun and Moon
+    call EPHEM(1,DU,TU,t,r_sun,v_sun)
+    call EPHEM(2,DU,TU,t,r_moon,v_moon)
+    
+    a_sun = ACC_THBOD_EJ2K_ND(R/DU,r_sun,GE,GS)
+    a_moon = ACC_THBOD_EJ2K_ND(R/DU,r_moon,GE,GM)
+    
+    r_sun = r_sun*DU; a_sun = a_sun*(DU*TU**2)
+    r_moon = r_moon*DU; a_moon = a_moon*(DU*TU**2)
 
+    write(81,'(4(e22.15,1x))') MJD, r_sun
+    write(82,'(4(e22.15,1x))') MJD, r_moon
+    write(83,'(4(e22.15,1x))') MJD, a_sun
+    write(84,'(4(e22.15,1x))') MJD, a_moon
+    
 end do
+close(81); close(82); close(83); close(84)
 
 ! Dump output and copy input files to the output directory
 write(id_log,'(a)') 'Dumping output to disk.'
