@@ -16,7 +16,7 @@ use SUN_MOON
 use DRAG_EXPONENTIAL
 use US76_PATRIUS
 use SRP
-use NSGRAV,  only: Clm,Slm
+use NSGRAV,  only: Cnm,Snm
 use AUXILIARIES, only: DU,TU
 implicit none
 
@@ -55,7 +55,7 @@ real(dk)              ::  PPOTENTIAL
 
 PPOTENTIAL = 0._dk
 if (insgrav /= 0) then
-   PPOTENTIAL = POT_NSG(GM,RE,Clm,Slm,r,rm,t)
+   PPOTENTIAL = POT_NSG(GM,RE,Cnm,Snm,r,rm,t)
 
 end if
 
@@ -154,7 +154,7 @@ gradU_sph = 0._dk; p_nsg = 0._dk
 if (insgrav /= 0) then
   ! Compute the potential and its derivatives in non-dimensional units.
   ! EARTH
-  gradU_sph = POTPAR(GE_nd,RE_nd,Clm,Slm,r,rm,t)
+  gradU_sph = POTPAR(GE_nd,RE_nd,Cnm,Snm,r,rm,t)
   p_nsg     = ACC_NSG(r,rm,gradU_sph)
 
 end if

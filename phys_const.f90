@@ -99,6 +99,7 @@ subroutine READ_PHYS(physFile)
 !     180608: rename F107 -> F107Const.
 !     180610: compute flattening.
 !     180730: move Earth data initialization to routine INITIALIZE_NSGRAV.
+!     180731: remove unused variables.
 !
 ! ==============================================================================
 
@@ -109,8 +110,7 @@ character(len=*),intent(in)     ::  physFile
 ! Locals
 character(len=4096)  ::  dummy
 integer,parameter    ::  hlines = 7
-integer              ::  i,j,l,m,n
-real(dk)             ::  invFlatt
+integer              ::  i
 
 ! ==============================================================================
 ! 01. PHYSICAL CONSTANTS

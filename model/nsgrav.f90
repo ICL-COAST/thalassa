@@ -11,10 +11,10 @@ implicit none
 ! VARIABLES
 ! Spherical harmonics (unnormalized) 
 integer               ::  maxDeg, maxOrd
-real(qk),allocatable  ::  Clm(:,:),Slm(:,:)
+real(qk),allocatable  ::  Cnm(:,:),Snm(:,:)
 
 ! Pines algorithm matrices
-real(dk),allocatable  ::  Alm(:,:),Dlm(:,:),Elm(:,:),Flm(:,:),Rl(:),Il(:),Pl(:)
+real(dk),allocatable  ::  Anm(:,:),Dnm(:,:),Enm(:,:),Fnm(:,:),Rl(:),Il(:),Pl(:)
 real(dk),allocatable  ::  Aux1(:),Aux2(:),Aux3(:),Aux4(:,:)
 
 contains
@@ -65,12 +65,12 @@ flatt    = 1._dk/invFlatt
 ! for Pines' algorithm.
 ! Initialize
 l = 1; m = 0;
-allocate(Clm(1:maxDeg,0:maxDeg)); Clm = 0._dk
-allocate(Slm(1:maxDeg,0:maxDeg)); Slm = 0._dk
-allocate(Alm(0:maxDeg+2, 0:maxDeg+2))
-allocate(Dlm(1:maxDeg,   0:maxDeg))
-allocate(Elm(1:maxDeg,   1:maxDeg))
-allocate(Flm(1:maxDeg,   1:maxDeg))
+allocate(Cnm(1:maxDeg,0:maxDeg)); Cnm = 0._dk
+allocate(Snm(1:maxDeg,0:maxDeg)); Snm = 0._dk
+allocate(Anm(0:maxDeg+2, 0:maxDeg+2))
+allocate(Dnm(1:maxDeg,   0:maxDeg))
+allocate(Enm(1:maxDeg,   1:maxDeg))
+allocate(Fnm(1:maxDeg,   1:maxDeg))
 allocate(Rl(0:maxDeg)    )
 allocate(Il(0:maxDeg)    )
 allocate(Pl(0:maxDeg + 1))
@@ -82,21 +82,21 @@ allocate(Aux4(1:maxDeg+1, 0:maxDeg+1))
 read(id_earth,'(a)') (dummy, i=1,2)
 do i=1,maxDeg
   do j=0,minval([i,maxOrd])
-    read(id_earth,'(2(1x,i2),2(1x,e24.17))') l,m,Clm(i,j),Slm(i,j)
-    Clm(i,j) = Clm(i,j)/NORMFACT(i,j)
-    Slm(i,j) = Slm(i,j)/NORMFACT(i,j)
+    read(id_earth,'(2(1x,i2),2(1x,e24.17))') l,m,Cnm(i,j),Snm(i,j)
+    Cnm(i,j) = Cnm(i,j)/NORMFACT(i,j)
+    Snm(i,j) = Snm(i,j)/NORMFACT(i,j)
   end do
 end do
 
 close(id_earth)
 
 ! Fill coefficient arrays for Pines algorithm
-Alm(:,:) = 0._dk
-Dlm(:,:) = 0._dk
-Elm(:,:) = 0._dk
-Flm(:,:) = 0._dk
-Alm(0,0) = 1._dk
-Alm(1,1) = 1._dk
+Anm(:,:) = 0._dk
+Dnm(:,:) = 0._dk
+Enm(:,:) = 0._dk
+Fnm(:,:) = 0._dk
+Anm(0,0) = 1._dk
+Anm(1,1) = 1._dk
 do n = 1,maxDeg + 1
   Aux1(n) = 2._dk*n + 1._dk
   Aux2(n) = Aux1(n) / (n+1._dk)
@@ -160,8 +160,137 @@ end function NORMFACT
 
 
 
+subroutine PINES_NSG(GM,RE,rIn,F,pot,dPot)
+! Description:
+!    Compute the perturbing acceleration, perturbing potential (optional), and
+!    time derivative of the perturbing potential in the body-fixed frame
+!    (optional), given the position vector wrt the non-spherical body, its
+!    gravitational parameter and its potential coefficients.
+!    Uses the method described in the Reference to perform the calculation in
+!    Cartesian coordinates, thereby avoiding associated Legendre functions and
+!    polynomials. The formulation is non-singular everywhere for r > RE, where
+!    RE is the radius of the non-spherical body.
+! 
+!    Adapted from code developed by Ho dei Urrutxua (Universidad Rey Juan Carlos,
+!    Madrid, Spain) and Claudio Bombardelli (Universidad Politécnica de Madrid,
+!    Madrid, Spain).
+! 
+! Author:
+!    Davide Amato
+!    The University of Arizona
+!    davideamato@email.arizona.edu
+! 
+! Reference:
+!    S. Pines, "Uniform Representation of the Gravitational Potential and its
+!    derivatives," AIAA J. 11 (11), pp. 1508-1511, 1973.
+! 
+! Revisions:
+!
+! ==============================================================================
 
-function POT_NSG(GM,RE,Clm,Slm,r,rm,t)
+! Use associations
+use AUXILIARIES, only: MJD0,TU
+use PHYS_CONST,  only: GMST_UNIFORM
+
+! Arguments
+real(dk),intent(in)   ::  GM             ! Gravitational parameter
+real(dk),intent(in)   ::  RE             ! Equatorial radius
+real(dk),intent(in)   ::  rIn(1:3)       ! Position in the inertial frame
+real(dk),intent(out)  ::  F(1:3)         ! Perturbing acceleration
+real(dk),intent(out),optional  ::  pot   ! Perturbing potential
+real(dk),intent(out),optional  ::  dPot  ! Time derivative of the potential in body-fixed frame
+! Locals
+real(dk)  ::  rNorm,rNormSq  ! Norm of position vector and square
+real(dk)  ::  rEqNorm ! Norm of projection of position vector on equatorial frame
+real(dk)  ::  cosRA,sinRA ! Direction cosines in the inertial frame
+real(dk)  ::  s,t,u  ! Direction cosines in the body-fixed frame
+real(dk)  ::  MJD_TT ! MJD in Terrestrial Time
+real(dk)  ::  ERA,cosERA,sinERA    ! Earth Rotation Angle and its trig functions
+real(dk)  ::  rho    ! = equatorial radius / r 
+integer   ::  n,m    ! Harmonic indices
+
+! ==============================================================================
+
+rNormSq = dot_product(rIn,rIn)
+rNorm = sqrt(rNormSq)
+rEqNorm = sqrt(rNormSq - rIn(3)**2)
+
+! ==============================================================================
+! 01. Transform from inertial to body-fixed frame
+! ==============================================================================
+
+! z_Inertial = z_Body (main body rotates along this axis)
+u = rIn(3)/rNorm
+
+! Direction cosines in the inertial frame
+cosRA = rIn(1)/rEqNorm
+sinRA = rIn(2)/rEqNorm
+
+! Get Earth Rotation Angle 
+MJD_TT = MJD0 + t/TU/secsPerDay ! NOTE: This will have to be modified to compute UT1 from TT in a next version.
+ERA = GMST_UNIFORM(MJD_TT)
+cosERA = cos(ERA); sinERA = sin(ERA)
+
+! Direction cosines in the body-fixed frame
+s = cosRA * cosERA + sinRA * sinERA
+t = sinRA * cosERA - cosRA * sinERA
+
+rho = RE/rNorm
+
+! ==============================================================================
+! 02. Fill in coefficient matrices and auxiliary vectors
+! ==============================================================================
+
+! Fill A Matrix
+Anm(0,0) = 1._dk
+Anm(1,1) = 1._dk
+Anm(1,0) = u
+do n = 1, gdeg + 1
+  Anm(n+1,n+1) = Aux1(n) * Anm(n,n) ! Fill the diagonal
+  Anm(n+1,0) = Aux2(n) * u * Anm(n,0) - Aux3(n) * Anm(n-1,0) ! Fill the 1st column
+  Anm(n+1,n) = u * Anm(n+1,n+1)    ! Fill the subdiagonal
+
+end do
+do n = 2, gdeg + 1 ! Fill remaining elements
+  do m = 0, n - 2
+    Anm(n+1,m+1) = Aux4(n,m) * Anm(n,m) + u * Anm(n,m+1)
+  end do
+
+end do
+
+! Fill R, I, and P vectors
+Rl(0) = 1._dk
+Il(0) = 0._dk
+Pl(0) = GM / rNorm
+Pl(1) = rho * Pl(0)
+do n = 1, gdeg
+  Rl(n)   = s  * Rl(n-1) - t * Il(n-1)
+  Il(n)   = s  * Il(n-1) + t * Rl(n-1)
+  Pl(n+1) = rho * Pl(n)
+
+end do
+
+! Fill D, E, and F matrices
+do m = 1, gord
+  do n = m, gord
+    Dnm(n,m) = Cnm(n,m)*Rl(m)   + Snm(n,m)*Il(m)
+    Enm(n,m) = Cnm(n,m)*Rl(m-1) + Snm(n,m)*Il(m-1)
+    Fnm(n,m) = Snm(n,m)*Rl(m-1) - Cnm(n,m)*Il(m-1)
+
+  end do
+
+end do
+do n = 1, gdeg
+  Dnm(n,0) = Cnm(n,0)*Rl(0)  !+ S(n,0)*I(0) = 0
+
+end do
+
+
+end subroutine PINES_NSG
+
+
+
+function POT_NSG(GM,RE,Cnm,Snm,r,rm,t)
 ! Perturbing potential due to the non-spherical gravity field up
 ! to degree 'deg' and order 'ord'.
 ! Pay attention to the sign convention! This subroutine computes:
@@ -181,8 +310,8 @@ real(dk),intent(in)  ::  r(1:3)                             ! Radius vector
 real(dk),intent(in)  ::  rm                                 ! Radius magnitude
 real(dk),intent(in)  ::  t                                  ! Time (ALWAYS DIMENSIONLESS)
 real(dk),intent(in)  ::  GM,RE                              ! Planet constants
-real(qk),intent(in)  ::  Clm(1:maxDeg,0:maxOrd)             ! Grav coefficients
-real(qk),intent(in)  ::  Slm(1:maxDeg,0:maxOrd)             ! Grav coefficients
+real(qk),intent(in)  ::  Cnm(1:maxDeg,0:maxOrd)             ! Grav coefficients
+real(qk),intent(in)  ::  Snm(1:maxDeg,0:maxOrd)             ! Grav coefficients
 ! Function definition
 real(dk)  ::  POT_NSG
 ! Locals
@@ -240,7 +369,7 @@ do l = gdeg,2,-1
 	insum = 0._dk
 	mmax = minval([l,gord])
 	do m=mmax,0,-1
-		insum = insum + Plm(l,m)*(Clm(l,m)*CLAM(m) + Slm(l,m)*SLAM(m))
+		insum = insum + Plm(l,m)*(Cnm(l,m)*CLAM(m) + Snm(l,m)*SLAM(m))
 	end do
 	outsum = outsum + (RE/rm)**l*insum
 end do
@@ -297,7 +426,7 @@ end function ACC_NSG
 
 
 
-function POTPAR(GM,RE,Clm,Slm,r,rm,t)
+function POTPAR(GM,RE,Cnm,Snm,r,rm,t)
 ! Description:
 !    Compute the partials of the non-spherical perturbing gravitational
 !    potential in spherical coordinates.
@@ -318,8 +447,8 @@ real(dk),intent(in)  ::  RE			               ! Equatorial radius
 real(dk),intent(in)  ::  r(1:3)		               ! Position vector in inertial frame
 real(dk),intent(in)  ::  rm		                   ! Position vector magnitude
 real(dk),intent(in)  ::  t                         ! Current time
-real(qk),intent(in)  ::  Clm(1:maxDeg,0:maxOrd)    ! Grav coefficients
-real(qk),intent(in)  ::  Slm(1:maxDeg,0:maxOrd)    ! Grav coefficients
+real(qk),intent(in)  ::  Cnm(1:maxDeg,0:maxOrd)    ! Grav coefficients
+real(qk),intent(in)  ::  Snm(1:maxDeg,0:maxOrd)    ! Grav coefficients
 ! Function definition
 real(dk)	::	POTPAR(1:3)
 
@@ -402,7 +531,7 @@ do l=gdeg,2,-1
 	insum = 0._dk
 	mmax = minval([l,gord])
 	do m=mmax,0,-1
-		insum = insum + PLexp(l,m)*(Clm(l,m)*clam(m) + Slm(l,m)*slam(m))
+		insum = insum + PLexp(l,m)*(Cnm(l,m)*clam(m) + Snm(l,m)*slam(m))
 	end do
 	outsum = outsum + (REr**l)*(l+1)*insum
 end do
@@ -418,7 +547,7 @@ do l=gdeg,2,-1
 	mmax = minval([l,gord])
 	do m=mmax,0,-1
 		insum = insum + &
-		(PLexp(l,m+1) - m*tanph*PLexp(l,m))*(Clm(l,m)*clam(m) + Slm(l,m)*slam(m))
+		(PLexp(l,m+1) - m*tanph*PLexp(l,m))*(Cnm(l,m)*clam(m) + Snm(l,m)*slam(m))
 	end do
 	outsum = outsum + (REr**l)*insum
 end do
@@ -433,7 +562,7 @@ do l=gdeg,2,-1
 	insum = 0._dk
 	mmax = minval([l,gord])
 	do m=mmax,0,-1
-		insum = insum + m*PLexp(l,m)*(Slm(l,m)*clam(m) - Clm(l,m)*slam(m))
+		insum = insum + m*PLexp(l,m)*(Snm(l,m)*clam(m) - Cnm(l,m)*slam(m))
 	end do
 	outsum = outsum + (REr**l)*insum
 end do
