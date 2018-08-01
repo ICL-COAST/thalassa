@@ -1,6 +1,10 @@
 module EDROMO
 ! Description:
-!    Contains subroutines necessary for the EDromo formulation.
+!    Contains procedures necessary for the EDromo formulation. The procedures
+!    evaluate the right-hand side of the equations (EDROMO_RHS), provide an
+!    event function for LSODAR (EDROMO_EVT), provide coordinate and time
+!    transformations (EDROMO_TE2TIME, CART2EDROMO, EDROMO2CART,
+!    INERT2ORB_EDROMO), and compute auxiliary quantities (EDROMO_PHI0).
 !
 ! References:
 ! [1] Baù, G., Bombardelli, C., Peláez, J., and Lorenzini, E., "Nonsingular
@@ -10,7 +14,13 @@ module EDROMO
 ! Author:
 !    Davide Amato
 !    Space Dynamics Group - Technical University of Madrid
+!    The University of Arizona
 !    davideamato@email.arizona.edu
+! 
+! Revisions:
+!    180801: change call to perturbation routine, PERT_EJ2K. Eliminate use
+!            association with PHYS_CONST in EDROMO_RHS. Refine comments to the
+!            module.
 !
 ! ==============================================================================
 
@@ -39,13 +49,14 @@ subroutine EDROMO_RHS(neq,phi,z,zdot)
 !
 ! Revisions:
 !     180608: change interface to PACC_EJ2K to add iF107.
+!     180801: change call to perturbation routine, PERT_EJ2K. Eliminate use
+!             association with PHYS_CONST.
 !
 ! ==============================================================================
 
 ! MODULES
 use SETTINGS,      only: eqs,insgrav,isun,imoon,idrag,iSRP,iF107
-use PHYS_CONST,    only: GE_nd,RE_nd,ERR_constant_nd
-use PERTURBATIONS, only: PPOTENTIAL,PACC_EJ2K
+use PERTURBATIONS, only: PPOTENTIAL,PERT_EJ2K
 
 ! VARIABLES
 implicit none
@@ -73,7 +84,6 @@ real(dk)    ::  cosg,sing
 
 ! Perturbations
 real(dk)    ::  Upot,dUdr(1:3),dUdt  ! Perturbing potential and its derivatives
-real(dk)    ::  gradU_sph(1:3)
 real(dk)    ::  f(1:3),p(1:3)        ! Total and non-conservative perturbing accelerations
 
 ! ==============================================================================
@@ -148,14 +158,17 @@ end if
 ! 03. PERTURBING POTENTIAL
 ! ==============================================================================
 
-! Initialize
+! ! Initialize
+! Upot = 0._dk; dUdt = 0._dk; dUdr = 0._dk
+! ! Evaluate potential
+! Upot = PPOTENTIAL(insgrav,GE_nd,RE_nd,rV,rmag,t)
+! ! Evaluate time and spatial derivatives (note that velocity is not needed here)
+! dUdr = PERT_EJ2K(insgrav,0,0,0,0,0,rV,vV,rmag,t,gradU_sph)
+! dUdr = INERT2ORB_EDROMO(dUdr,z,cnu,snu)
+! dUdt = gradU_sph(3)*ERR_constant_nd
 Upot = 0._dk; dUdt = 0._dk; dUdr = 0._dk
-! Evaluate potential
-Upot = PPOTENTIAL(insgrav,GE_nd,RE_nd,rV,rmag,t)
-! Evaluate time and spatial derivatives (note that velocity is not needed here)
-dUdr = PACC_EJ2K(insgrav,0,0,0,0,0,rV,vV,rmag,t,gradU_sph)
+call PERT_EJ2K(insgrav,0,0,0,0,0,rV,vV,rmag,t,dUdr,Upot,dUdt)
 dUdr = INERT2ORB_EDROMO(dUdr,z,cnu,snu)
-dUdt = gradU_sph(3)*ERR_constant_nd
 
 ! ==============================================================================
 ! 04. VELOCITY IN THE INERTIAL FRAME
@@ -176,7 +189,8 @@ cosg = v_rad/vmag; sing = v_tan/vmag
 
 ! Initializations
 p = 0._dk; f = 0._dk
-p = PACC_EJ2K(0,isun,imoon,idrag,iF107,iSRP,rV,vV,rmag,t)
+! p = PERT_EJ2K(0,isun,imoon,idrag,iF107,iSRP,rV,vV,rmag,t)
+call PERT_EJ2K(0,isun,imoon,idrag,iF107,iSRP,rV,vV,rmag,t,p)
 p = INERT2ORB_EDROMO(p,z,cnu,snu)
 
 ! ==============================================================================

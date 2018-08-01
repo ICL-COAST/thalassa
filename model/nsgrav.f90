@@ -171,7 +171,7 @@ subroutine PINES_NSG(GM,RE,rIn,F,pot,dPot)
 !    polynomials. The formulation is non-singular everywhere for r > RE, where
 !    RE is the radius of the non-spherical body.
 ! 
-!    Adapted from code developed by Ho dei Urrutxua (Universidad Rey Juan Carlos,
+!    Adapted from code developed by Hodei Urrutxua (Universidad Rey Juan Carlos,
 !    Madrid, Spain) and Claudio Bombardelli (Universidad Politécnica de Madrid,
 !    Madrid, Spain).
 ! 
@@ -290,7 +290,7 @@ do n = 1, gdeg
 end do
 
 ! ==============================================================================
-! 03. Calculate perturbing function
+! 03. Perturbing potential
 ! ==============================================================================
 
 if (present(pot)) then
@@ -311,7 +311,7 @@ if (present(pot)) then
 end if
 
 ! ==============================================================================
-! 04. Calculate perturbing acceleration
+! 04. Perturbing acceleration
 ! ==============================================================================
 
 if (present(F)) then
@@ -335,6 +335,14 @@ if (present(F)) then
   ! F = F * 1.E3_dk -> should not dimensionalize
 end if
 
+! ==============================================================================
+! 05. Time derivative of potential in body-fixed frame
+! ==============================================================================
+
+if(present(dPot)) then
+    dPot = 0._dk
+
+end if
 
 end subroutine PINES_NSG
 

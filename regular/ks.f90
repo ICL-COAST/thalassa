@@ -1,10 +1,13 @@
 module KUST_STI
 ! Description:
-!    Contains the subroutines necessary for the Kustaanheimo-Stiefel
-!    formulation.
+!    Contains the procedures necessary for the Kustaanheimo-Stiefel
+!    formulation. The procedures evaluate the right-hand side of the KS
+!    equations (KS_RHS), provide the event function for LSODAR (KS_EVT),
+!    provide coordinate and time transformations (KS_TE2TIME, KS2CART, CART2KS),
+!    and compute auxiliary quantities (KS2MAT).
 ! 
 ! References:
-! [1] Stiefel, E. L. and Scheifele, G. "Linear and Regular Celestial Mechanics",
+!    [1] Stiefel, E. L. and Scheifele, G. "Linear and Regular Celestial Mechanics",
 !     Springer-Verlag, 1971.
 !
 ! Author:
@@ -14,7 +17,9 @@ module KUST_STI
 !    davideamato@email.arizona.edu
 !
 ! Revisions:
-!     180608: change interface to PACC_EJ2K to add iF107.
+!    180608: change interface to PERT_EJ2K to add iF107.
+!    180801: change call to perturbation routine, PERT_EJ2K. Eliminate needless
+!            use associations. Refine comments.
 !
 ! ==============================================================================
 
@@ -46,14 +51,16 @@ subroutine KS_RHS(neq,s,u,udot)
 !    davideamato@email.arizona.edu
 !
 ! Revisions:
-!     180608: change interface to PACC_EJ2K to add iF107.
+!    180608: change interface to PERT_EJ2K to add iF107.
+!    180801: change call to perturbation routine, PERT_EJ2K. Eliminate needless
+!            use associations.
 !
 ! ==============================================================================
 
 ! MODULES
-use PHYS_CONST,    only: GE_nd,RE_nd,ERR_constant_nd
+use PHYS_CONST,    only: GE_nd
 use SETTINGS,      only: eqs,insgrav,isun,imoon,idrag,iF107,iSRP
-use PERTURBATIONS, only: PPOTENTIAL,PACC_EJ2K
+use PERTURBATIONS, only: PPOTENTIAL,PERT_EJ2K
 
 ! VARIABLES
 implicit none
@@ -74,7 +81,6 @@ real(dk)    ::  F(1:4)               ! Total perturbation
 real(dk)    ::  P(1:4)               ! Non-potential part
 real(dk)    ::  Vpot                 ! Perturbing potential (dimensionless)
 real(dk)    ::  mdVdr(1:4),dVdt      ! Partial derivatives of the potential
-real(dk)    ::  gradV_sph(1:3)       ! Gradient of V in spherical coordinates
 !real(dk)    ::  rVpot               ! Perturbing potential term
 !real(dk)    ::  drVdu(1:4)          ! Derivatives of the perturbing potential term
 ! -- Misc
@@ -102,17 +108,20 @@ t = KS_TE2TIME(u,flag_time)
 ! 02. POTENTIAL PERTURBATIONS
 ! ==============================================================================
 
+! Vpot = 0._dk; mdVdr = 0._dk; dVdt = 0._dk
+! Vpot = PPOTENTIAL(insgrav,GE_nd,RE_nd,x(1:3),rmag,t)
+! mdVdr(1:3) = PERT_EJ2K(insgrav,0,0,0,0,0,x(1:3),xdot(1:3),rmag,t,gradV_sph)
+! dVdt = gradV_sph(3) * ERR_constant_nd
 Vpot = 0._dk; mdVdr = 0._dk; dVdt = 0._dk
-Vpot = PPOTENTIAL(insgrav,GE_nd,RE_nd,x(1:3),rmag,t)
-mdVdr(1:3) = PACC_EJ2K(insgrav,0,0,0,0,0,x(1:3),xdot(1:3),rmag,t,gradV_sph)
-dVdt = gradV_sph(3) * ERR_constant_nd
+call PERT_EJ2K(insgrav,0,0,0,0,0,x(1:3),xdot(1:3),rmag,t,mdVdr(1:3),Vpot,dVdt)
 
 ! ==============================================================================
 ! 03. NON-POTENTIAL PERTURBATIONS
 ! ==============================================================================
 
 P = 0._dk
-P(1:3) = PACC_EJ2K(0,isun,imoon,idrag,iF107,iSRP,x(1:3),xdot(1:3),rmag,t)
+! P(1:3) = PERT_EJ2K(0,isun,imoon,idrag,iF107,iSRP,x(1:3),xdot(1:3),rmag,t)
+call PERT_EJ2K(0,isun,imoon,idrag,iF107,iSRP,x(1:3),xdot(1:3),rmag,t,P(1:3))
 F = mdVdr + P; 
 
 ! ==============================================================================

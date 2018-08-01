@@ -1,6 +1,8 @@
 module COWELL
 ! Description:
-!    Contains procedures necessary to integrate the Cowell formulation.
+!    Contains procedures necessary to integrate the Cowell formulation. The
+!    procedures evaluate the right-hand side of the Cowell equations (COWELL_RHS)
+!    and provide an event function for LSODAR (COWELL_EVT).
 !
 ! Author:
 !    Davide Amato
@@ -9,7 +11,9 @@ module COWELL
 !    davideamato@email.arizona.edu
 !
 ! Revisions:
-!     180608: change interface to PACC_EJ2K to add iF107.
+!    180608: change interface to PERT_EJ2K to add iF107.
+!    180801: change call to perturbation routine, PERT_EJ2K. Eliminate needless
+!            use associations. Refine comments.
 !
 ! ==============================================================================
 
@@ -31,14 +35,15 @@ subroutine COWELL_RHS(neq,t,y,ydot)
 !    davideamato@email.arizona.edu
 !
 ! Revisions:
-!     180608: change interface to PACC_EJ2K to add iF107.
+!    180608: change interface to PERT_EJ2K to add iF107.
+!    180801: change call to perturbation routine, PERT_EJ2K. Eliminate needless
+!            use associations.
 !
 ! ==============================================================================
 
 ! MODULES
-use AUXILIARIES,   only: DU,TU
 use SETTINGS,      only: insgrav,isun,imoon,idrag,iSRP,iF107
-use PERTURBATIONS, only: PACC_EJ2K
+use PERTURBATIONS, only: PERT_EJ2K
 
 ! VARIABLES
 implicit none
@@ -62,7 +67,8 @@ rMag = sqrt(dot_product(y(1:3),y(1:3)))
 ! ==============================================================================
 
 p_EJ2K = 0._dk
-p_EJ2K = PACC_EJ2K(insgrav,isun,imoon,idrag,iF107,iSRP,y(1:3),y(4:6),rMag,t)
+! p_EJ2K = PERT_EJ2K(insgrav,isun,imoon,idrag,iF107,iSRP,y(1:3),y(4:6),rMag,t)
+call PERT_EJ2K(insgrav,isun,imoon,idrag,iF107,iSRP,y(1:3),y(4:6),rMag,t,p_EJ2K)
 
 ! ==============================================================================
 ! 02. EVALUATE RIGHT-HAND SIDE

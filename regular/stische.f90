@@ -1,9 +1,14 @@
 module STI_SCHE
 ! Description:
-!    Contains subroutines necessary for the Stiefel-Scheifele formulation.
+!    Contains procedures necessary for the Stiefel-Scheifele formulation. The
+!    procedures evaluate the right-hand-side of the Stiefel-Scheifele equations
+!    (STISCHE_RHS), provide an event function for LSODAR (STISCHE_EVT), and
+!    provide coordinate and time transformations (STISCHE_TE2TIME, STISCHE2CART,
+!    CART2STISCHE).
 !
 ! References:
-! [1] Stiefel & Scheifele, "Linear and Regular Celestial Mechanics", 1971
+!    [1] Stiefel, E. L. and Scheifele, G. "Linear and Regular Celestial Mechanics",
+!     Springer-Verlag, 1971.
 !
 ! Author:
 !    Davide Amato
@@ -12,8 +17,10 @@ module STI_SCHE
 !    davideamato@email.arizona.edu
 !
 ! Revisions:
-!     180608: change interface to PACC_EJ2K to add iF107.
-!
+!     180608: change interface to PERT_EJ2K to add iF107.
+!     180801: change call to perturbation routine, PERT_EJ2K. Eliminate needless
+!             use associations. Refine comments.
+!      
 ! ==============================================================================
 
 use KINDS, only: dk
@@ -39,14 +46,16 @@ subroutine STISCHE_RHS(neq,phi,z,zdot)
 !    davideamato@email.arizona.edu
 !
 ! Revisions:
-!     180608: change interface to PACC_EJ2K to add iF107.
+!     180608: change interface to PERT_EJ2K to add iF107.
+!     180801: change call to perturbation routine, PERT_EJ2K. Eliminate needless
+!             use associations.
 !
 ! ==============================================================================
 
 ! ! MODULES
 use SETTINGS,      only: eqs,insgrav,isun,imoon,idrag,iF107,iSRP
-use PHYS_CONST,    only: GE_nd,RE_nd,ERR_constant_nd
-use PERTURBATIONS, only: PPOTENTIAL,PACC_EJ2K
+use PHYS_CONST,    only: GE_nd
+use PERTURBATIONS, only: PPOTENTIAL,PERT_EJ2K
 
 ! VARIABLES
 implicit none
@@ -73,7 +82,6 @@ real(dk)  ::  rmag,vsq
 
 ! Perturbations
 real(dk)  ::  Vpot,mdVdr(1:3),dVdu(1:4),dVdt  ! Perturbing potential and its derivatives
-real(dk)  ::  gradV_sph(1:3)
 real(dk)  ::  p(1:3),Lp(1:4)             ! Non-conservative perturbing accelerations
 
 ! ==============================================================================
@@ -130,13 +138,17 @@ end if
 ! 03. PERTURBING POTENTIAL
 ! ==============================================================================
 
+! ! Initialize
+! Vpot = 0._dk; dVdt = 0._dk; mdVdr = 0._dk
+! ! Evaluate potential
+! Vpot = PPOTENTIAL(insgrav,GE_nd,RE_nd,rV,rmag,t)
+! ! Evaluate time and spatial derivatives (note that velocity is not needed here)
+! mdVdr = PERT_EJ2K(insgrav,0,0,0,0,0,rV,vV,rmag,t,gradV_sph)
+! dVdt = gradV_sph(3)*ERR_constant_nd
 ! Initialize
 Vpot = 0._dk; dVdt = 0._dk; mdVdr = 0._dk
-! Evaluate potential
-Vpot = PPOTENTIAL(insgrav,GE_nd,RE_nd,rV,rmag,t)
-! Evaluate time and spatial derivatives (note that velocity is not needed here)
-mdVdr = PACC_EJ2K(insgrav,0,0,0,0,0,rV,vV,rmag,t,gradV_sph)
-dVdt = gradV_sph(3)*ERR_constant_nd
+! Evaluate potential perturbations
+call PERT_EJ2K(insgrav,0,0,0,0,0,rV,vV,rmag,t,mdVdr,Vpot,dVdt)
 
 ! ==============================================================================
 ! 04. PERTURBING ACCELERATIONS
@@ -144,7 +156,8 @@ dVdt = gradV_sph(3)*ERR_constant_nd
 
 ! Initializations
 p = 0._dk
-p = PACC_EJ2K(0,isun,imoon,idrag,iF107,iSRP,rV,vV,rmag,t)
+! p = PERT_EJ2K(0,isun,imoon,idrag,iF107,iSRP,rV,vV,rmag,t)
+call PERT_EJ2K(0,isun,imoon,idrag,iF107,iSRP,rV,vV,rmag,t,p)
 
 ! ==============================================================================
 ! 05. COMPUTE AUXILIARY QUANTITIES (2)
@@ -163,7 +176,7 @@ dVdu = -2._dk*[u(1)*mdVdr(1) + u(2)*mdVdr(2) + u(3)*mdVdr(3),  &
                u(4)*mdVdr(1) - u(3)*mdVdr(2) + u(2)*mdVdr(3)]
 
 ! ==============================================================================
-! 07. COMPUTE RIGHT-HAND SIDE
+! 06. COMPUTE RIGHT-HAND SIDE
 ! ==============================================================================
 
 ! Eq. (19,61)

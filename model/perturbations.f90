@@ -64,7 +64,7 @@ end function
 
 
 
-function PACC_EJ2K(insgrav,isun,imoon,idrag,iF107,iSRP,r,v,rm,t,gradU_sph_out)
+subroutine PERT_EJ2K(insgrav,isun,imoon,idrag,iF107,iSRP,r,v,rm,t,P_EJ2K,pot,dPot)
 ! Description:
 !    Computes the perturbing acceleration in the EMEJ2000 frame due to a non-sph
 !    gravity field, Sun and Moon, drag and solar radiation pressure.
@@ -98,11 +98,10 @@ real(dk),intent(in)  ::  t                   ! Time (dimensionless)
 integer,intent(in)   ::  insgrav,isun        ! Perturbation flags
 integer,intent(in)   ::  imoon,idrag,iSRP    ! More perturbation flags
 integer,intent(in)   ::  iF107               ! F107 flag
-! OPTIONAL OUTPUT: gradient of potential in sph. coordinates, used by
-! EDromo right-hand-side.
-real(dk),optional,intent(out)  ::  gradU_sph_out(1:3)
-! Function definition
-real(dk)            ::  PACC_EJ2K(1:3)
+! Perturbing acceleration
+real(dk),intent(out)           ::  P_EJ2K(1:3)
+! Perturbing potential and its time derivative
+real(dk),optional,intent(out)  ::  pot,dPot
 ! LOCALS
 ! Non-spherical gravity
 real(dk)  ::  gradU_sph(1:3)
@@ -144,30 +143,43 @@ external iau_GC2GDE
 
 ! ==============================================================================
 
-PACC_EJ2K = 0._dk
+P_EJ2K = 0._dk
 
 ! ==============================================================================
-! 01. NON-SPHERICAL GRAVITY
+! 01. Potential perturbations
 ! ==============================================================================
 
-gradU_sph = 0._dk; p_nsg = 0._dk
+! gradU_sph = 0._dk; p_nsg = 0._dk
+! if (insgrav /= 0) then
+!   ! Compute the potential and its derivatives in non-dimensional units.
+!   ! EARTH
+!   gradU_sph = POTPAR(GE_nd,RE_nd,Cnm,Snm,r,rm,t)
+!   p_nsg     = ACC_NSG(r,rm,gradU_sph)
+
+! end if
+
+! P_EJ2K = p_nsg + P_EJ2K
+! if (present(gradU_sph_out)) then
+!   ! Save gradient of U in spherical coordinates if present
+!   gradU_sph_out = gradU_sph
+
+! end if
+p_nsg = 0._dk
 if (insgrav /= 0) then
-  ! Compute the potential and its derivatives in non-dimensional units.
-  ! EARTH
-  gradU_sph = POTPAR(GE_nd,RE_nd,Cnm,Snm,r,rm,t)
-  p_nsg     = ACC_NSG(r,rm,gradU_sph)
+  if (present(pot) .and. present(dPot)) then
+    pot = 0._dk; dPot = 0._dk
+    call PINES_NSG(GE_nd,RE_nd,r,p_nsg,pot,dPot)
+  
+  else
+    call PINES_NSG(GE_nd,RE_nd,r,p_nsg)
 
+  end if
 end if
 
-PACC_EJ2K = p_nsg + PACC_EJ2K
-if (present(gradU_sph_out)) then
-  ! Save gradient of U in spherical coordinates if present
-  gradU_sph_out = gradU_sph
-
-end if
+P_EJ2K = P_EJ2K + p_nsg
 
 ! ==============================================================================
-! 02. LUNISOLAR PERTURBATIONS
+! 02. Lunisolar perturbations
 ! ==============================================================================
 
 p_sun = 0._dk; p_moon = 0._dk
@@ -185,10 +197,10 @@ if (imoon /= 0 ) then
 
 end if
 
-PACC_EJ2K = p_sun + p_moon + PACC_EJ2K
+P_EJ2K = p_sun + p_moon + P_EJ2K
 
 ! ==============================================================================
-! 03. ATMOSPHERIC DRAG
+! 03. Atmospheric drag
 ! ==============================================================================
 ! NOTE:
 ! Currently, the following approximations are made in the computation of the
@@ -297,10 +309,10 @@ if (idrag /= 0 .and. h_D <= cutoff_height) then
 
 end if
 
-PACC_EJ2K = p_drag + PACC_EJ2K
+P_EJ2K = p_drag + P_EJ2K
 
 ! ==============================================================================
-! 04. SOLAR RADIATION PRESSURE
+! 04. Solar radiation pressure
 ! ==============================================================================
 
 p_SRP = 0._dk
@@ -315,9 +327,9 @@ if (iSRP /= 0) then
   p_SRP = p_SRP/((DU*1.E3_dk)*TU**2)
 
 end if
-PACC_EJ2K = p_SRP + PACC_EJ2K
+P_EJ2K = p_SRP + P_EJ2K
 
-end function PACC_EJ2K
+end subroutine PERT_EJ2K
 
 
 
