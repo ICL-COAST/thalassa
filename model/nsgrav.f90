@@ -14,7 +14,7 @@ integer               ::  maxDeg, maxOrd
 real(qk),allocatable  ::  Cnm(:,:),Snm(:,:)
 
 ! Pines algorithm matrices
-real(dk),allocatable  ::  Anm(:,:),Dnm(:,:),Enm(:,:),Fnm(:,:),Rl(:),Il(:),Pl(:)
+real(dk),allocatable  ::  Anm(:,:),Dnm(:,:),Enm(:,:),Fnm(:,:),Rm(:),Im(:),Pn(:)
 real(dk),allocatable  ::  Aux1(:),Aux2(:),Aux3(:),Aux4(:,:)
 
 contains
@@ -71,9 +71,9 @@ allocate(Anm(0:maxDeg+2, 0:maxDeg+2))
 allocate(Dnm(1:maxDeg,   0:maxDeg))
 allocate(Enm(1:maxDeg,   1:maxDeg))
 allocate(Fnm(1:maxDeg,   1:maxDeg))
-allocate(Rl(0:maxDeg)    )
-allocate(Il(0:maxDeg)    )
-allocate(Pl(0:maxDeg + 1))
+allocate(Rm(0:maxDeg)    )
+allocate(Im(0:maxDeg)    )
+allocate(Pn(0:maxDeg + 1))
 allocate(Aux1(1:maxDeg+1))
 allocate(Aux2(1:maxDeg+1))
 allocate(Aux3(1:maxDeg+1))
@@ -196,7 +196,7 @@ use PHYS_CONST,  only: GMST_UNIFORM
 real(dk),intent(in)   ::  GM             ! Gravitational parameter
 real(dk),intent(in)   ::  RE             ! Equatorial radius
 real(dk),intent(in)   ::  rIn(1:3)       ! Position in the inertial frame
-real(dk),intent(out)  ::  F(1:3)         ! Perturbing acceleration
+real(dk),intent(out),optional  ::  F(1:3)         ! Perturbing acceleration
 real(dk),intent(out),optional  ::  pot   ! Perturbing potential
 real(dk),intent(out),optional  ::  dPot  ! Time derivative of the potential in body-fixed frame
 ! Locals
@@ -207,6 +207,7 @@ real(dk)  ::  s,t,u  ! Direction cosines in the body-fixed frame
 real(dk)  ::  MJD_TT ! MJD in Terrestrial Time
 real(dk)  ::  ERA,cosERA,sinERA    ! Earth Rotation Angle and its trig functions
 real(dk)  ::  rho    ! = equatorial radius / r 
+real(dk)  ::  a1,a2,a3,a4  ! Acceleration components 
 integer   ::  n,m    ! Harmonic indices
 
 ! ==============================================================================
@@ -242,6 +243,7 @@ rho = RE/rNorm
 ! ==============================================================================
 
 ! Fill A Matrix
+! TODO: Reduce the number of calculations if gord < gdeg.
 Anm(0,0) = 1._dk
 Anm(1,1) = 1._dk
 Anm(1,0) = u
@@ -259,34 +261,83 @@ do n = 2, gdeg + 1 ! Fill remaining elements
 end do
 
 ! Fill R, I, and P vectors
-Rl(0) = 1._dk
-Il(0) = 0._dk
-Pl(0) = GM / rNorm
-Pl(1) = rho * Pl(0)
+Rm(0) = 1._dk
+Im(0) = 0._dk
+Pn(0) = GM / rNorm
+Pn(1) = rho * Pn(0)
 do n = 1, gdeg
-  Rl(n)   = s  * Rl(n-1) - t * Il(n-1)
-  Il(n)   = s  * Il(n-1) + t * Rl(n-1)
-  Pl(n+1) = rho * Pl(n)
+  Rm(n)   = s  * Rm(n-1) - t * Im(n-1)
+  Im(n)   = s  * Im(n-1) + t * Rm(n-1)
+  Pn(n+1) = rho * Pn(n)
 
 end do
 
 ! Fill D, E, and F matrices
+! TODO: add auxiliary matrix for the time derivative of pot.
+! TODO: avoid computing E, F when the acceleration is not requested.
 do m = 1, gord
   do n = m, gord
-    Dnm(n,m) = Cnm(n,m)*Rl(m)   + Snm(n,m)*Il(m)
-    Enm(n,m) = Cnm(n,m)*Rl(m-1) + Snm(n,m)*Il(m-1)
-    Fnm(n,m) = Snm(n,m)*Rl(m-1) - Cnm(n,m)*Il(m-1)
+    Dnm(n,m) = Cnm(n,m)*Rm(m)   + Snm(n,m)*Im(m)
+    Enm(n,m) = Cnm(n,m)*Rm(m-1) + Snm(n,m)*Im(m-1)
+    Fnm(n,m) = Snm(n,m)*Rm(m-1) - Cnm(n,m)*Im(m-1)
 
   end do
 
 end do
 do n = 1, gdeg
-  Dnm(n,0) = Cnm(n,0)*Rl(0)  !+ S(n,0)*I(0) = 0
+  Dnm(n,0) = Cnm(n,0)*Rm(0)  !+ S(n,0)*I(0) = 0
 
 end do
 
+! ==============================================================================
+! 03. Calculate perturbing function
+! ==============================================================================
+
+if (present(pot)) then
+  pot = 0._dk
+  do m = 1, gord
+    do n = m, gord
+      pot = pot + Pn(n) * Anm(n,m) * Dnm(n,m)
+		
+    end do
+	
+  end do
+  do n = 1, gdeg
+	pot = pot + Pn(n) * Anm(n,0) * Dnm(n,0)
+	
+  end do
+  ! pot = pot + Pn(0) -> avoid this since we are only computing the perturbing potential
+  ! pot = - 1.E-6_dk * pot -> non-dimensionalization is not needed necessarily
+end if
+
+! ==============================================================================
+! 04. Calculate perturbing acceleration
+! ==============================================================================
+
+if (present(F)) then
+  a1 = 0._dk; a2 = 0._dk; a3 = 0._dk; a4 = 0._dk
+  do m = 1, gord
+    do n = m, gord
+      a1 = a1 + Pn(n+1) * Anm(n,m) * m * Enm(n,m)
+      a2 = a2 + Pn(n+1) * Anm(n,m) * m * Fnm(n,m)
+      a3 = a3 + Pn(n+1) * Anm(n,m+1)   * Dnm(n,m)
+      a4 = a4 - Pn(n+1) * Anm(n+1,m+1) * Dnm(n,m)
+    end do
+  end do
+  do n = 1, gord
+    a3 = a3 + Pn(n+1) * Anm(n,1)     * Dnm(n,0)
+    a4 = a4 - Pn(n+1) * Anm(n+1,1)   * Dnm(n,0)
+
+  end do
+  F = [a1, a2, a3] + [s, t, u] * a4
+  F = F / RE
+  ! F = F - Pn(0) * [s, t, u] / rNorm -> should not add the Keplerian term
+  ! F = F * 1.E3_dk -> should not dimensionalize
+end if
+
 
 end subroutine PINES_NSG
+
 
 
 
