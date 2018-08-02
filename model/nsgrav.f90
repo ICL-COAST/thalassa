@@ -276,7 +276,7 @@ end do
 ! TODO: add auxiliary matrix for the time derivative of pot.
 ! TODO: avoid computing E, F when the acceleration is not requested.
 do m = 1, gord
-  do n = m, gord
+  do n = m, gdeg
     Dnm(n,m) = Cnm(n,m)*Rm(m)   + Snm(n,m)*Im(m)
     Enm(n,m) = Cnm(n,m)*Rm(m-1) + Snm(n,m)*Im(m-1)
     Fnm(n,m) = Snm(n,m)*Rm(m-1) - Cnm(n,m)*Im(m-1)
@@ -296,7 +296,7 @@ end do
 if (present(pot)) then
   pot = 0._dk
   do m = 1, gord
-    do n = m, gord
+    do n = m, gdeg
       pot = pot + Pn(n) * Anm(n,m) * Dnm(n,m)
 		
     end do
@@ -318,14 +318,14 @@ end if
 if (present(F)) then
   a1 = 0._dk; a2 = 0._dk; a3 = 0._dk; a4 = 0._dk
   do m = 1, gord
-    do n = m, gord
+    do n = m, gdeg
       a1 = a1 + Pn(n+1) * Anm(n,m) * m * Enm(n,m)
       a2 = a2 + Pn(n+1) * Anm(n,m) * m * Fnm(n,m)
       a3 = a3 + Pn(n+1) * Anm(n,m+1)   * Dnm(n,m)
       a4 = a4 - Pn(n+1) * Anm(n+1,m+1) * Dnm(n,m)
     end do
   end do
-  do n = 1, gord
+  do n = 1, gdeg
     a3 = a3 + Pn(n+1) * Anm(n,1)     * Dnm(n,0)
     a4 = a4 - Pn(n+1) * Anm(n+1,1)   * Dnm(n,0)
 
