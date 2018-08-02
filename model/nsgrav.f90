@@ -303,11 +303,12 @@ if (present(pot)) then
 	
   end do
   do n = 1, gdeg
-	pot = pot + Pn(n) * Anm(n,0) * Dnm(n,0)
+  pot = pot + Pn(n) * Anm(n,0) * Dnm(n,0)
 	
   end do
   ! pot = pot + Pn(0) -> avoid this since we are only computing the perturbing potential
   ! pot = - 1.E-6_dk * pot -> non-dimensionalization is not needed necessarily
+  pot = -pot  ! Change the sign to get the potential
 end if
 
 ! ==============================================================================
