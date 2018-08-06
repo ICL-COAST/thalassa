@@ -3,7 +3,7 @@ FC = gfortran
 
 # Compile flags
 FCFLAGS = -c -g
-FLFLAGS = -g -o
+FLFLAGS = -g -no-pie -o
 # Link flags
 LIBS = ~/Documents/Codes/SPICE_N0066/toolkit/lib/spicelib.a \
 ~/Documents/Codes/sofa/lib/libsofa.a
@@ -73,7 +73,7 @@ auxiliaries.o
 	$(FC) $(FCFLAGS) ./model/perturbations.f90
 
 initialize.o: initialize.f90 kinds.o settings.o auxiliaries.o $(FORMUL) \
-phys_const.o perturbations.o
+phys_const.o nsgrav.o
 	$(FC) $(FCFLAGS) initialize.f90
 
 integrate.o: ./integ/integrate.f90 kinds.o phys_const.o io.o $(SLSODAR) \

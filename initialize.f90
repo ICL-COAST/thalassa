@@ -27,10 +27,10 @@ subroutine INIT_STATE(eqs,R0,V0,MJD0,neq,y0,x0)
 use AUXILIARIES,   only: DU,TU
 use PHYS_CONST,    only: GE,RE
 use SETTINGS,      only: insgrav
-use PERTURBATIONS, only: PPOTENTIAL
 use EDROMO,        only: EDROMO_PHI0,CART2EDROMO
 use KUST_STI,      only: CART2KS
-use STI_SCHE,       only: CART2STISCHE
+use STI_SCHE,      only: CART2STISCHE
+use NSGRAV,        only: PINES_NSG
 
 ! VARIABLES
 implicit none
@@ -43,6 +43,7 @@ real(dk),intent(out)             ::  x0
 ! Locals
 real(dk)                         ::  Rm
 real(dk)                         ::  U0     ! Perturbing potential [km^2/s^2]
+real(dk)                         ::  F0(1:3)
 integer                          ::  ftime  ! Flag for time-like variable
 
 ! ==============================================================================
@@ -66,7 +67,12 @@ select case (eqs)
         ftime = eqs - 2
         allocate(y0(1:neq))
         Rm = sqrt(dot_product(R0,R0))
-        U0 = PPOTENTIAL(insgrav,GE,RE,R0,Rm,0._dk)
+        ! U0 = PPOTENTIAL(insgrav,GE,RE,R0,Rm,0._dk)
+        U0 = 0._dk
+        if (insgrav == 1) then
+          call PINES_NSG(GE,RE,R0,0._dk,pot=U0)
+
+        end if
         x0 = EDROMO_PHI0(R0,V0,U0,GE,DU,TU)
 
         ! As before, set initial physical time to 0. The actual MJD will be
@@ -78,7 +84,11 @@ select case (eqs)
         ftime = eqs - 5
         allocate(y0(1:neq))
         Rm = sqrt(dot_product(R0,R0))
-        U0 = PPOTENTIAL(insgrav,GE,RE,R0,Rm,0._dk)
+        U0 = 0._dk
+        if (insgrav == 1) then
+          call PINES_NSG(GE,RE,R0,0._dk,pot=U0)
+
+        end if
         call CART2KS(R0,V0,0._dk,GE,DU,TU,y0,U0,ftime)
         x0 = EDROMO_PHI0(R0,V0,U0,GE,DU,TU)
     
@@ -87,7 +97,11 @@ select case (eqs)
         ftime = eqs - 7
         allocate(y0(1:neq))
         Rm = sqrt(dot_product(R0,R0))
-        U0 = PPOTENTIAL(insgrav,GE,RE,R0,Rm,0._dk)
+        U0 = 0._dk
+        if (insgrav == 1) then
+          call PINES_NSG(GE,RE,R0,0._dk,pot=U0)
+
+        end if
         x0 = EDROMO_PHI0(R0,V0,U0,GE,DU,TU)
         call CART2STISCHE(R0,V0,0._dk,GE,DU,TU,y0,x0,U0,ftime)
         
