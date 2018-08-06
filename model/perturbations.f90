@@ -33,37 +33,6 @@ contains
 
 
 
-function PPOTENTIAL(insgrav,GM,RE,r,rm,t)
-! Description:
-!    Computes the perturbing potential due to a non-spherical gravity field.
-!    Units are the same as those of the inputs.
-!
-! ==============================================================================
-
-! VARIABLES
-implicit none
-! Arguments
-integer,intent(in)    ::  insgrav   ! Non-sph. gravity flag
-real(dk),intent(in)   ::  GM				! Gravitational parameter
-real(dk),intent(in)   ::  RE				! Equatorial radius
-real(dk),intent(in)   ::  r(1:3)    ! Position in inertial coordinates
-real(dk),intent(in)   ::  rm        ! Magnitude of position vector
-real(dk),intent(in)   ::  t         ! Time (dimensionless)
-real(dk)              ::  PPOTENTIAL
-
-! ==============================================================================
-
-PPOTENTIAL = 0._dk
-if (insgrav /= 0) then
-   PPOTENTIAL = POT_NSG(GM,RE,Cnm,Snm,r,rm,t)
-
-end if
-
-end function
-
-
-
-
 subroutine PERT_EJ2K(insgrav,isun,imoon,idrag,iF107,iSRP,r,v,rm,t,P_EJ2K,pot,dPot)
 ! Description:
 !    Computes the perturbing acceleration in the EMEJ2000 frame due to a non-sph

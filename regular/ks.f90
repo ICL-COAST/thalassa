@@ -60,7 +60,7 @@ subroutine KS_RHS(neq,s,u,udot)
 ! MODULES
 use PHYS_CONST,    only: GE_nd
 use SETTINGS,      only: eqs,insgrav,isun,imoon,idrag,iF107,iSRP
-use PERTURBATIONS, only: PPOTENTIAL,PERT_EJ2K
+use PERTURBATIONS, only: PERT_EJ2K
 
 ! VARIABLES
 implicit none
@@ -108,10 +108,6 @@ t = KS_TE2TIME(u,flag_time)
 ! 02. POTENTIAL PERTURBATIONS
 ! ==============================================================================
 
-! Vpot = 0._dk; mdVdr = 0._dk; dVdt = 0._dk
-! Vpot = PPOTENTIAL(insgrav,GE_nd,RE_nd,x(1:3),rmag,t)
-! mdVdr(1:3) = PERT_EJ2K(insgrav,0,0,0,0,0,x(1:3),xdot(1:3),rmag,t,gradV_sph)
-! dVdt = gradV_sph(3) * ERR_constant_nd
 Vpot = 0._dk; mdVdr = 0._dk; dVdt = 0._dk
 call PERT_EJ2K(insgrav,0,0,0,0,0,x(1:3),xdot(1:3),rmag,t,mdVdr(1:3),Vpot,dVdt)
 
@@ -120,7 +116,6 @@ call PERT_EJ2K(insgrav,0,0,0,0,0,x(1:3),xdot(1:3),rmag,t,mdVdr(1:3),Vpot,dVdt)
 ! ==============================================================================
 
 P = 0._dk
-! P(1:3) = PERT_EJ2K(0,isun,imoon,idrag,iF107,iSRP,x(1:3),xdot(1:3),rmag,t)
 call PERT_EJ2K(0,isun,imoon,idrag,iF107,iSRP,x(1:3),xdot(1:3),rmag,t,P(1:3))
 F = mdVdr + P; 
 

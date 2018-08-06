@@ -56,7 +56,7 @@ subroutine EDROMO_RHS(neq,phi,z,zdot)
 
 ! MODULES
 use SETTINGS,      only: eqs,insgrav,isun,imoon,idrag,iSRP,iF107
-use PERTURBATIONS, only: PPOTENTIAL,PERT_EJ2K
+use PERTURBATIONS, only: PERT_EJ2K
 
 ! VARIABLES
 implicit none
@@ -158,14 +158,6 @@ end if
 ! 03. PERTURBING POTENTIAL
 ! ==============================================================================
 
-! ! Initialize
-! Upot = 0._dk; dUdt = 0._dk; dUdr = 0._dk
-! ! Evaluate potential
-! Upot = PPOTENTIAL(insgrav,GE_nd,RE_nd,rV,rmag,t)
-! ! Evaluate time and spatial derivatives (note that velocity is not needed here)
-! dUdr = PERT_EJ2K(insgrav,0,0,0,0,0,rV,vV,rmag,t,gradU_sph)
-! dUdr = INERT2ORB_EDROMO(dUdr,z,cnu,snu)
-! dUdt = gradU_sph(3)*ERR_constant_nd
 Upot = 0._dk; dUdt = 0._dk; dUdr = 0._dk
 call PERT_EJ2K(insgrav,0,0,0,0,0,rV,vV,rmag,t,dUdr,Upot,dUdt)
 dUdr = INERT2ORB_EDROMO(dUdr,z,cnu,snu)
@@ -189,7 +181,6 @@ cosg = v_rad/vmag; sing = v_tan/vmag
 
 ! Initializations
 p = 0._dk; f = 0._dk
-! p = PERT_EJ2K(0,isun,imoon,idrag,iF107,iSRP,rV,vV,rmag,t)
 call PERT_EJ2K(0,isun,imoon,idrag,iF107,iSRP,rV,vV,rmag,t,p)
 p = INERT2ORB_EDROMO(p,z,cnu,snu)
 
@@ -521,7 +512,7 @@ subroutine EDROMO2CART(phi,z,r_vec,v_vec)
 ! ==============================================================================
 
 ! MODULES
-use PERTURBATIONS, only: PPOTENTIAL
+use NSGRAV,        only: PINES_NSG
 use SETTINGS,      only: insgrav,eqs
 use PHYS_CONST,    only: GE_nd,RE_nd
 ! VARIABLES
@@ -582,7 +573,10 @@ r_vec = rmag*(x_vec*cnu + y_vec*snu)
 flag_time = eqs - 2
 t = EDROMO_TE2TIME(z,phi,flag_time)
 Upot = 0._dk
-Upot = PPOTENTIAL(insgrav,GE_nd,RE_nd,r_vec,rmag,t)
+if (insgrav == 1) then
+  call PINES_NSG(GE_nd,RE_nd,r_vec,t,pot=Upot)
+
+end if
 
 ! ==============================================================================
 ! 04. COMPUTE VELOCITY IN INERTIAL FRAME

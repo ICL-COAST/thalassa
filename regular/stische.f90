@@ -55,7 +55,7 @@ subroutine STISCHE_RHS(neq,phi,z,zdot)
 ! ! MODULES
 use SETTINGS,      only: eqs,insgrav,isun,imoon,idrag,iF107,iSRP
 use PHYS_CONST,    only: GE_nd
-use PERTURBATIONS, only: PPOTENTIAL,PERT_EJ2K
+use PERTURBATIONS, only: PERT_EJ2K
 
 ! VARIABLES
 implicit none
@@ -138,13 +138,6 @@ end if
 ! 03. PERTURBING POTENTIAL
 ! ==============================================================================
 
-! ! Initialize
-! Vpot = 0._dk; dVdt = 0._dk; mdVdr = 0._dk
-! ! Evaluate potential
-! Vpot = PPOTENTIAL(insgrav,GE_nd,RE_nd,rV,rmag,t)
-! ! Evaluate time and spatial derivatives (note that velocity is not needed here)
-! mdVdr = PERT_EJ2K(insgrav,0,0,0,0,0,rV,vV,rmag,t,gradV_sph)
-! dVdt = gradV_sph(3)*ERR_constant_nd
 ! Initialize
 Vpot = 0._dk; dVdt = 0._dk; mdVdr = 0._dk
 ! Evaluate potential perturbations
@@ -156,7 +149,6 @@ call PERT_EJ2K(insgrav,0,0,0,0,0,rV,vV,rmag,t,mdVdr,Vpot,dVdt)
 
 ! Initializations
 p = 0._dk
-! p = PERT_EJ2K(0,isun,imoon,idrag,iF107,iSRP,rV,vV,rmag,t)
 call PERT_EJ2K(0,isun,imoon,idrag,iF107,iSRP,rV,vV,rmag,t,p)
 
 ! ==============================================================================

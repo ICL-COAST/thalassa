@@ -356,9 +356,6 @@ if(present(dPot)) then
     
   end do
   dPot = -dPot
-! !!! DEBUG
-! write(*,*) dPot
-!!! DEBUG
 end if
 
 end subroutine PINES_NSG
