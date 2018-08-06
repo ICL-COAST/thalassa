@@ -118,21 +118,6 @@ P_EJ2K = 0._dk
 ! 01. Potential perturbations
 ! ==============================================================================
 
-! gradU_sph = 0._dk; p_nsg = 0._dk
-! if (insgrav /= 0) then
-!   ! Compute the potential and its derivatives in non-dimensional units.
-!   ! EARTH
-!   gradU_sph = POTPAR(GE_nd,RE_nd,Cnm,Snm,r,rm,t)
-!   p_nsg     = ACC_NSG(r,rm,gradU_sph)
-
-! end if
-
-! P_EJ2K = p_nsg + P_EJ2K
-! if (present(gradU_sph_out)) then
-!   ! Save gradient of U in spherical coordinates if present
-!   gradU_sph_out = gradU_sph
-
-! end if
 p_nsg = 0._dk
 if (insgrav /= 0) then
   if (present(pot) .and. present(dPot)) then
