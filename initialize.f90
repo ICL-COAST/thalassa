@@ -67,7 +67,6 @@ select case (eqs)
         ftime = eqs - 2
         allocate(y0(1:neq))
         Rm = sqrt(dot_product(R0,R0))
-        ! U0 = PPOTENTIAL(insgrav,GE,RE,R0,Rm,0._dk)
         U0 = 0._dk
         if (insgrav == 1) then
           call PINES_NSG(GE,RE,R0,0._dk,pot=U0)
