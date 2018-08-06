@@ -11,12 +11,14 @@ implicit none
 ! VARIABLES
 ! Spherical harmonics (unnormalized) 
 integer               ::  maxDeg, maxOrd
-real(qk),allocatable  ::  Cnm(:,:),Snm(:,:)
+real(dk),allocatable  ::  Cnm(:,:),Snm(:,:)
 
 ! Pines algorithm matrices
 real(dk),allocatable  ::  Anm(:,:),Dnm(:,:),Enm(:,:),Fnm(:,:),Gnm(:,:)
 real(dk),allocatable  ::  Rm(:),Im(:),Pn(:)
 real(dk),allocatable  ::  Aux1(:),Aux2(:),Aux3(:),Aux4(:,:)
+
+
 
 contains
 
@@ -450,52 +452,6 @@ POT_NSG = -(GM/rm)*outsum
 
 end function POT_NSG
 
-
-
-
-function ACC_NSG(r,rmag,dU)
-! Compute the perturbing acceleration due to the non-spherical gravity field
-! in the inertial frame given the position vector "r" and the partials of the
-! potential in spherical coordinates "dU".
-
-! VARIABLES
-implicit none
-! Arguments
-real(dk),intent(in)  ::  r(1:3)	  ! Position vector
-real(dk),intent(in)  ::  rmag	  	! Position vector magnitude
-real(dk),intent(in)  ::  dU(1:3)	! Partials of the potential in spherical coordinates
-! Function def
-real(dk)  ::  ACC_NSG(1:3)
-
-! Locals
-real(dk)  ::  xr,yr,zr,rxy,rxyrt
-real(dk)  ::  dUdr,dUdp,dUdl
-
-! ==============================================================================
-
-! PARTIALS OF THE POTENTIAL:
-! dU(1) = dU/dr
-! dU(2) = dU/d(phi)
-! du(3) = dU/d(lam)
-
-! ACCELERATION COMPONENTS:
-! ACC_NSG(1) = a_x in the inertial or Earth-fixed reference frame
-! ACC_NSG(2) = a_y in the inertial or Earth-fixed reference frame
-! ACC_NSG(3) = a_z in the inertial or Earth-fixed reference frame
-
-! Unpack:
-dUdr = dU(1); dUdp = dU(2); dUdl = dU(3)
-! Direction cosines
-xr = r(1)/rmag; yr = r(2)/rmag; zr = r(3)/rmag
-rxy = r(1)**2 + r(2)**2
-rxyrt = sqrt(rxy)
-
-! Acceleration
-ACC_NSG(1) = xr*(dUdr - zr/rxyrt*dUdp) - r(2)/rxy*dUdl
-ACC_NSG(2) = yr*(dUdr - zr/rxyrt*dUdp) + r(1)/rxy*dUdl
-ACC_NSG(3) = zr*dUdr + (rxyrt/rmag**2)*dUdp
-
-end function ACC_NSG
 
 
 
