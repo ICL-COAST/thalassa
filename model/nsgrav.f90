@@ -14,7 +14,8 @@ integer               ::  maxDeg, maxOrd
 real(qk),allocatable  ::  Cnm(:,:),Snm(:,:)
 
 ! Pines algorithm matrices
-real(dk),allocatable  ::  Anm(:,:),Dnm(:,:),Enm(:,:),Fnm(:,:),Rm(:),Im(:),Pn(:)
+real(dk),allocatable  ::  Anm(:,:),Dnm(:,:),Enm(:,:),Fnm(:,:),Gnm(:,:)
+real(dk),allocatable  ::  Rm(:),Im(:),Pn(:)
 real(dk),allocatable  ::  Aux1(:),Aux2(:),Aux3(:),Aux4(:,:)
 
 contains
@@ -69,6 +70,7 @@ allocate(Cnm(1:maxDeg,0:maxDeg)); Cnm = 0._dk
 allocate(Snm(1:maxDeg,0:maxDeg)); Snm = 0._dk
 allocate(Anm(0:maxDeg+2, 0:maxDeg+2))
 allocate(Dnm(1:maxDeg,   0:maxDeg))
+allocate(Gnm(1:maxDeg,   0:maxDeg))
 allocate(Enm(1:maxDeg,   1:maxDeg))
 allocate(Fnm(1:maxDeg,   1:maxDeg))
 allocate(Rm(0:maxDeg)    )
@@ -93,6 +95,7 @@ close(id_earth)
 ! Fill coefficient arrays for Pines algorithm
 Anm(:,:) = 0._dk
 Dnm(:,:) = 0._dk
+Gnm(:,:) = 0._dk
 Enm(:,:) = 0._dk
 Fnm(:,:) = 0._dk
 Anm(0,0) = 1._dk
@@ -190,6 +193,7 @@ subroutine PINES_NSG(GM,RE,rIn,tau,FIn,pot,dPot)
 
 ! Use associations
 use AUXILIARIES, only: MJD0,TU
+use PHYS_CONST,  only: ERR_constant_nd
 use PHYS_CONST,  only: GMST_UNIFORM
 
 ! Arguments
@@ -333,7 +337,7 @@ if (present(FIn)) then
 
   ! F = F - Pn(0) * [s, t, u] / rNorm -> should not add the Keplerian term
   ! F = F * 1.E3_dk -> should not dimensionalize
-  
+
 end if
 
 ! ==============================================================================
@@ -341,8 +345,20 @@ end if
 ! ==============================================================================
 
 if(present(dPot)) then
-    dPot = 0._dk
-
+  dPot = 0._dk
+  do m = 1, gord
+    do n = m, gdeg
+      Gnm(n,m) = m * ( t * Enm(n,m) - s * Fnm(n,m) )
+      Gnm(n,m) = ERR_constant_nd * Gnm(n,m)
+      dPot = dPot + Pn(n) * Anm(n,m) * Gnm(n,m)
+      
+    end do
+    
+  end do
+  dPot = -dPot
+! !!! DEBUG
+! write(*,*) dPot
+!!! DEBUG
 end if
 
 end subroutine PINES_NSG
