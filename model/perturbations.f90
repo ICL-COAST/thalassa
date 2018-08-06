@@ -168,10 +168,10 @@ p_nsg = 0._dk
 if (insgrav /= 0) then
   if (present(pot) .and. present(dPot)) then
     pot = 0._dk; dPot = 0._dk
-    call PINES_NSG(GE_nd,RE_nd,r,p_nsg,pot,dPot)
+    call PINES_NSG(GE_nd,RE_nd,r,t,p_nsg,pot,dPot)
   
   else
-    call PINES_NSG(GE_nd,RE_nd,r,p_nsg)
+    call PINES_NSG(GE_nd,RE_nd,r,t,p_nsg)
 
   end if
 end if
