@@ -160,7 +160,7 @@ end function NORMFACT
 
 
 
-subroutine PINES_NSG(GM,RE,rIn,F,pot,dPot)
+subroutine PINES_NSG(GM,RE,rIn,tau,FIn,pot,dPot)
 ! Description:
 !    Compute the perturbing acceleration, perturbing potential (optional), and
 !    time derivative of the perturbing potential in the body-fixed frame
@@ -196,25 +196,23 @@ use PHYS_CONST,  only: GMST_UNIFORM
 real(dk),intent(in)   ::  GM             ! Gravitational parameter
 real(dk),intent(in)   ::  RE             ! Equatorial radius
 real(dk),intent(in)   ::  rIn(1:3)       ! Position in the inertial frame
-real(dk),intent(out),optional  ::  F(1:3)         ! Perturbing acceleration
+real(dk),intent(in)   ::  tau            ! Physical time
+real(dk),intent(out),optional  ::  FIn(1:3)  ! Perturbing acceleration in the inertial frame
 real(dk),intent(out),optional  ::  pot   ! Perturbing potential
 real(dk),intent(out),optional  ::  dPot  ! Time derivative of the potential in body-fixed frame
 ! Locals
 real(dk)  ::  rNorm,rNormSq  ! Norm of position vector and square
-real(dk)  ::  rEqNorm ! Norm of projection of position vector on equatorial frame
-real(dk)  ::  cosRA,sinRA ! Direction cosines in the inertial frame
 real(dk)  ::  s,t,u  ! Direction cosines in the body-fixed frame
 real(dk)  ::  MJD_TT ! MJD in Terrestrial Time
 real(dk)  ::  ERA,cosERA,sinERA    ! Earth Rotation Angle and its trig functions
 real(dk)  ::  rho    ! = equatorial radius / r 
-real(dk)  ::  a1,a2,a3,a4  ! Acceleration components 
+real(dk)  ::  F(1:3),a1,a2,a3,a4  ! Acceleration and its components 
 integer   ::  n,m    ! Harmonic indices
 
 ! ==============================================================================
 
 rNormSq = dot_product(rIn,rIn)
 rNorm = sqrt(rNormSq)
-rEqNorm = sqrt(rNormSq - rIn(3)**2)
 
 ! ==============================================================================
 ! 01. Transform from inertial to body-fixed frame
@@ -223,18 +221,14 @@ rEqNorm = sqrt(rNormSq - rIn(3)**2)
 ! z_Inertial = z_Body (main body rotates along this axis)
 u = rIn(3)/rNorm
 
-! Direction cosines in the inertial frame
-cosRA = rIn(1)/rEqNorm
-sinRA = rIn(2)/rEqNorm
-
 ! Get Earth Rotation Angle 
-MJD_TT = MJD0 + t/TU/secsPerDay ! NOTE: This will have to be modified to compute UT1 from TT in a next version.
+MJD_TT = MJD0 + tau/TU/secsPerDay ! NOTE: This will have to be modified to compute UT1 from TT in a next version.
 ERA = GMST_UNIFORM(MJD_TT)
 cosERA = cos(ERA); sinERA = sin(ERA)
 
-! Direction cosines in the body-fixed frame
-s = cosRA * cosERA + sinRA * sinERA
-t = sinRA * cosERA - cosRA * sinERA
+! Rotate equatorial components of rIn to get direction cosines in the body-fixed frame
+s = (rIn(1) * cosERA + rIn(2) * sinERA)/rNorm
+t = (rIn(2) * cosERA - rIn(1) * sinERA)/rNorm
 
 rho = RE/rNorm
 
@@ -286,7 +280,6 @@ do m = 1, gord
 end do
 do n = 1, gdeg
   Dnm(n,0) = Cnm(n,0)*Rm(0)  !+ S(n,0)*I(0) = 0
-
 end do
 
 ! ==============================================================================
@@ -315,7 +308,7 @@ end if
 ! 04. Perturbing acceleration
 ! ==============================================================================
 
-if (present(F)) then
+if (present(FIn)) then
   a1 = 0._dk; a2 = 0._dk; a3 = 0._dk; a4 = 0._dk
   do m = 1, gord
     do n = m, gdeg
@@ -332,8 +325,15 @@ if (present(F)) then
   end do
   F = [a1, a2, a3] + [s, t, u] * a4
   F = F / RE
+
+  ! Transform to inertial frame
+  FIn(1) = F(1)*cosERA - F(2)*sinERA
+  FIn(2) = F(1)*sinERA + F(2)*cosERA
+  FIn(3) = F(3)
+
   ! F = F - Pn(0) * [s, t, u] / rNorm -> should not add the Keplerian term
   ! F = F * 1.E3_dk -> should not dimensionalize
+  
 end if
 
 ! ==============================================================================
