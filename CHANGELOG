@@ -3,3 +3,15 @@ New in version 0.9.2:
 containing useful diagnostics for the current propagation.
 * Fixed an issue in atsu.for that could cause a syntax error with newer gfortran
 versions.
+
+New in version 1.0:
+* The solar flux can now be considered as time-varying by setting the new 'if107'
+flag in input.txt. This affects the J77 and MSIS-00 atmospheric models.
+* MSIS-00 now takes into account Earth flattening.
+* A set of batch scripts for large-scale propagations have been added in batch/
+
+New in version 1.1:
+* The computation of the gravitational potential has been completely rewritten,
+and it is now based on the Pines method. This is significantly faster than the 
+previous method based on recursions for the Legendre associated functions and 
+the trigonometric functions (which was also not very well optimized).
