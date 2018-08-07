@@ -3,7 +3,7 @@ FC = gfortran
 
 # Compile flags
 FCFLAGS = -c -O
-FLFLAGS = -O -no-pie -o
+FLFLAGS = -O -o
 # Link flags
 LIBS = ~/Documents/Codes/SPICE/toolkit/lib/spicelib.a \
 ~/Documents/Codes/sofa/lib/libsofa.a
