@@ -273,7 +273,6 @@ do n = 1, gdeg
 end do
 
 ! Fill D, E, and F matrices
-! TODO: avoid computing E, F when the acceleration is not requested.
 skip_EFG = present(pot) .and. .not.(present(FIn)) .and. .not.(present(dPot))
 do m = 1, gord
   do n = m, gdeg
@@ -281,7 +280,7 @@ do m = 1, gord
     if (.not.(skip_EFG)) then
       Enm(n,m) = Cnm(n,m)*Rm(m-1) + Snm(n,m)*Im(m-1)
       Fnm(n,m) = Snm(n,m)*Rm(m-1) - Cnm(n,m)*Im(m-1)
-      
+
     end if
   end do
 
@@ -307,8 +306,6 @@ if (present(pot)) then
   pot = pot + Pn(n) * Anm(n,0) * Dnm(n,0)
 	
   end do
-  ! pot = pot + Pn(0) -> avoid this since we are only computing the perturbing potential
-  ! pot = - 1.E-6_dk * pot -> non-dimensionalization is not needed necessarily
   pot = -pot  ! Change the sign to get the potential
 end if
 
@@ -338,9 +335,6 @@ if (present(FIn)) then
   FIn(1) = F(1)*cosERA - F(2)*sinERA
   FIn(2) = F(1)*sinERA + F(2)*cosERA
   FIn(3) = F(3)
-
-  ! F = F - Pn(0) * [s, t, u] / rNorm -> should not add the Keplerian term
-  ! F = F * 1.E3_dk -> should not dimensionalize
 
 end if
 
