@@ -38,7 +38,7 @@ subroutine INITIALIZE_NSGRAV(earthFile)
 !    davideamato@email.arizona.edu
 ! 
 ! Revisions:
-!    180730: Subroutine created from part of READ_PHYS().
+!    180806: Subroutine created from part of READ_PHYS().
 ! 
 ! ==============================================================================
 
@@ -190,6 +190,7 @@ subroutine PINES_NSG(GM,RE,rIn,tau,FIn,pot,dPot)
 !    derivatives," AIAA J. 11 (11), pp. 1508-1511, 1973.
 ! 
 ! Revisions:
+!    180806: First working version of subroutine.
 !
 ! ==============================================================================
 
@@ -214,6 +215,7 @@ real(dk)  ::  ERA,cosERA,sinERA    ! Earth Rotation Angle and its trig functions
 real(dk)  ::  rho    ! = equatorial radius / r 
 real(dk)  ::  F(1:3),a1,a2,a3,a4  ! Acceleration and its components 
 integer   ::  n,m    ! Harmonic indices
+logical   ::  skip_EFG
 
 ! ==============================================================================
 
@@ -224,7 +226,6 @@ rNorm = sqrt(rNormSq)
 ! 01. Transform from inertial to body-fixed frame
 ! ==============================================================================
 
-! z_Inertial = z_Body (main body rotates along this axis)
 u = rIn(3)/rNorm
 
 ! Get Earth Rotation Angle 
@@ -243,7 +244,6 @@ rho = RE/rNorm
 ! ==============================================================================
 
 ! Fill A Matrix
-! TODO: Reduce the number of calculations if gord < gdeg.
 Anm(0,0) = 1._dk
 Anm(1,1) = 1._dk
 Anm(1,0) = u
@@ -273,14 +273,16 @@ do n = 1, gdeg
 end do
 
 ! Fill D, E, and F matrices
-! TODO: add auxiliary matrix for the time derivative of pot.
 ! TODO: avoid computing E, F when the acceleration is not requested.
+skip_EFG = present(pot) .and. .not.(present(FIn)) .and. .not.(present(dPot))
 do m = 1, gord
   do n = m, gdeg
     Dnm(n,m) = Cnm(n,m)*Rm(m)   + Snm(n,m)*Im(m)
-    Enm(n,m) = Cnm(n,m)*Rm(m-1) + Snm(n,m)*Im(m-1)
-    Fnm(n,m) = Snm(n,m)*Rm(m-1) - Cnm(n,m)*Im(m-1)
-
+    if (.not.(skip_EFG)) then
+      Enm(n,m) = Cnm(n,m)*Rm(m-1) + Snm(n,m)*Im(m-1)
+      Fnm(n,m) = Snm(n,m)*Rm(m-1) - Cnm(n,m)*Im(m-1)
+      
+    end if
   end do
 
 end do
