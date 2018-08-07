@@ -1,4 +1,22 @@
 module NSGRAV
+! Description:
+!    Contains procedures for the calculation of perturbations due to the non-
+!    sphericity of the main body. INITIALIZE_NSGRAV reads main body data from a
+!    data file, and initializes coefficient matrices.
+!    The calculation of the perturbing potential, perturbing acceleration, and
+!    the time derivative of the potential in the body-fixed frame (the latter is
+!    needed in regularized formulations) takes place in PINES_NSG.
+!    NORMFACT gives the normalization factor for the gravitational coefficients.
+! 
+! Author:
+!    Davide Amato
+!    The University of Arizona
+!    davideamato@email.arizona.edu
+! 
+! Revisions:
+!    180806: Overhaul and implementation of Pines method.
+! 
+! ==============================================================================
 
 ! MODULES
 use KINDS,      only: dk
@@ -13,14 +31,16 @@ implicit none
 integer               ::  maxDeg, maxOrd
 real(dk),allocatable  ::  Cnm(:,:),Snm(:,:)
 
-! Pines algorithm matrices
+! Pines algorithm arrays
 real(dk),allocatable  ::  Anm(:,:),Dnm(:,:),Enm(:,:),Fnm(:,:),Gnm(:,:)
 real(dk),allocatable  ::  Rm(:),Im(:),Pn(:)
 real(dk),allocatable  ::  Aux1(:),Aux2(:),Aux3(:),Aux4(:,:)
 
 
 
+
 contains
+
 
 
 
@@ -31,6 +51,9 @@ subroutine INITIALIZE_NSGRAV(earthFile)
 !    harmonics coefficients, and auxiliary matrices for Pines' algorithm. The
 !    latter computes the Earth potential in Cartesian coordinates, avoiding
 !    singularities due to the spherical harmonics.
+!    Part of this subroutine is due to Hodei Urrutxua (Universidad Rey Juan
+!    Carlos, Madrid, Spain) and Claudio Bombardelli (Universidad Politécnica de
+!    Madrid, Madrid, Spain).
 ! 
 ! Author:
 !    Davide Amato
@@ -229,7 +252,7 @@ rNorm = sqrt(rNormSq)
 u = rIn(3)/rNorm
 
 ! Get Earth Rotation Angle 
-MJD_TT = MJD0 + tau/TU/secsPerDay ! NOTE: This will have to be modified to compute UT1 from TT in a next version.
+MJD_TT = MJD0 + tau/TU/secsPerDay ! TODO: This will have to be modified to compute UT1 from TT in a next version.
 ERA = GMST_UNIFORM(MJD_TT)
 cosERA = cos(ERA); sinERA = sin(ERA)
 

@@ -27,6 +27,8 @@ program THALASSA
 !    180703: v1.0. Add time-dependent solar flux for J77 and MSIS-00. Consider
 !            geodetic height for MSIS-00. Add batch scripts for large-scale
 !            propagation.
+!    180807: v1.1. Calculation of the gravitational potential now uses the Pines
+!            method.
 !
 ! ==============================================================================
 
