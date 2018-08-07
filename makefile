@@ -2,10 +2,10 @@
 FC = gfortran
 
 # Compile flags
-FCFLAGS = -c -g
-FLFLAGS = -g -no-pie -o
+FCFLAGS = -c -O
+FLFLAGS = -O -no-pie -o
 # Link flags
-LIBS = ~/Documents/Codes/SPICE_N0066/toolkit/lib/spicelib.a \
+LIBS = ~/Documents/Codes/SPICE/toolkit/lib/spicelib.a \
 ~/Documents/Codes/sofa/lib/libsofa.a
 
 # Numerical integrators
