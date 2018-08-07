@@ -128,15 +128,15 @@ cowell.o: ./regular/cowell.f90 perturbations.o auxiliaries.o kinds.o
 	$(FC) $(FCFLAGS) ./regular/cowell.f90
 
 edromo.o: ./regular/edromo.f90 perturbations.o settings.o auxiliaries.o \
-phys_const.o kinds.o
+nsgrav.o phys_const.o kinds.o
 	$(FC) $(FCFLAGS) ./regular/edromo.f90
 
 ks.o: ./regular/ks.f90 perturbations.o settings.o auxiliaries.o phys_const.o \
-kinds.o
+nsgrav.o kinds.o
 	$(FC) $(FCFLAGS) ./regular/ks.f90
 
 stische.o: ./regular/stische.f90 settings.o auxiliaries.o phys_const.o \
-perturbations.o kinds.o
+nsgrav.o perturbations.o kinds.o
 	$(FC) $(FCFLAGS) ./regular/stische.f90
 
 .PHONY: clean
