@@ -56,7 +56,7 @@ subroutine READ_SETTINGS(tspan,tstep)
 !    davideamato@email.arizona.edu
 ! 
 ! Revisions:
-!     180608: add iF107 flag, which is output.
+!     180608: add iF107 flag.
 ! 
 ! ==============================================================================
 
@@ -79,7 +79,7 @@ read(id_set,'(a11,i3)') dummy, iF107
 read(id_set,'(a11,i3)') dummy, iSRP
 read(id_set,'(a11,i3)') dummy, iephem
 read(id_set,'(a11,i3)') dummy, gdeg
-read(id_set,'(a11,i3,7(/))') dummy, gord
+read(id_set,'(a11,i3,6(/))') dummy, gord
 read(id_set,'(a11,e22.15)') dummy, tol
 read(id_set,'(a11,e22.15)') dummy, tspan
 read(id_set,'(a11,e22.15)') dummy, tstep
