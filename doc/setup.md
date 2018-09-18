@@ -15,7 +15,7 @@ The latest version of the toolkit, N0066, is downloadable from [here](https://na
 
         git clone https://gitlab.com/souvlaki/thalassa.git/ thalassa_dir
 
-1.  Edit the ``makefile`` by assigning the path to the SPICE and SOFA libraries (``spicelib.a`` and ``libsofa.a``) to the ``LIBS`` variable:
+2.  Edit the ``makefile`` by assigning the path to the SPICE and SOFA libraries (``spicelib.a`` and ``libsofa.a``) to the ``LIBS`` variable:
 
         LIBS = $SPICE_PATH/toolkit/lib/spicelib.a $SOFA_PATH/lib/libsofa.a
 
