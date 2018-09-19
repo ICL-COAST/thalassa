@@ -89,6 +89,8 @@ earth_path = './data/earth_potential/GRIM5-S1.txt'
 phys_path = './data/physical_constants.txt'
 if (command_arguments > 0) call GET_COMMAND_ARGUMENT(1,input_path)
 if (command_arguments > 1) call GET_COMMAND_ARGUMENT(2,object_path)
+if (command_arguments > 2) call GET_COMMAND_ARGUMENT(3,earth_path)
+if (command_arguments > 3) call GET_COMMAND_ARGUMENT(4,phys_path)
 
 ! ==============================================================================
 ! 02. INITIALIZATIONS
