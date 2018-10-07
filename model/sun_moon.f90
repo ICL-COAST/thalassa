@@ -17,6 +17,7 @@ module SUN_MOON
 !    Institut de Mécanique Céleste et de Calcul des Éphémérides
 ! 
 ! Revisions:
+!    181006: Add procedures for truncated acceleration.
 !
 ! ==============================================================================
 
@@ -34,7 +35,9 @@ contains
 subroutine INITIALIZE_LEGENDRE(order,Gsl)
 ! Description:
 !    Computes the array of Legendre coefficients Gsl up to the order given as
-!    input.
+!    input. Due to overflow, the expressions here are valid approximately up to
+!    order 170. However, significant loss of precision will occur even at lower
+!    orders.
 ! 
 ! ==============================================================================
 
@@ -57,10 +60,6 @@ Gsl = 0
 do l=2,order
 
   do s=0,int(l/2)
-    
-    write(*,*) 's = ',s
-    write(*,*) 'l = ',l
-
     aux1 = gamma( real( 2*l - 2*s + 1 ,dk) )
     aux2 = gamma( real( s + 1, dk) )
     aux3 = gamma( real( l - s + 1 ,dk) )
@@ -76,7 +75,7 @@ end subroutine INITIALIZE_LEGENDRE
 
 
 
-function ACC_THBOD_EJ2K_TRUNC_ND(r,rho,GM_main,GM_thbod,ord)
+function ACC_THBOD_EJ2K_TRUNC_ND(r,rho,GM_main,GM_thbod,ord,Gsl)
 ! Description:
 !   Computes the perturbing acceleration due to a third body in the EMEJ2000
 !   frame, with the Legendre expansion of its disturbing function truncated
@@ -86,7 +85,7 @@ function ACC_THBOD_EJ2K_TRUNC_ND(r,rho,GM_main,GM_thbod,ord)
 !    Davide Amato
 !    The University of Arizona
 !    davideamato@email.arizona.edu
-!  
+! 
 ! ==============================================================================
 
 ! VARIABLES
@@ -95,21 +94,44 @@ real(dk),intent(in)  ::  r(1:3)    ! Position vector of the particle
 real(dk),intent(in)  ::  rho(1:3)  ! Position vector of the third body
 real(dk),intent(in)  ::  GM_main,GM_thbod  ! Gravitational parameters
 integer,intent(in)   ::  ord       ! Order of the Legendre polynomial expansion
+real(dk),intent(in)  ::  Gsl(0:(ord/2),2:ord)  ! Array of Legendre coefficients
 ! Function definition
 real(dk)  ::  ACC_THBOD_EJ2K_TRUNC_ND(1:3)
 
 ! Locals
-real(dk)    ::  rhoUnit(1:3)       ! Unit vector of rho
+integer     ::  l,s
+real(dk)    ::  rSq
+real(dk)    ::  rhoMag,rhoL,rhoUnit(1:3)
+real(dk)    ::  rDotRhoUnit
+real(dk)    ::  aux1,aux2,aux3,aux4(1:3)
+real(dk)    ::  sum(1:3), acc(1:3)
 
 ! ==============================================================================
 
-! Third body unit vector
-! d = r - rho
-! ! Compute ND acceleration
-! rhomag = sqrt(dot_product(rho,rho))
-! dmag   = sqrt(dot_product(d,d))
+! Initialize quantities
+rSq         = dot_product(r,r)
+rhoMag      = sqrt(dot_product(rho,rho))
+rhoUnit     = rho/rhoMag
+rDotRhoUnit = dot_product(r,rhoUnit)
+rhoL        = rhoMag
+aux1        = (GM_thbod / GM_main) / rhoMag
+sum         = 0._dk
 
+do l=2,ord
+  
+  rhoL = rhoMag * rhoL
+  do s=0,l/2
+    aux2 = Gsl(s,l) / rhoL
+    aux3 = rSq**s * rDotRhoUnit**( l - 2*s )
+    aux4 = ((2._dk * s) / rSq) * r + ((l - 2*s) / rDotRhoUnit) * rhoUnit
 
+    sum = sum + aux2 * aux3 * aux4
+  end do
+
+end do
+
+acc = aux1 * sum
+ACC_THBOD_EJ2K_TRUNC_ND = acc
 
 end function ACC_THBOD_EJ2K_TRUNC_ND
 

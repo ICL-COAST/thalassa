@@ -47,6 +47,7 @@ subroutine PERT_EJ2K(insgrav,isun,imoon,idrag,iF107,iSRP,r,v,rm,t,P_EJ2K,pot,dPo
 ! Revisions:
 !     180608: add variable solar flux.
 !     180610: add geodetic longitude and altitude.
+!     181006: add truncated third-body acceleration.
 ! 
 ! ==============================================================================
 
@@ -137,17 +138,27 @@ P_EJ2K = P_EJ2K + p_nsg
 ! ==============================================================================
 
 p_sun = 0._dk; p_moon = 0._dk
-if (isun /= 0) then
-  ! SUN
+if (isun == 1) then
+  ! SUN, full acceleration
   call EPHEM(1,DU,TU,t,r_sun,v_sun)
   p_sun = ACC_THBOD_EJ2K_ND(r,r_sun,GE,GS)
 
+else if (isun > 1) then
+  ! SUN, truncated acceleration
+  call EPHEM(1,DU,TU,t,r_sun,v_sun)
+  p_sun = ACC_THBOD_EJ2K_TRUNC_ND(r,r_sun,GE,GS,isun,GslSun)
+
 end if
 
-if (imoon /= 0 ) then
-  ! MOON
+if (imoon == 1 ) then
+  ! MOON, full acceleration
   call EPHEM(2,DU,TU,t,r_moon,v_moon)
   p_moon = ACC_THBOD_EJ2K_ND(r,r_moon,GE,GM)
+
+else if (imoon > 1) then
+  ! MOON, truncated acceleration
+  call EPHEM(2,DU,TU,t,r_moon,v_moon)
+  p_moon = ACC_THBOD_EJ2K_TRUNC_ND(r,r_moon,GE,GM,imoon,GslMoon)
 
 end if
 

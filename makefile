@@ -3,7 +3,7 @@ FC = gfortran
 
 # Compile flags
 FCFLAGS = -c -O
-FLFLAGS = -O -o
+FLFLAGS = -O -no-pie -o
 # Link flags
 LIBS = ~/Documents/Codes/SPICE/toolkit/lib/spicelib.a \
 ~/Documents/Codes/sofa/lib/libsofa.a
@@ -23,9 +23,6 @@ propagate.o auxiliaries.o thalassa_main.o
 # Binaries
 thalassa.x: thalassa_main.o
 	$(FC) $(FLFLAGS) thalassa.x $(OBJECTS) $(LIBS)
-
-thalassa_drv_tol.x: thalassa_drv_tol.f90
-	$(FC) -g -o thalassa_drv_tol.x thalassa_drv_tol.f90 kinds.o
 
 # Object files
 kinds.o: kinds.f90
@@ -85,7 +82,7 @@ $(FORMUL) integrate.o initialize.o io.o
 	$(FC) $(FCFLAGS) propagate.f90
 
 thalassa_main.o: thalassa_main.f90 kinds.o io.o phys_const.o settings.o \
-cart_coe.o propagate.o
+sun_moon.o cart_coe.o propagate.o
 	$(FC) $(FCFLAGS) thalassa_main.f90
 
 # Atmospheric model
