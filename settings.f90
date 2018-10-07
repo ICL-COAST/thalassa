@@ -25,11 +25,12 @@ character(len=4096)    ::  input_path
 integer  ::  insgrav            ! Non-spherical gravity field flag.
 integer  ::  isun               ! 0 = no Sun perturbation, 1 = otherwise.
 integer  ::  imoon              ! 0 = no Moon perturbation, 1 = otherwise.
-integer  ::  idrag              ! 0 = no atmospheric drag, 1 = Vallado model, 2 = US76 (PATRIUS), 3 = J77 (Carrara - INPE), 4 = NRLMSISE-00 (Picone - NRL)
+integer  ::  idrag              ! 0 = no atmospheric drag, 1 = Wertz model, 2 = US76 (PATRIUS), 3 = J77 (Carrara - INPE), 4 = NRLMSISE-00 (Picone - NRL)
 integer  ::  iF107              ! 0 = constant F10.7 flux, 1 = variable F10.7 flux
 integer  ::  iSRP               ! 0 = no SRP, 1 = otherwise.
 integer  ::  iephem             ! Ephemerides source. 1 = DE431 ephemerides. 2 = Simpl. Meeus & Brown
 integer  ::  gdeg,gord          ! Gravitational potential - maximum degree and order
+integer  ::  Mord,Sord          ! Order of the Legendre expansion for the Moon and the Sun
 ! Integrator settings
 integer  ::  mxstep             ! Max. number of integration/output steps.
 real(dk) ::  tol                ! Integrator tolerance.
@@ -91,6 +92,10 @@ read(id_set,'(a4,a)') dummy,outpath
 close(id_set)
 
 mxstep = int(rmxstep)
+
+! If either of isun and imoon > 1, interpret it as the order of the Legendre expansion
+Sord = isun
+Mord = imoon
 
 end subroutine READ_SETTINGS
 

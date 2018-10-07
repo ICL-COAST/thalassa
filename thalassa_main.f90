@@ -29,6 +29,7 @@ program THALASSA
 !            propagation.
 !    180807: v1.1. Calculation of the gravitational potential now uses the Pines
 !            method.
+!    181006: v1.2. Add computation of truncated third-body acceleration.
 !
 ! ==============================================================================
 
@@ -41,10 +42,12 @@ use CART_COE,    only: COE2CART,CART2COE
 use PHYS_CONST,  only: READ_PHYS,GMST_UNIFORM
 use NSGRAV,      only: INITIALIZE_NSGRAV
 use PROPAGATE,   only: DPROP_REGULAR
-use SETTINGS,    only: READ_SETTINGS,input_path
+use SUN_MOON,    only: INITIALIZE_LEGENDRE
+use SETTINGS,    only: READ_SETTINGS
 use IO,          only: id_cart,id_orb,id_stat,id_log,object_path
-use SETTINGS,    only: gdeg,gord,outpath,tol,eqs
+use SETTINGS,    only: gdeg,gord,isun,imoon,outpath,tol,eqs,input_path
 use PHYS_CONST,  only: GE,d2r,r2d,secsPerDay,secsPerSidDay,twopi
+use SUN_MOON,    only: GslSun,GslMoon
 
 implicit none
 
@@ -106,6 +109,16 @@ call READ_PHYS(phys_path)
 
 ! Initialize Earth data
 call INITIALIZE_NSGRAV(earth_path)
+
+! Initialize Legendre coefficients, if needed
+if (isun > 1) then
+  call INITIALIZE_LEGENDRE(isun,GslSun)
+
+end if
+if (imoon > 1) then
+  call INITIALIZE_LEGENDRE(imoon,GslMoon)
+  
+end if
 
 ! Initialize output (if not done by python script already)
 if (command_arguments == 0) then

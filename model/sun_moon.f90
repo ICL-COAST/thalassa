@@ -12,18 +12,106 @@ module SUN_MOON
 !    Space Dynamics Group - Technical University of Madrid
 !    davideamato@email.arizona.edu
 !
-! Based on original code by:
+! SUN_POS_MEEUS and MOON_POS_MEEUS are based on original code by:
 !    Florent Deleflie
 !    Institut de Mécanique Céleste et de Calcul des Éphémérides
+! 
+! Revisions:
 !
 ! ==============================================================================
 
 use KINDS, only: dk
 implicit none
 
+! Array of Legendre coefficients
+real(dk),allocatable  ::  GslSun(:,:), GslMoon(:,:)
+
 
 contains
 
+
+
+subroutine INITIALIZE_LEGENDRE(order,Gsl)
+! Description:
+!    Computes the array of Legendre coefficients Gsl up to the order given as
+!    input.
+! 
+! ==============================================================================
+
+! VARIABLES
+! Arguments IN
+integer,intent(in)  ::  order
+real(dk),allocatable,intent(inout)  ::  Gsl(:,:)
+
+! Locals
+integer   ::  s,l
+real(dk)  ::  aux1, aux2, aux3, aux4
+
+! ==============================================================================
+
+! Initialize Gsl.
+allocate(Gsl(0:(order/2),2:order))
+Gsl = 0
+
+! Compute elements.
+do l=2,order
+
+  do s=0,int(l/2)
+    
+    write(*,*) 's = ',s
+    write(*,*) 'l = ',l
+
+    aux1 = gamma( real( 2*l - 2*s + 1 ,dk) )
+    aux2 = gamma( real( s + 1, dk) )
+    aux3 = gamma( real( l - s + 1 ,dk) )
+    aux4 = gamma( real( l - 2*s + 1 ,dk) )
+    
+    Gsl(s,l) = real(((-1)**s * aux1) / ( 2**l * aux2 * aux3 * aux4 ),dk)
+
+  end do
+
+end do
+
+end subroutine INITIALIZE_LEGENDRE
+
+
+
+function ACC_THBOD_EJ2K_TRUNC_ND(r,rho,GM_main,GM_thbod,ord)
+! Description:
+!   Computes the perturbing acceleration due to a third body in the EMEJ2000
+!   frame, with the Legendre expansion of its disturbing function truncated
+!   at order "ord".
+!  
+! Author:
+!    Davide Amato
+!    The University of Arizona
+!    davideamato@email.arizona.edu
+!  
+! ==============================================================================
+
+! VARIABLES
+! Arguments IN
+real(dk),intent(in)  ::  r(1:3)    ! Position vector of the particle
+real(dk),intent(in)  ::  rho(1:3)  ! Position vector of the third body
+real(dk),intent(in)  ::  GM_main,GM_thbod  ! Gravitational parameters
+integer,intent(in)   ::  ord       ! Order of the Legendre polynomial expansion
+! Function definition
+real(dk)  ::  ACC_THBOD_EJ2K_TRUNC_ND(1:3)
+
+! Locals
+real(dk)    ::  rhoUnit(1:3)       ! Unit vector of rho
+
+! ==============================================================================
+
+! Third body unit vector
+! d = r - rho
+! ! Compute ND acceleration
+! rhomag = sqrt(dot_product(rho,rho))
+! dmag   = sqrt(dot_product(d,d))
+
+
+
+end function ACC_THBOD_EJ2K_TRUNC_ND
 
 
 
