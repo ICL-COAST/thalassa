@@ -5,6 +5,8 @@ THALASSA is a command-line tool, and has been developed and tested on MacOS and 
 
 The repository also includes some Python3 scripts to perform batch propagations. This feature is currently experimental, but it shouldn't be too difficult for a Python user to generalize the scripts to perform batch propagations on discrete grids of orbital elements.
 
+Details on the mathematical fundamentals of THALASSA are contained in [Amato et al., 2018](#Amato2018).
+
 # THALASSA User Guide
 THALASSA reads settings and initial conditions from two text files. Their paths can be specified as arguments to the THALASSA executable,
 
@@ -25,8 +27,8 @@ The settings file is divided in four sections.
 ### Physical model
 The first section contains integer flags that allow the user to tune the parameters of the physical model used for the propagation. The meaning of the flags and their allowed values are:
 *  `insgrav`: 1 toggles non-spherical gravity, 0 otherwise
-*  `isun`: 1 toggles gravitational perturbation from the Sun, 0 otherwise
-*  `imoon`: 1 toggles gravitational perturbation from the Moon, 0 otherwise
+*  `isun`: values >1 are interpreted as the order of the Legendre expansion for the solar gravitational perturbing acceleration. 1 toggles the acceleration using the full expression in rectangular coordinates. 0 disables the perturbation. See [Amato et al. (2018)](#Amato2018) for details.
+*  `imoon`: values >1 are interpreted as the order of the Legendre expansion for the lunar gravitational perturbing acceleration. 1 toggles the acceleration using the full expression in rectangular coordinates. 0 disables the perturbation. See [Amato et al. (2018)](#Amato2018) for details.
 *  `idrag`: select atmospheric model. 0 = no drag, 1 = patched exponential model [(table 8-4 of Vallado and McClain, 2013)](#Vallado2013), 2 = US 1976 Standard Atmosphere [(NASA et al., 1976)](#US1976), 3 = Jacchia 1977 [(Jacchia, 1977)](#Jacchia1977), 4 = NRLMSISE-00 [(Picone et al., 2000)](#Picone2000).
 *  `iF107`: 1 toggles variable F10.7 flux, 0 uses the constant value specified in `data/physical_constants.txt`
 *  `iSRP`: select SRP model. 0 = no SRP, 1 = SRP with no eclipses, 2 = SRP with conical shadow using the $\nu$ factor from [Montenbruck and Gill (2000)](#Montenbruck2000).
@@ -83,13 +85,17 @@ You should check the `stats.dat` file for any errors that might have taken place
 * `-3`: maximum number of steps reached. Try specifying a larger time step in the input file.
 * `-10`: unknown exception, try debugging to check what's the problem.
 
+## Acknowledging the use of the software
+If you use THALASSA in your work, please acknowledge this repository and [Amato et al., 2018](#Amato2018).
+
 ## References
-1.  <a name="Montenbruck2000"></a>Montenbruck, O., and Gill, E. "Satellite Orbits. Models, Methods, and Applications". Springer-Verlag Berlin Heidelberg, 2000.
-2.  <a name="Vallado2013"></a>Vallado, D. A., and McClain, W. D. "Fundamentals of Astrodynamics and Applications". Microcosm Press, 2013.
-3. <a name="US1976"></a> NASA, NOAA, and US Air Force, "U.S. Standard Atmosphere, 1976". Technical Report NASA-TM-X-74335, October 1976.
-4. <a name="Jacchia1977"></a> Jacchia, L. G. "Thermospheric Temperature, Density, and Composition: New Models". SAO Special Report, **375**, 1977.
-5. <a name="Picone2000"></a> Picone, J. M., Hedin, A. E., Drob, D .P., and Aikin, A. C. "NRLMSISE-00 empirical model of the atmosphere: Statistical comparisons and scientific issues". Journal of Geophysical Research: Space Physics, **107**(A12):15–1–16, 2002.
-6.  <a name="Meeus1998"></a>Meeus, J. "Astronomical Algorithms", 2nd Ed. Willmann-Bell, 1998.
-7.  <a name="Bau2015"></a>Baù, G., Bombardelli, C., Peláez, J., and Lorenzini, E. "Non-singular orbital elements for special perturbations in the two-body problem". Monthly Notices of the Royal Astronomical Society **454**, pp. 2890-2908, 2015.
-8.  <a name="Radhakrishnan1993"></a> Radhakrishnan, K. and Hindmarsh, A. C. "Description and use of LSODE, the Livermore Solver for Ordinary Differential Equations". NASA Reference Publication 1327, Lawrence Livermore National Laboratory Report UCRL-ID-113855, 1993.
-9.  <a name="Stiefel1971"></a> Stiefel E. G. and Scheifele G. "Linear and Regular Celestial Mechanics". Springer-Verlag New York Heidelberg Berlin, 1971.
+1.  <a name="Amato2018"></a>Amato, D., Bombardelli, C., Baù, G., Morand, V., and Rosengren, A. J. "Non-averaged regularized formulations as an alternative to semi-analytical orbit propagation methods". Submitted to Celestial Mechanics and Dynamical Astronomy, 2018.
+2.  <a name="Montenbruck2000"></a>Montenbruck, O., and Gill, E. "Satellite Orbits. Models, Methods, and Applications". Springer-Verlag Berlin Heidelberg, 2000.
+3.  <a name="Vallado2013"></a>Vallado, D. A., and McClain, W. D. "Fundamentals of Astrodynamics and Applications". Microcosm Press, 2013.
+4. <a name="US1976"></a> NASA, NOAA, and US Air Force, "U.S. Standard Atmosphere, 1976". Technical Report NASA-TM-X-74335, October 1976.
+5. <a name="Jacchia1977"></a> Jacchia, L. G. "Thermospheric Temperature, Density, and Composition: New Models". SAO Special Report, **375**, 1977.
+6. <a name="Picone2000"></a> Picone, J. M., Hedin, A. E., Drob, D .P., and Aikin, A. C. "NRLMSISE-00 empirical model of the atmosphere: Statistical comparisons and scientific issues". Journal of Geophysical Research: Space Physics, **107**(A12):15–1–16, 2002.
+7.  <a name="Meeus1998"></a>Meeus, J. "Astronomical Algorithms", 2nd Ed. Willmann-Bell, 1998.
+8.  <a name="Bau2015"></a>Baù, G., Bombardelli, C., Peláez, J., and Lorenzini, E. "Non-singular orbital elements for special perturbations in the two-body problem". Monthly Notices of the Royal Astronomical Society **454**, pp. 2890-2908, 2015.
+9.  <a name="Radhakrishnan1993"></a> Radhakrishnan, K. and Hindmarsh, A. C. "Description and use of LSODE, the Livermore Solver for Ordinary Differential Equations". NASA Reference Publication 1327, Lawrence Livermore National Laboratory Report UCRL-ID-113855, 1993.
+10. <a name="Stiefel1971"></a> Stiefel E. G. and Scheifele G. "Linear and Regular Celestial Mechanics". Springer-Verlag New York Heidelberg Berlin, 1971.

@@ -42,7 +42,7 @@ character(len=512)  ::  outpath
 integer  ::  verb
 
 ! THALASSA version
-character(len=20),parameter   ::  THALASSA_ver = 'v1.1'
+character(len=20),parameter   ::  THALASSA_ver = 'v1.2'
 
 contains
 

@@ -15,3 +15,6 @@ New in version 1.1:
 and it is now based on the Pines method. This is significantly faster than the 
 previous method based on recursions for the Legendre associated functions and 
 the trigonometric functions (which was also not very well optimized).
+
+New in version 1.2:
+* It is now possible to compute the lunisolar perturbing acceleration through either a "full" formula, including the direct and indirect terms written in Cartesian coordinates, or through a "truncated" formula, in which the perturbing acceleration is the derivative of the perturbing function truncated at an order assigned by the user.
