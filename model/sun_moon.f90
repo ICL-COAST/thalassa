@@ -195,7 +195,7 @@ subroutine EPHEM(ibody,DU,TU,t,r,v)
 ! MODULES
 use SETTINGS,    only: iephem
 use AUXILIARIES, only: T2MJD
-use PHYS_CONST,  only: secsPerDay,MJD_J2000
+use PHYS_CONST,  only: secsPerDay, MJD_J2000, delta_JD_MJD
 
 ! VARIABLES
 implicit none   ! <-- Lucky charm
@@ -228,7 +228,7 @@ external  ::  iau_JD2CAL
 ! ==============================================================================
 
 MJD_UTC = T2MJD(t)
-call iau_JD2CAL ( MJD_UTC, 0._dk, IY, IM, ID, FD, JDcode )
+call iau_JD2CAL ( delta_JD_MJD, MJD_UTC, IY, IM, ID, FD, JDcode )
 call iau_DAT ( IY, IM, ID, FD, DAT, DATcode )
 MJD_TT = MJD_UTC + (DAT + 32.184_dk)/secsPerDay
 
