@@ -15,6 +15,8 @@ module NSGRAV
 ! 
 ! Revisions:
 !    180806: Overhaul and implementation of Pines method.
+!    181204: Use GMST (IERS 2006 conventions) rather than ERA. Consider Earth
+!            Rotation Rate derived from IERS 2006 conventions.
 ! 
 ! ==============================================================================
 
@@ -214,13 +216,15 @@ subroutine PINES_NSG(GM,RE,rIn,tau,FIn,pot,dPot)
 ! 
 ! Revisions:
 !    180806: First working version of subroutine.
+!    181204: Use GMST (IERS 2006 conventions) rather than ERA. Consider Earth
+!            Rotation Rate derived from IERS 2006 conventions.
 !
 ! ==============================================================================
 
 ! Use associations
-use AUXILIARIES, only: MJD0,TU
-use PHYS_CONST,  only: ERR_constant_nd
-use PHYS_CONST,  only: GMST_UNIFORM
+use AUXILIARIES, only: MJD0, TU, T2MJD
+use PHYS_CONST,  only: delta_JD_MJD
+use PHYS_CONST,  only: ERR_IAU06, UTC2TT
 
 ! Arguments
 real(dk),intent(in)   ::  GM             ! Gravitational parameter
@@ -233,12 +237,17 @@ real(dk),intent(out),optional  ::  dPot  ! Time derivative of the potential in b
 ! Locals
 real(dk)  ::  rNorm,rNormSq  ! Norm of position vector and square
 real(dk)  ::  s,t,u  ! Direction cosines in the body-fixed frame
-real(dk)  ::  MJD_TT ! MJD in Terrestrial Time
-real(dk)  ::  ERA,cosERA,sinERA    ! Earth Rotation Angle and its trig functions
 real(dk)  ::  rho    ! = equatorial radius / r 
 real(dk)  ::  F(1:3),a1,a2,a3,a4  ! Acceleration and its components 
 integer   ::  n,m    ! Harmonic indices
 logical   ::  skip_EFG
+! GMST-related quantities
+real(dk)  ::  MJD_UTC, MJD_TT      ! UTC and TT dates
+real(dk)  ::  GMST,cosGMST,sinGMST ! GMST and its trig functions
+real(dk)  ::  ERR, ERR_nd          ! Earth Rotation Rate [rad/s, -]
+
+! SOFA routines
+real(dk) :: iau_GMST06
 
 ! ==============================================================================
 
@@ -251,14 +260,16 @@ rNorm = sqrt(rNormSq)
 
 u = rIn(3)/rNorm
 
-! Get Earth Rotation Angle 
-MJD_TT = MJD0 + tau/TU/secsPerDay ! TODO: This will have to be modified to compute UT1 from TT in a next version.
-ERA = GMST_UNIFORM(MJD_TT)
-cosERA = cos(ERA); sinERA = sin(ERA)
+! Greenwich Mean Sidereal Time (IAU 2006 conventions)
+MJD_UTC = T2MJD(tau)
+MJD_TT  = UTC2TT(MJD_UTC)
+
+GMST = iau_GMST06 ( delta_JD_MJD, MJD_UTC, delta_JD_MJD, MJD_TT )
+cosGMST = cos(GMST); sinGMST = sin(GMST)
 
 ! Rotate equatorial components of rIn to get direction cosines in the body-fixed frame
-s = (rIn(1) * cosERA + rIn(2) * sinERA)/rNorm
-t = (rIn(2) * cosERA - rIn(1) * sinERA)/rNorm
+s = (rIn(1) * cosGMST + rIn(2) * sinGMST)/rNorm
+t = (rIn(2) * cosGMST - rIn(1) * sinGMST)/rNorm
 
 rho = RE/rNorm
 
@@ -355,8 +366,8 @@ if (present(FIn)) then
   F = F / RE
 
   ! Transform to inertial frame
-  FIn(1) = F(1)*cosERA - F(2)*sinERA
-  FIn(2) = F(1)*sinERA + F(2)*cosERA
+  FIn(1) = F(1)*cosGMST - F(2)*sinGMST
+  FIn(2) = F(1)*sinGMST + F(2)*cosGMST
   FIn(3) = F(3)
 
 end if
@@ -367,10 +378,12 @@ end if
 
 if(present(dPot)) then
   dPot = 0._dk
+  ERR = ERR_IAU06(0._dk, MJD_TT)
+  ERR_nd = ERR / TU
   do m = 1, gord
     do n = m, gdeg
       Gnm(n,m) = m * ( t * Enm(n,m) - s * Fnm(n,m) )
-      Gnm(n,m) = ERR_constant_nd * Gnm(n,m)
+      Gnm(n,m) = ERR_nd * Gnm(n,m)
       dPot = dPot + Pn(n) * Anm(n,m) * Gnm(n,m)
       
     end do

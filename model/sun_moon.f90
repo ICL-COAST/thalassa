@@ -196,6 +196,7 @@ subroutine EPHEM(ibody,DU,TU,t,r,v)
 use SETTINGS,    only: iephem
 use AUXILIARIES, only: T2MJD
 use PHYS_CONST,  only: secsPerDay, MJD_J2000, delta_JD_MJD
+use PHYS_CONST,  only: UTC2TT
 
 ! VARIABLES
 implicit none   ! <-- Lucky charm
@@ -208,18 +209,10 @@ real(dk),intent(out)  ::  r(1:3),v(1:3)  ! Position and velocity of the body.
 
 ! Times
 real(dk)  ::  MJD_UTC, MJD_TT
-integer   ::  IY, IM, ID
-real(dk)  ::  FD
-real(dk)  ::  DAT
 real(dk)  ::  secs_J2000
 real(dk)  ::  lt
 ! Ephemerides
 real(dk)  ::  y(1:6)
-
-! Diagnostics
-integer   ::  JDcode, DATcode
-
-external  ::  iau_JD2CAL
 
 ! ==============================================================================
 
@@ -228,9 +221,7 @@ external  ::  iau_JD2CAL
 ! ==============================================================================
 
 MJD_UTC = T2MJD(t)
-call iau_JD2CAL ( delta_JD_MJD, MJD_UTC, IY, IM, ID, FD, JDcode )
-call iau_DAT ( IY, IM, ID, FD, DAT, DATcode )
-MJD_TT = MJD_UTC + (DAT + 32.184_dk)/secsPerDay
+MJD_TT  = UTC2TT(MJD_UTC)
 
 secs_J2000 = (MJD_TT-MJD_J2000)*secsPerDay
 

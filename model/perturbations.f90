@@ -21,9 +21,9 @@ use AUXILIARIES, only: DU,TU
 implicit none
 
 ! Jacchia 77 dynamical atmospheric model
-external ISDAMO
+external  ::  ISDAMO
 ! NRLMSISE-00 atmospheric model
-external GTD7,GTD7D,METERS
+external  ::  GTD7,GTD7D,METERS
 
 
 
@@ -48,15 +48,17 @@ subroutine PERT_EJ2K(insgrav,isun,imoon,idrag,iF107,iSRP,r,v,rm,t,P_EJ2K,pot,dPo
 !     180608: add variable solar flux.
 !     180610: add geodetic longitude and altitude.
 !     181006: add truncated third-body acceleration.
+!     181203: conversion from TT to UTC for the atmospheric models.
 ! 
 ! ==============================================================================
 
 ! MODULES
 use PHYS_CONST,  only: GE,GE_nd,GS,GM,RE_nd,ERR_constant,secsPerDay,twopi,RE,&
 &RS,CD,A2M_Drag,pSRP_1au,au,CR,A2M_SRP,MJD_J1950,GMST_UNIFORM,Kp,Ap,JD2CAL,&
-&r2d,cutoff_height,flatt
-use PHYS_CONST,  only: F107DAILY
+&r2d,cutoff_height,flatt,delta_JD_MJD
+use PHYS_CONST,  only: F107DAILY, UTC2TT
 use AUXILIARIES, only: DU,TU,MJD0
+use AUXILIARIES, only: T2MJD
 
 
 ! VARIABLES
@@ -86,7 +88,7 @@ real(dk)  ::  density,pressure,temperature
 ! Drag and associated q.ties (J77, NRLMSISE-00)
 real(dk)  ::  RA,DEC
 real(dk)  ::  RA_sun,DEC_sun,r_sun_m
-real(dk)  ::  JD_TT,MJD_TT,RJUD,DAFR,GMST,GMST_deg
+real(dk)  ::  JD_UTC,JD_TT,MJD_UTC,MJD_TT,RJUD,DAFR,GMST,GMST_deg
 real(dk)  ::  tempK(1:2),nDens(1:6),wMol
 real(dk)  ::  SEC
 real(dk)  ::  GLAT_deg,GLONG_deg,RA_deg,STL_hrs
@@ -107,8 +109,9 @@ real(dk)  ::  wE_D
 real(dk)  ::  p_SRP(1:3)
 
 
-! SOFA routine to compute geodetic coordinates
-external iau_GC2GDE
+! SOFA routines
+external  ::  iau_GC2GDE
+real(dk)  ::  iau_GMST06
 
 
 ! ==============================================================================
@@ -170,7 +173,6 @@ P_EJ2K = p_sun + p_moon + P_EJ2K
 ! NOTE:
 ! Currently, the following approximations are made in the computation of the
 ! atmospheric drag:
-! - TT = UT1
 ! - Average F10.7 is equal to daily
 ! - Geomagnetic activity is constant (its value is specified in 
 !   ./data/physical_constants.txt)
@@ -210,11 +212,13 @@ if (idrag /= 0 .and. h_D <= cutoff_height) then
         RA_sun  = atan2(r_sun(2),r_sun(1))
         RA_sun  = mod(RA_sun +twopi,twopi)
         DEC_sun = asin(r_sun(3)/r_sun_m)
-        MJD_TT = MJD0 + t/TU/secsPerDay
-        RJUD    = MJD_TT - MJD_J1950
+
+        MJD_UTC = T2MJD(t)
+        MJD_TT  = UTC2TT(MJD_UTC)
+        RJUD    = MJD_UTC - MJD_J1950
         DAFR    = RJUD - int(RJUD)
-        GMST    = GMST_UNIFORM(MJD_TT)
-        F107    = F107DAILY(iF107,MJD_TT)
+        GMST    = iau_GMST06 ( delta_JD_MJD, MJD_UTC, delta_JD_MJD, MJD_TT )
+        F107    = F107DAILY(iF107,MJD_UTC)
         call ISDAMO([RA,DEC,h_D*1.E3_dk],[RA_sun,DEC_sun],&
         & [F107,F107,Kp],RJUD,DAFR,GMST,tempK,nDens,wMol,density)
       
@@ -224,19 +228,20 @@ if (idrag /= 0 .and. h_D <= cutoff_height) then
       ! NRLMSISE-00 atmospheric model
       density = 0._dk
       ! Get date and year
-      MJD_TT = MJD0 + t/TU/secsPerDay
-      JD_TT  = MJD_TT + 2400000.5_dk
-      call JD2CAL(JD_TT,year,month,dayOfMonth,dayOfYear)
+      MJD_UTC = T2MJD(t)
+      MJD_TT  = UTC2TT(MJD_UTC)
+      JD_UTC  = MJD_UTC + delta_JD_MJD
+      call JD2CAL(JD_UTC,year,month,dayOfMonth,dayOfYear)
       
       ! Note: year number is ignored in NRLMSISE-00.
       IYD       = int(dayOfYear)
       SEC       = (dayOfYear - IYD)*secsPerDay
-      GMST_deg  = GMST_UNIFORM(MJD_TT)*r2d
+      GMST_deg  = iau_GMST06 ( delta_JD_MJD, MJD_UTC, delta_JD_MJD, MJD_TT )*r2d
       RA_deg    = mod(atan2(r(2),r(1)) + twopi, twopi)*r2d
       GLONG_deg = mod(RA_deg - GMST_deg + 360._dk,360._dk)
       STL_hrs   = SEC/3600._dk + GLONG_deg/15._dk
       
-      F107      = F107DAILY(iF107,MJD_TT)
+      F107      = F107DAILY(iF107,MJD_UTC)
       
       ! Geodetic altitude and latitude
       call iau_GC2GDE(RE,flatt,r_D,RA_deg,GLAT_deg,hGeod_D,GDStat)
