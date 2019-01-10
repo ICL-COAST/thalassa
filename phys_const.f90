@@ -49,6 +49,7 @@ real(dk)  ::  reentry_height,reentry_radius_nd
 ! Difference (JD - MJD)
 real(dk),parameter  ::  delta_JD_MJD = 2400000.5_dk
 ! MJD of epochs J2000.0, J1950.0
+real(dk),parameter  ::  JD_J2000     = 2451545
 real(dk),parameter  ::  MJD_J2000    = 51544.5_dk
 real(dk),parameter  ::  MJD_J1950    = 33282.0_dk
 ! More conversions
@@ -447,6 +448,109 @@ end select
 
 end function F107DAILY
 
+
+
+
+function ERR_IAU06(MJDA_TT, MJDB_TT)
+! Description:
+!    Earth Rotation Rate (time derivative of the Greenwich Mean Sidereal Time),
+!    according to the IAU 2006 Conventions. Input is the modified Julian Day in
+!    TT.
+! 
+! Author:
+!    Davide Amato
+!    The University of Arizona
+!    davideamato@email.arizona.edu
+! 
+! References:
+!    [1] Capitaine, N., Wallace, P.T. & Chapront, J., 2005,
+!       Astron. Astrophys. 432, 355
+!    [2] Capitaine N., Guinot B. and McCarthy D.D, 2000, Astron.
+!       Astrophys., 355, 398-405.
+!
+! ==============================================================================
+
+! Arguments
+real(dk), intent(in)  ::  MJDA_TT, MJDB_TT
+! Function definition
+real(dk)  ::  ERR_IAU06
+
+! Coefficients for the rate of change of GMST
+real(dk), parameter  ::  c0 =   4612.156534_dk, &
+                       & c1 =      2.7831634_dk  , &
+                       & c2 = -    0.00000132_dk , &
+                       & c3 = -    0.000119824_dk, &
+                       & c4 = -    0.000000184_dk
+! Arcseconds to radians
+real(dk), parameter  :: as2rad = 4.848136811095359935899141E-6_dk
+real(dk), parameter  :: sec2cy = 3155760000._dk
+
+! Locals
+real(dk)  ::  dotERA   ! Derivative of Earth Rotation Angle
+real(dk)  ::  dotDelta ! Derivative of GMST - ERA
+real(dk)  ::  T        ! Centuries past J2000 (TT)
+
+! ==============================================================================
+
+! According to [2], GMST = ERA + delta(GMST-ERA). Thus we compute the time
+! derivative of GMST as the sum of the derivatives of ERA and delta.
+
+! The Earth Rotation Angle (ERA) is a linear function of UT1, thus its derivative
+! is constant.
+dotERA = 7.292115146706980494985261831431E-5_dk ! [rad/s]
+
+! Following SOFA, we compute the TT Julian centuries since J2000 as
+T = ( ( MJDA_TT - MJD_J2000 ) + MJDB_TT ) / 36525._dk
+
+dotDelta = c0 + T * ( c1 + T * ( c2 + T * ( c3 + T * c4 ))) ! [as/cy]
+dotDelta = dotDelta * as2rad / sec2cy                       ! [rad/s]
+
+ERR_IAU06 = dotERA + dotDelta
+
+end function ERR_IAU06
+
+
+
+function UTC2TT(MJD_UTC)
+! Description:
+!    Convert MJD in UTC (Universal Coordinated Time) to TT (Terrestrial, or
+!    Ephemeris Time). This is a wrapper for the SOFA routines.
+! 
+! Author:
+!    Davide Amato
+!    The University of Arizona
+!    davideamato@email.arizona.edu
+! 
+! Revision:
+!    181204: Routine created.
+!
+! 
+! ==============================================================================
+
+! Arguments
+real(dk), intent(in)  ::  MJD_UTC
+! Function definition
+real(dk)  ::  UTC2TT
+
+! SOFA procedures
+external :: iau_JD2CAL, iau_DAT
+
+! Locals
+integer   ::  IY, IM, ID
+real(dk)  ::  FD
+real(dk)  ::  DAT
+
+! Diagnostics
+integer   ::  JDcode, DATcode
+
+! ==============================================================================
+
+call iau_JD2CAL ( delta_JD_MJD, MJD_UTC, IY, IM, ID, FD, JDcode )
+call iau_DAT ( IY, IM, ID, FD, DAT, DATcode )
+UTC2TT = MJD_UTC + (DAT + 32.184_dk)/secsPerDay
+
+
+end function UTC2TT
 
 
 
