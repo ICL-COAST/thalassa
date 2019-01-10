@@ -13,6 +13,7 @@ module PHYS_CONST
 !     180609: add radius of the Sun.
 !     180610: add flattening.
 !     180730: move Earth data initialization to routine INITIALIZE_NSGRAV.
+!     190111: read lunar radius.
 !
 ! ==============================================================================
 
