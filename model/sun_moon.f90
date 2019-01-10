@@ -18,6 +18,7 @@ module SUN_MOON
 ! 
 ! Revisions:
 !    181006: Add procedures for truncated acceleration.
+!    
 !
 ! ==============================================================================
 
@@ -179,13 +180,23 @@ subroutine EPHEM(ibody,DU,TU,t,r,v)
 !    The output is non-dimensionalized with the reference length DU and the
 !    reference frequency TU. Use 1 for both to obtain output in KM, KM/S.
 !    The input time "t" is dimensionless.
+! 
+! Author:
+!    Davide Amato
+!    The University of Arizona
+!    davideamato@email.arizona.edu
+!
+! Revisions:
+!    181203: Add conversion from UTC to TT through the SOFA routines iau_JD2CAL
+!           and iau_DAT.
 !
 ! ==============================================================================
 
 ! MODULES
 use SETTINGS,    only: iephem
 use AUXILIARIES, only: T2MJD
-use PHYS_CONST,  only: secsPerDay,MJD_J2000
+use PHYS_CONST,  only: secsPerDay, MJD_J2000, delta_JD_MJD
+use PHYS_CONST,  only: UTC2TT
 
 ! VARIABLES
 implicit none   ! <-- Lucky charm
@@ -197,7 +208,7 @@ real(dk),intent(in)  ::  DU,TU    ! Reference units (km, 1/s).
 real(dk),intent(out)  ::  r(1:3),v(1:3)  ! Position and velocity of the body.
 
 ! Times
-real(dk)  ::  MJD_UT1
+real(dk)  ::  MJD_UTC, MJD_TT
 real(dk)  ::  secs_J2000
 real(dk)  ::  lt
 ! Ephemerides
@@ -205,14 +216,20 @@ real(dk)  ::  y(1:6)
 
 ! ==============================================================================
 
-!!! TODO TODO TODO
-!!! We neglect the conversion from UT1 to TDB. This leads to an error of
-!!! about 70 seconds (see SUN_POS_MEEUS subroutine).
-!!! TODO TODO TODO
+! ==============================================================================
+! 01. CONVERT FROM UTC TO TT
+! ==============================================================================
+
+MJD_UTC = T2MJD(t)
+MJD_TT  = UTC2TT(MJD_UTC)
+
+secs_J2000 = (MJD_TT-MJD_J2000)*secsPerDay
+
+! ==============================================================================
+! 02. COMPUTE EPHEMERIDES
+! ==============================================================================
 
 y = 0._dk
-MJD_UT1 = T2MJD(t)
-secs_J2000 = (MJD_UT1-MJD_J2000)*secsPerDay
 
 select case(ibody)
 case (1)
@@ -225,7 +242,7 @@ case (1)
   case(2)
     ! SUN (Meeus and Brown)
     ! NOTE: the Meeus and Brown ephemerides don't provide the velocity.
-    y(1:3) = SUN_POS_MEEUS(MJD_UT1,1._dk)
+    y(1:3) = SUN_POS_MEEUS(MJD_TT,1._dk)
 
   end select
 
@@ -238,7 +255,7 @@ case(2)
   case(2)
     ! MOON (Meeus and Brown)
     ! NOTE: the Meeus and Brown ephemerides don't provide the velocity.
-    y(1:3) = MOON_POS_MEEUS(MJD_UT1,1._dk)
+    y(1:3) = MOON_POS_MEEUS(MJD_TT,1._dk)
 
   end select
 
@@ -252,7 +269,7 @@ end subroutine EPHEM
 
 
 
-function SUN_POS_MEEUS(MJD_UT1,DU)
+function SUN_POS_MEEUS(MJD_UTC,DU)
 ! Description:
 !    Gives the position of the Sun in the geocentric, mean equator and equinox
 !    of date reference frame. Uses simplified formulas from [1].
@@ -264,7 +281,7 @@ function SUN_POS_MEEUS(MJD_UT1,DU)
 use PHYS_CONST, only: twopi,d2r,MJD_J2000
 ! VARIABLES
 ! Arguments
-real(dk),intent(in)  ::  MJD_UT1,DU
+real(dk),intent(in)  ::  MJD_UTC,DU
 ! Function definition
 real(dk)  ::  SUN_POS_MEEUS(1:3)
 ! Locals
@@ -282,7 +299,7 @@ real(dk)  ::  LS,NU,RS
 ! ==============================================================================
 
 ! (Fractional) number of centuries from J2000
-T  = (MJD_UT1 - MJD_J2000)/36525._dk
+T  = (MJD_UTC - MJD_J2000)/36525._dk
 T2 = T**2
 
 ! Obliquity of the ecliptic
@@ -322,7 +339,7 @@ end function SUN_POS_MEEUS
 
 
 
-function MOON_POS_MEEUS(MJD_UT1,DU)
+function MOON_POS_MEEUS(MJD_UTC,DU)
 ! Description:
 !    Gives the position of the Moon in the geocentric, mean equator and equinox
 !    of date reference frame. Uses simplified formulas from [1].
@@ -335,7 +352,7 @@ use PHYS_CONST, only: twopi,d2r,MJD_J2000
 ! VARIABLES
 implicit none
 ! Argument IN
-real(dk),intent(in)  ::  MJD_UT1,DU
+real(dk),intent(in)  ::  MJD_UTC,DU
 ! Function def
 real(dk)  ::  MOON_POS_MEEUS(1:3)
 ! Locals
@@ -349,7 +366,7 @@ real(dk)  ::  r,x,y,z
 
 ! ==============================================================================
 
-T  = (MJD_UT1 - MJD_J2000)/36525._dk
+T  = (MJD_UTC - MJD_J2000)/36525._dk
 T2 = T*T
 T3 = T2*T
 T4 = T3*T
