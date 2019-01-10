@@ -23,8 +23,8 @@ integer,parameter      ::  id_set = 13
 character(len=4096)    ::  input_path
 ! Physical model
 integer  ::  insgrav            ! Non-spherical gravity field flag.
-integer  ::  isun               ! 0 = no Sun perturbation, 1 = otherwise.
-integer  ::  imoon              ! 0 = no Moon perturbation, 1 = otherwise.
+integer  ::  isun               ! 0 = no Sun perturbation, >1 otherwise.
+integer  ::  imoon              ! 0 = no Moon perturbation, >1 otherwise.
 integer  ::  idrag              ! 0 = no atmospheric drag, 1 = Wertz model, 2 = US76 (PATRIUS), 3 = J77 (Carrara - INPE), 4 = NRLMSISE-00 (Picone - NRL)
 integer  ::  iF107              ! 0 = constant F10.7 flux, 1 = variable F10.7 flux
 integer  ::  iSRP               ! 0 = no SRP, 1 = otherwise.

@@ -13,7 +13,7 @@ module PHYS_CONST
 !     180609: add radius of the Sun.
 !     180610: add flattening.
 !     180730: move Earth data initialization to routine INITIALIZE_NSGRAV.
-!     190111: read lunar radius.
+!     190110: read lunar radius.
 !
 ! ==============================================================================
 
@@ -40,7 +40,7 @@ real(dk)  ::  RE
 real(dk)  ::  flatt
 real(dk)  ::  omegaE
 ! Sun and moon radii (km)
-real(dk)  ::  RS,RM
+real(dk)  ::  RS,ReqM
 ! Seconds per day (tropical)
 real(dk),parameter  ::  secsPerDay = 86400._dk
 ! Seconds per day (sidereal)
@@ -101,7 +101,7 @@ subroutine READ_PHYS(physFile)
 !     180610: compute flattening.
 !     180730: move Earth data initialization to routine INITIALIZE_NSGRAV.
 !     180731: remove unused variables.
-!     190111: read lunar radius.
+!     190110: read lunar radius.
 !
 ! ==============================================================================
 
@@ -125,7 +125,7 @@ read(id_phys,'(e20.13,/)') au
 read(id_phys,'(e20.13)') GS
 read(id_phys,'(e20.13,/)') GM
 read(id_phys,'(e20.13)') RS
-read(id_phys,'(e20.13,/)') RM
+read(id_phys,'(e20.13,/)') ReqM
 read(id_phys,'(e20.13,/)') pSRP_1au
 read(id_phys,'(e20.13,/)') F107Const
 read(id_phys,'(e20.13,/)') Kp

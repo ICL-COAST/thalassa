@@ -83,13 +83,17 @@ end subroutine COWELL_RHS
 subroutine COWELL_EVT(neq,t,y,ng,roots)
 ! Description:
 !    Finds roots to stop the integration for the Cowell formulation.
-!    Quad precision.
-!
+! 
+! Revisions:
+!    190110: Add check for collision with the Moon.
+! 
 ! ==============================================================================
 
 ! MODULES
+use SUN_MOON,    only: EPHEM
 use AUXILIARIES, only: MJD0,MJDnext,MJDf,TU,DU
-use PHYS_CONST,  only: secsPerDay,reentry_radius_nd
+use PHYS_CONST,  only: secsPerDay,reentry_radius_nd,ReqM
+use SETTINGS,    only: imoon
 
 ! VARIABLES
 implicit none
@@ -101,7 +105,8 @@ real(dk),intent(in)      ::  y(1:neq)
 ! Arguments OUT
 real(dk),intent(out)     ::  roots(1:ng)
 ! Locals
-real(dk)  ::  rmag
+real(dk)  ::  rmag, dmag
+real(dk)  ::  rMoon(1:3), vMoon(1:3)
 
 ! ==============================================================================
 
@@ -121,11 +126,28 @@ roots(2) = t - (MJDf-MJD0)*secsPerDay*TU
 !roots(2) = 1._dk
 
 ! ==============================================================================
-! 03. Re-entry
+! 03. Earth re-entry
 ! ==============================================================================
 
 rmag = sqrt(dot_product(y(1:3),y(1:3)))
 roots(3) = rmag - reentry_radius_nd
+
+! ==============================================================================
+! 04. Moon collision (only active when Moon is present)
+! ==============================================================================
+
+! All quantities are dimensional. There would be a marginal increase in accuracy
+! if we used dimensionless quantities, but this would require
+! non-dimensionalizing ReqM in some part of the code, which would worsen the
+! code reliability esp. in the future, when switches of reference frames (and
+! reference units) will be considered.
+if (imoon > 0) then
+  call EPHEM(2, 1._dk, 1._dk, t, rMoon, vMoon)
+  dmag = sqrt(dot_product( (y(1:3)*DU - rMoon), (y(1:3)*DU - rMoon) ) )
+  roots(4) = dmag - ReqM
+
+end if
+
 
 end subroutine COWELL_EVT
 
