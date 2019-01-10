@@ -38,8 +38,8 @@ real(dk)  ::  GS,GE,GM
 real(dk)  ::  RE
 real(dk)  ::  flatt
 real(dk)  ::  omegaE
-! Sun radius (km)
-real(dk)  ::  RS
+! Sun and moon radii (km)
+real(dk)  ::  RS,RM
 ! Seconds per day (tropical)
 real(dk),parameter  ::  secsPerDay = 86400._dk
 ! Seconds per day (sidereal)
@@ -100,6 +100,7 @@ subroutine READ_PHYS(physFile)
 !     180610: compute flattening.
 !     180730: move Earth data initialization to routine INITIALIZE_NSGRAV.
 !     180731: remove unused variables.
+!     190111: read lunar radius.
 !
 ! ==============================================================================
 
@@ -109,7 +110,7 @@ implicit none
 character(len=*),intent(in)     ::  physFile
 ! Locals
 character(len=4096)  ::  dummy
-integer,parameter    ::  hlines = 7
+integer,parameter    ::  hlines = 8
 integer              ::  i
 
 ! ==============================================================================
@@ -122,7 +123,8 @@ read(id_phys,'(a)') (dummy, i=1,hlines)
 read(id_phys,'(e20.13,/)') au
 read(id_phys,'(e20.13)') GS
 read(id_phys,'(e20.13,/)') GM
-read(id_phys,'(e20.13,/)') RS
+read(id_phys,'(e20.13)') RS
+read(id_phys,'(e20.13,/)') RM
 read(id_phys,'(e20.13,/)') pSRP_1au
 read(id_phys,'(e20.13,/)') F107Const
 read(id_phys,'(e20.13,/)') Kp
