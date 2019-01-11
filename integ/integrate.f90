@@ -179,7 +179,7 @@ select case (integ)
       isett(3) = 1      ! istate
       isett(4) = 1      ! iopt
       isett(5) = 2      ! jt
-      isett(6) = 3      ! nevts (max. = 10, see length of jroot)
+      isett(6) = 4      ! nevts (max. = 10, see length of jroot)
       isett(7:16) = 0   ! jroot
 
       ! Default values for iwork.

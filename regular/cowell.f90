@@ -136,15 +136,19 @@ roots(3) = rmag - reentry_radius_nd
 ! 04. Moon collision (only active when Moon is present)
 ! ==============================================================================
 
-! All quantities are dimensional. There would be a marginal increase in accuracy
-! if we used dimensionless quantities, but this would require
+! All quantities are dimensional. Accuracy could be improved by using
+! dimensionless quantities, but this would require
 ! non-dimensionalizing ReqM in some part of the code, which would worsen the
-! code reliability esp. in the future, when switches of reference frames (and
-! reference units) will be considered.
+! code reliability.
+roots(4) = 1.
 if (imoon > 0) then
+  write(*,*) 'In EVT_COWELL.'
   call EPHEM(2, 1._dk, 1._dk, t, rMoon, vMoon)
   dmag = sqrt(dot_product( (y(1:3)*DU - rMoon), (y(1:3)*DU - rMoon) ) )
   roots(4) = dmag - ReqM
+  write(*,*) dmag
+  write(*,*) roots(4)
+  read(*,*)
 
 end if
 

@@ -356,12 +356,20 @@ select case (integ)
         if (jroot(2) == 1 .or. jroot(3) == 1) then
             QUIT_LOOP = .true.
             exitcode = 0
-            if (jroot(3) == 1) then
+            if (jroot(3) == 1 .or. jroot(4) == 1) then
               tcur = PHYSICAL_TIME(eqs,neq,x,y)
               MJDcur = MJD0 + tcur/TU/secsPerDay
-              write(*,*) 'Reentry detected, height <= ',&
-              &reentry_height,' km, MJD = ',MJDcur,', duration = ',&
-              &tcur/TU/secsPerDay/365.25_dk
+              if (jroot(3) == 1) then
+                  write(*,*) 'Earth re-entry detected, geoc. height <= ',&
+                  &reentry_height,' km, MJD = ',MJDcur,' (UTC), duration = ',&
+                  &tcur/TU/secsPerDay/365.25_dk,' years.'
+
+              else if (jroot(4) == 1) then
+                  write(*,*) 'Moon collision detected, selenoc. height <= ',&
+                  &reentry_height,' km, MJD = ',MJDcur,' (UTC), duration = ',&
+                  &tcur/TU/secsPerDay/365.25_dk,' years.'
+
+              end if
 
               exitcode = 1
 
