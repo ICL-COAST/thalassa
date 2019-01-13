@@ -249,17 +249,7 @@ case (1)
 case(2)
   select case(iephem)
   case(1)
-    ! MOON (NAIF ID = 301)
-    !!! DEBUG
-    ! write(*,*) 'In EPHEM.'
-    ! write(*,*) 'secs_J2000 = ',secs_J2000
-    ! read(*,*)
-    !!! DEBUG
     call SPKEZR('301',secs_J2000,'J2000','NONE','399',y,lt)
-
-    !!! DEBUG
-    y(1:3) = [380000., 0., 0.]
-    !!! DEBUG
 
   case(2)
     ! MOON (Meeus and Brown)

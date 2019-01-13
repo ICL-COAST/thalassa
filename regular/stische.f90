@@ -20,6 +20,7 @@ module STI_SCHE
 !     180608: change interface to PERT_EJ2K to add iF107.
 !     180801: change call to perturbation routine, PERT_EJ2K. Eliminate needless
 !             use associations. Refine comments.
+!     190110: Add check for collision with the Moon.
 !      
 ! ==============================================================================
 
@@ -199,11 +200,19 @@ end subroutine STISCHE_RHS
 
 
 subroutine STISCHE_EVT(neq,phi,z,ng,roots)
+! Description:
+!    Finds roots to stop the integration for the SS formulation.
+! 
+! Revisions:
+!    190110: Add header comments. Add check for collision with the Moon.
+! 
+! ==============================================================================
 
-! ! MODULES
+! MODULES
+use SUN_MOON,    only: EPHEM
 use AUXILIARIES, only: MJD0,MJDnext,MJDf,DU,TU
-use PHYS_CONST,  only: secsPerDay,RE,reentry_radius_nd
-use SETTINGS,    only: eqs
+use PHYS_CONST,  only: secsPerDay,RE,reentry_radius_nd,ReqM
+use SETTINGS,    only: eqs, imoon
 
 ! VARIABLES
 implicit none
@@ -218,7 +227,8 @@ real(dk),intent(out)  ::  roots(1:ng)
 ! Locals
 integer   ::  flag_time
 real(dk)  ::  t                   ! Current time [-]
-real(dk)  ::  sph2,cph2,rmag
+real(dk)  ::  sph2,cph2,rmag, dmag
+real(dk)  ::  r_vec(1:3), v_vec(1:3), rMoon(1:3), vMoon(1:3)
 real(dk)  ::  u(1:4) 
 
 ! ==============================================================================
@@ -242,7 +252,7 @@ roots(1) = t - (MJDnext - MJD0)*secsPerDay*TU
 roots(2) = t - (MJDf - MJD0)*secsPerDay*TU
 
 ! ==============================================================================
-! 03. Re-entry
+! 03. Earth re-entry
 ! ==============================================================================
 sph2 = sin(phi/2._dk)
 cph2 = cos(phi/2._dk)
@@ -251,6 +261,24 @@ u    = z(1:4)*cph2 + z(5:8)*sph2
 rmag = dot_product(u,u)
 
 roots(3) = rmag - reentry_radius_nd
+
+! ==============================================================================
+! 04. Moon collision (only active when Moon is present)
+! ==============================================================================
+
+! All quantities are dimensional. Accuracy could be improved by using
+! dimensionless quantities, but this would require
+! non-dimensionalizing ReqM in some part of the code, which would worsen the
+! code reliability.
+roots(4) = 1.
+if (imoon > 0) then
+  call STISCHE2CART(phi,z,r_vec,v_vec)
+  r_vec = r_vec * DU
+  call EPHEM(2, 1._dk, 1._dk, t, rMoon, vMoon)
+  dmag = sqrt(dot_product( (r_vec - rMoon), (r_vec - rMoon) ) )
+  roots(4) = dmag - ReqM
+
+end if
 
 end subroutine STISCHE_EVT
 

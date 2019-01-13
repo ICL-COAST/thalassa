@@ -14,6 +14,7 @@ module COWELL
 !    180608: change interface to PERT_EJ2K to add iF107.
 !    180801: change call to perturbation routine, PERT_EJ2K. Eliminate needless
 !            use associations. Refine comments.
+!    190110: Add check for collision with the Moon.
 !
 ! ==============================================================================
 
@@ -142,13 +143,9 @@ roots(3) = rmag - reentry_radius_nd
 ! code reliability.
 roots(4) = 1.
 if (imoon > 0) then
-  write(*,*) 'In EVT_COWELL.'
   call EPHEM(2, 1._dk, 1._dk, t, rMoon, vMoon)
   dmag = sqrt(dot_product( (y(1:3)*DU - rMoon), (y(1:3)*DU - rMoon) ) )
   roots(4) = dmag - ReqM
-  write(*,*) dmag
-  write(*,*) roots(4)
-  read(*,*)
 
 end if
 

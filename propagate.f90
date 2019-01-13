@@ -322,6 +322,7 @@ function QUIT_LOOP(eqs,neq,integ,isett,exitcode,x,y)
 !    
 ! Revisions:
 !    180531: Add logging facilities, exit code.
+!    190113: Add check on Moon collision.
 !
 ! ==============================================================================
 
@@ -337,6 +338,7 @@ real(dk),intent(in)    ::  y(:),x
 integer,intent(inout)  ::  exitcode
 logical                ::  QUIT_LOOP
 ! Locals
+character(len=*),parameter  :: fmtstr = '(a, g10.3, 2(a, g14.7), a)'
 integer   :: jroot(1:10)
 real(dk)  :: tcur,MJDcur
 
@@ -345,7 +347,8 @@ real(dk)  :: tcur,MJDcur
 QUIT_LOOP = .false.
 ! The exit conditions are (for SLSODAR/DLSODAR):
 !    jroot(2) = 1: reaching of final time.
-!    jroot(3) = 1: atmospheric re-entry.
+!    jroot(3) = 1: Earth re-entry.
+!    jroot(4) = 1: Moon collision.
 
 select case (integ)
     case(1) ! SLSODAR, DLSODAR
@@ -353,19 +356,19 @@ select case (integ)
         jroot = isett(7:16)
 
         ! Nominal exit conditions.
-        if (jroot(2) == 1 .or. jroot(3) == 1) then
+        if (any(jroot(2:4) == 1)) then
             QUIT_LOOP = .true.
             exitcode = 0
             if (jroot(3) == 1 .or. jroot(4) == 1) then
               tcur = PHYSICAL_TIME(eqs,neq,x,y)
               MJDcur = MJD0 + tcur/TU/secsPerDay
               if (jroot(3) == 1) then
-                  write(*,*) 'Earth re-entry detected, geoc. height <= ',&
+                  write(*,fmtstr) 'Earth re-entry detected, geoc. height <= ',&
                   &reentry_height,' km, MJD = ',MJDcur,' (UTC), duration = ',&
                   &tcur/TU/secsPerDay/365.25_dk,' years.'
 
               else if (jroot(4) == 1) then
-                  write(*,*) 'Moon collision detected, selenoc. height <= ',&
+                  write(*,fmtstr) 'Moon collision detected, selenoc. height <= ',&
                   &reentry_height,' km, MJD = ',MJDcur,' (UTC), duration = ',&
                   &tcur/TU/secsPerDay/365.25_dk,' years.'
 

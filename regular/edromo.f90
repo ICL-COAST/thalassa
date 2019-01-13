@@ -21,6 +21,8 @@ module EDROMO
 !    180801: change call to perturbation routine, PERT_EJ2K. Eliminate use
 !            association with PHYS_CONST in EDROMO_RHS. Refine comments to the
 !            module.
+!    190110: Add check for collision with the Moon. Add optional flag to
+!            EDROMO2CART to return position only.
 !
 ! ==============================================================================
 
@@ -231,11 +233,19 @@ end subroutine EDROMO_RHS
 
 
 subroutine EDROMO_EVT(neq,phi,z,ng,roots)
+! Description:
+!    Finds roots to stop the integration for the EDromo formulation.
+! 
+! Revisions:
+!    190110: Add header comments. Add check for collision with the Moon.
+! 
+! ==============================================================================
 
 ! MODULES
+use SUN_MOON,    only: EPHEM
 use AUXILIARIES, only: MJD0,MJDnext,MJDf,DU,TU
-use PHYS_CONST,  only: secsPerDay,RE,reentry_radius_nd
-use SETTINGS,    only: eqs
+use PHYS_CONST,  only: secsPerDay,RE,reentry_radius_nd,ReqM
+use SETTINGS,    only: eqs,imoon
 
 ! VARIABLES
 implicit none
@@ -250,7 +260,8 @@ real(dk),intent(out)  ::  roots(1:ng)
 ! Locals
 integer   ::  flag_time
 real(dk)  ::  t         ! Current time [-]
-real(dk)  ::  rho,rmag
+real(dk)  ::  rho, rmag, dmag
+real(dk)  ::  r_vec(1:3), dummy(1:3), rMoon(1:3), vMoon(1:3)
 
 ! ==============================================================================
 
@@ -273,13 +284,32 @@ roots(1) = t - (MJDnext - MJD0)*secsPerDay*TU
 roots(2) = t - (MJDf - MJD0)*secsPerDay*TU
 
 ! ==============================================================================
-! 03. Re-entry
+! 03. Earth re-entry
 ! ==============================================================================
 
 rho   = 1._dk - z(1)*cos(phi) - z(2)*sin(phi)
 rmag  = z(3)*rho
 
 roots(3) = rmag - reentry_radius_nd
+
+! ==============================================================================
+! 04. Moon collision (only active when Moon is present)
+! ==============================================================================
+
+! All quantities are dimensional. Accuracy could be improved by using
+! dimensionless quantities, but this would require
+! non-dimensionalizing ReqM in some part of the code, which would worsen the
+! code reliability.
+roots(4) = 1.
+if (imoon > 0) then
+  call EDROMO2CART(phi,z,r_vec,dummy,posOnly=.true.)
+  r_vec = r_vec*DU
+  call EPHEM(2, 1._dk, 1._dk, t, rMoon, vMoon)
+  dmag = sqrt(dot_product( (r_vec - rMoon), (r_vec - rMoon) ) )
+  roots(4) = dmag - ReqM
+
+end if
+
 
 end subroutine EDROMO_EVT
 
@@ -503,11 +533,14 @@ end subroutine CART2EDROMO
 
 
 
-subroutine EDROMO2CART(phi,z,r_vec,v_vec)
+subroutine EDROMO2CART(phi,z,r_vec,v_vec,posOnly)
 ! Description:
 !    Transforms from the EDromo state vector "z", fictitious time "phi" and
 !    potential "Upot" to Cartesian position and velocity "r_vec", "v_vec".
 !    **All quantities are dimensionless, unlike in CART2EDROMO**.
+! 
+! Revisions:
+!    190113: Add optional flag for the calculation of the position only.
 !
 ! ==============================================================================
 
@@ -519,6 +552,7 @@ use PHYS_CONST,    only: GE_nd,RE_nd
 implicit none
 ! Arguments IN
 real(dk),intent(in)   ::  z(1:8),phi
+logical, optional, intent(in)  ::  posOnly
 ! Arguments OUT
 real(dk),intent(out)  ::  r_vec(1:3),v_vec(1:3)
 
@@ -570,28 +604,32 @@ r_vec = rmag*(x_vec*cnu + y_vec*snu)
 ! 03. PERTURBING POTENTIAL
 ! ==============================================================================
 
-flag_time = eqs - 2
-t = EDROMO_TE2TIME(z,phi,flag_time)
-Upot = 0._dk
-if (insgrav == 1) then
-  call PINES_NSG(GE_nd,RE_nd,r_vec,t,pot=Upot)
+! By default, compute velocity
+if(.not.(present(posOnly))) then
+    flag_time = eqs - 2
+    t = EDROMO_TE2TIME(z,phi,flag_time)
+    Upot = 0._dk
+    if (insgrav == 1) then
+    call PINES_NSG(GE_nd,RE_nd,r_vec,t,pot=Upot)
 
-end if
+    end if
 
 ! ==============================================================================
 ! 04. COMPUTE VELOCITY IN INERTIAL FRAME
 ! ==============================================================================
 
-! Radial and tangential unit vectors in the inertial frame
-i_vec = x_vec*cnu + y_vec*snu
-j_vec = y_vec*cnu - x_vec*snu
+    ! Radial and tangential unit vectors in the inertial frame
+    i_vec = x_vec*cnu + y_vec*snu
+    j_vec = y_vec*cnu - x_vec*snu
 
-! Radial and tangential components
-v_rad = zeta/(sqrt(z(3))*rho)
-v_tan = sqrt((1._dk - z(1)**2 - z(2)**2)/(z(3)*rho**2) - 2._dk*Upot)
+    ! Radial and tangential components
+    v_rad = zeta/(sqrt(z(3))*rho)
+    v_tan = sqrt((1._dk - z(1)**2 - z(2)**2)/(z(3)*rho**2) - 2._dk*Upot)
 
-! Velocity in the inertial frame
-v_vec = v_rad*i_vec + v_tan*j_vec
+    ! Velocity in the inertial frame
+    v_vec = v_rad*i_vec + v_tan*j_vec
+
+end if
 
 end subroutine EDROMO2CART
 

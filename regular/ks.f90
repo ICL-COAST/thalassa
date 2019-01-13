@@ -20,6 +20,7 @@ module KUST_STI
 !    180608: change interface to PERT_EJ2K to add iF107.
 !    180801: change call to perturbation routine, PERT_EJ2K. Eliminate needless
 !            use associations. Refine comments.
+!    190110: Add check for collision with the Moon.
 !
 ! ==============================================================================
 
@@ -306,11 +307,19 @@ end subroutine CART2KS
 
 
 subroutine KS_EVT(neq,phi,u,ng,roots)
+! Description:
+!    Finds roots to stop the integration for the KS formulation.
+! 
+! Revisions:
+!    190110: Add header comments. Add check for collision with the Moon.
+! 
+! ==============================================================================
 
 ! MODULES
+use SUN_MOON,    only: EPHEM
 use AUXILIARIES, only: MJD0,MJDnext,MJDf,DU,TU
-use PHYS_CONST,  only: secsPerDay,RE,reentry_radius_nd
-use SETTINGS,    only: eqs
+use PHYS_CONST,  only: secsPerDay,RE,reentry_radius_nd,ReqM
+use SETTINGS,    only: eqs,imoon
 
 ! VARIABLES
 implicit none
@@ -324,7 +333,8 @@ real(dk),intent(out)  ::  roots(1:ng)
 
 ! Locals
 real(dk)  ::  t         ! Current time [-]
-real(dk)  ::  rmag
+real(dk)  ::  rmag, dmag, x(1:4), xdot(1:4), r_vec(1:3)
+real(dk)  ::  rMoon(1:3), vMoon(1:3)
 integer   ::  flag_time
 
 ! ==============================================================================
@@ -348,12 +358,30 @@ roots(1) = t - (MJDnext - MJD0)*secsPerDay*TU
 roots(2) = t - (MJDf - MJD0)*secsPerDay*TU
 
 ! ==============================================================================
-! 03. Re-entry
+! 03. Earth re-entry
 ! ==============================================================================
 
 rmag  = dot_product(u(1:4),u(1:4))
 
 roots(3) = rmag - reentry_radius_nd
+
+! ==============================================================================
+! 04. Moon collision (only active when Moon is present)
+! ==============================================================================
+
+! All quantities are dimensional. Accuracy could be improved by using
+! dimensionless quantities, but this would require
+! non-dimensionalizing ReqM in some part of the code, which would worsen the
+! code reliability.
+roots(4) = 1.
+if (imoon > 0) then
+  call KS2CART(u,x,xdot)
+  r_vec = x(1:3) * DU
+  call EPHEM(2, 1._dk, 1._dk, t, rMoon, vMoon)
+  dmag = sqrt(dot_product( (r_vec - rMoon), (r_vec - rMoon) ) )
+  roots(4) = dmag - ReqM
+
+end if
 
 end subroutine KS_EVT
 
