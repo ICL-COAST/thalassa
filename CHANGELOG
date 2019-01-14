@@ -17,4 +17,19 @@ previous method based on recursions for the Legendre associated functions and
 the trigonometric functions (which was also not very well optimized).
 
 New in version 1.2:
-* It is now possible to compute the lunisolar perturbing acceleration through either a "full" formula, including the direct and indirect terms written in Cartesian coordinates, or through a "truncated" formula, in which the perturbing acceleration is the derivative of the perturbing function truncated at an order assigned by the user.
+* It is now possible to compute the lunisolar perturbing acceleration through 
+either a "full" formula, including the direct and indirect terms written in
+Cartesian coordinates, or through a "truncated" formula, in which the perturbing
+acceleration is the derivative of the perturbing function truncated at an order
+assigned by the user.
+
+New in version 1.3:
+* The code now uses Coordinated Universal Time (UTC) and Terrestrial Time (TT).
+In particular, TT is used to retrieve lunisolar ephemerides. The initial epoch
+(and the outputs) are in UTC. The conversion between TT and UTC is handled
+through the iau_dat SOFA subroutine.
+* The GMST and the Earth rotation rate are now computed according to the
+IERS/IAU 2006 conventions through the iau_gmst06 routine (in the SOFA library)
+and the ERR_IAU06 function, respectively.
+* A check for collisions with the Moon has been implemented. The check is
+activated by toggling the "imcoll" flag in input.txt 

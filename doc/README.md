@@ -42,6 +42,7 @@ The second section tunes the parameters of the numerical solver, LSODAR [(Radhak
 *  `tspan`: time span of the integration, in days.
 *  `tstep`: output time step, in days. Note that the time step *does not* affect the integration accuracy.
 *  `mxstep`: maximum number of output steps. Users should not change this value apart from exceptional situations.
+*  `imcol`: 1 toggles the check for collision with the Moon, 0 disables it. Activating the check roughly doubles the CPU time needed to compute lunar perturbations, therefore activate the check only if necessary.
 
 ### Equations of motion
 The third section only contains the `eqs` flag, which selects the set of equations of motion to be integrated. The value of `eqs` corresponds to the following equations:
