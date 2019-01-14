@@ -11,15 +11,15 @@
 # iephem:    Ephemerides source. 1 = DE431 ephemerides. 2 = Simpl. Meeus & Brown
 # gdeg:      Maximum degree of the gravitational potential.
 # gord:      Maximum order of the gravitational potential.
-insgrav:   0
-isun:      0
+insgrav:   1
+isun:      1
 imoon:     1
-idrag:     0
-iF107:     0
-iSRP:      0
+idrag:     1
+iF107:     1
+iSRP:      2
 iephem:    1
-gdeg:      1
-gord:      0
+gdeg:      2
+gord:      2
 
 # INTEGRATION
 # tol:       Absolute = relative tolerance for the test propagation
@@ -43,4 +43,4 @@ eqs:       2
 # verb:      1 = Toggle verbose output, 0 = otherwise
 # out:       Full path to output directory
 verb:      1
-out:   /home/davide/Documents/Research/thalassa_val/lunar_collision/LEO_lunar_coll_0/
+out:   /Users/user/Documents/THALASSA/
