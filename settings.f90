@@ -11,6 +11,7 @@ module SETTINGS
 ! Revisions:
 !    180531: Add THALASSA version.
 !    180608: Add F107 flag.
+!    190113: add Moon collision flag.
 !
 ! ==============================================================================
 
@@ -34,6 +35,7 @@ integer  ::  Mord,Sord          ! Order of the Legendre expansion for the Moon a
 ! Integrator settings
 integer  ::  mxstep             ! Max. number of integration/output steps.
 real(dk) ::  tol                ! Integrator tolerance.
+integer  ::  imcoll             ! 0 = do not check for collisions with the Moon, 1 = otherwise.
 ! Equations of motion settings
 integer  ::  eqs                ! Equations of motion type. 1 = Cowell,
 !                                 2 = EDromo(t), 3 = EDromo(c), 4 = EDromo(l)
@@ -58,6 +60,7 @@ subroutine READ_SETTINGS(tspan,tstep)
 ! 
 ! Revisions:
 !     180608: add iF107 flag.
+!     190113: add Moon collision flag.
 ! 
 ! ==============================================================================
 
@@ -80,11 +83,12 @@ read(id_set,'(a11,i3)') dummy, iF107
 read(id_set,'(a11,i3)') dummy, iSRP
 read(id_set,'(a11,i3)') dummy, iephem
 read(id_set,'(a11,i3)') dummy, gdeg
-read(id_set,'(a11,i3,6(/))') dummy, gord
+read(id_set,'(a11,i3,7(/))') dummy, gord
 read(id_set,'(a11,e22.15)') dummy, tol
 read(id_set,'(a11,e22.15)') dummy, tspan
 read(id_set,'(a11,e22.15)') dummy, tstep
-read(id_set,'(a11,e10.1,5(/))') dummy, rmxstep
+read(id_set,'(a11,e10.1)') dummy, rmxstep
+read(id_set,'(a11,i3,5(/))') dummy, imcoll
 read(id_set,'(a11,i3,4(/))') dummy, eqs
 read(id_set,'(a11,i3)') dummy, verb
 read(id_set,'(a4,a)') dummy,outpath

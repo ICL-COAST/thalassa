@@ -245,7 +245,7 @@ subroutine EDROMO_EVT(neq,phi,z,ng,roots)
 use SUN_MOON,    only: EPHEM
 use AUXILIARIES, only: MJD0,MJDnext,MJDf,DU,TU
 use PHYS_CONST,  only: secsPerDay,RE,reentry_radius_nd,ReqM
-use SETTINGS,    only: eqs,imoon
+use SETTINGS,    only: eqs,imoon,imcoll
 
 ! VARIABLES
 implicit none
@@ -301,7 +301,7 @@ roots(3) = rmag - reentry_radius_nd
 ! non-dimensionalizing ReqM in some part of the code, which would worsen the
 ! code reliability.
 roots(4) = 1.
-if (imoon > 0) then
+if (imoon > 0 .and. (imcoll /= 0)) then
   call EDROMO2CART(phi,z,r_vec,dummy,posOnly=.true.)
   r_vec = r_vec*DU
   call EPHEM(2, 1._dk, 1._dk, t, rMoon, vMoon)

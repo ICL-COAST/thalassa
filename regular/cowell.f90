@@ -94,7 +94,7 @@ subroutine COWELL_EVT(neq,t,y,ng,roots)
 use SUN_MOON,    only: EPHEM
 use AUXILIARIES, only: MJD0,MJDnext,MJDf,TU,DU
 use PHYS_CONST,  only: secsPerDay,reentry_radius_nd,ReqM
-use SETTINGS,    only: imoon
+use SETTINGS,    only: imoon, imcoll
 
 ! VARIABLES
 implicit none
@@ -142,7 +142,7 @@ roots(3) = rmag - reentry_radius_nd
 ! non-dimensionalizing ReqM in some part of the code, which would worsen the
 ! code reliability.
 roots(4) = 1.
-if (imoon > 0) then
+if (imoon > 0 .and. (imcoll /= 0)) then
   call EPHEM(2, 1._dk, 1._dk, t, rMoon, vMoon)
   dmag = sqrt(dot_product( (y(1:3)*DU - rMoon), (y(1:3)*DU - rMoon) ) )
   roots(4) = dmag - ReqM
