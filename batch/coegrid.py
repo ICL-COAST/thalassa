@@ -102,7 +102,7 @@ def createInput(dirPath,gSettings):
   
   Revisions:
     180526: function created.
-  
+    190116: Change line numbers in to accommodate the flag "imcoll".
   """
   
   with open(os.path.join('../in','input.txt')) as f:
@@ -161,16 +161,16 @@ def createInput(dirPath,gSettings):
 
   # Integration settings
   integ = gSettings["Integration"]
-  inpFile[28] = "tol:      {:22.15E}\n".format(integ["Tolerance"])
-  inpFile[29] = "tspan:    {:22.15E}\n".format(integ["Duration"] * 365.25)
-  inpFile[30] = "tstep:    {:22.15E}\n".format(integ["Step"])
-  inpFile[37] = "eqs:      {:2d}\n".format(integ["Equations"])
+  inpFile[29] = "tol:      {:22.15E}\n".format(integ["Tolerance"])
+  inpFile[30] = "tspan:    {:22.15E}\n".format(integ["Duration"] * 365.25)
+  inpFile[31] = "tstep:    {:22.15E}\n".format(integ["Step"])
+  inpFile[38] = "eqs:      {:2d}\n".format(integ["Equations"])
 
 
 
   # Output settings
-  inpFile[42] = "verb:     0\n"
-  inpFile[43] = "out:   " + os.path.abspath(os.path.join(dirPath, ' '))
+  inpFile[44] = "verb:     0\n"
+  inpFile[45] = "out:   " + os.path.abspath(os.path.join(dirPath, ' '))
 
 
   with open(os.path.join(dirPath,'input.txt'),'w') as f:

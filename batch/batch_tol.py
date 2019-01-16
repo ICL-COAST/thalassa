@@ -14,6 +14,9 @@ Author:
 Revisions:
   180809: Improved comments. Moved this script to the batch/ directory. Change 
   input file formatting for compatibility with THALASSA v1.0.
+  190116: Change line numbers in modifyInput to accommodate the flag "imcoll" in
+  input.txt
+  
 """
 
 import sys
@@ -55,7 +58,7 @@ def modifyInput(inpPath,lineN,tol,outPath,eqs):
 
 def thalassaRep(rep_time,inputPath,ICPath):
  # Launch the same thalassa propagation several times.
-  for i in range(0,rep_time):
+  for _ in range(0,rep_time):
     os.chdir('../')
     subprocess.call(['./thalassa.x',os.path.abspath(inputPath),
     os.path.abspath(ICPath)])
@@ -77,7 +80,7 @@ def tolRun(tolVec,tol,eqs,rep_time,masterPath,ICPath):
   os.makedirs(outPath)
   inputPath = os.path.join(outPath,'input.txt')
   shutil.copy(os.path.join(masterPath,'input.txt'),inputPath)
-  modifyInput(inputPath,[28,37,43],tol,outPath,eqs)
+  modifyInput(inputPath,[29,39,45],tol,outPath,eqs)
   
   # Launch the propagations over the number of available CPUs
   thalassaRep(rep_time,inputPath,ICPath)
