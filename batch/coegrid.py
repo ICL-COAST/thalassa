@@ -164,7 +164,7 @@ def createInput(dirPath,gSettings):
   inpFile[29] = "tol:      {:22.15E}\n".format(integ["Tolerance"])
   inpFile[30] = "tspan:    {:22.15E}\n".format(integ["Duration"] * 365.25)
   inpFile[31] = "tstep:    {:22.15E}\n".format(integ["Step"])
-  inpFile[38] = "eqs:      {:2d}\n".format(integ["Equations"])
+  inpFile[39] = "eqs:      {:2d}\n".format(integ["Equations"])
 
 
 
