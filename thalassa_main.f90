@@ -30,6 +30,7 @@ program THALASSA
 !    180807: v1.1. Calculation of the gravitational potential now uses the Pines
 !            method.
 !    181006: v1.2. Add computation of truncated third-body acceleration.
+!    190405: Only load SPICE kernels when iephem = 1.
 !
 ! ==============================================================================
 
@@ -45,7 +46,7 @@ use PROPAGATE,   only: DPROP_REGULAR
 use SUN_MOON,    only: INITIALIZE_LEGENDRE
 use SETTINGS,    only: READ_SETTINGS
 use IO,          only: id_cart,id_orb,id_stat,id_log,object_path
-use SETTINGS,    only: gdeg,gord,isun,imoon,outpath,tol,eqs,input_path
+use SETTINGS,    only: gdeg,gord,iephem,isun,imoon,outpath,tol,eqs,input_path
 use PHYS_CONST,  only: GE,d2r,r2d,secsPerDay,secsPerSidDay,twopi
 use SUN_MOON,    only: GslSun,GslMoon
 
@@ -134,9 +135,12 @@ write(id_log,'(a)') 'Start logging on '//date_start//'T'//time_start//' UTC'&
 write(id_log,'(a)') 'Location of settings file: '//trim(input_path)
 write(id_log,'(a)') 'Location of initial conditions file: '//trim(object_path)
 
-! Load SPICE kernels
-call FURNSH('./data/kernels_to_load.furnsh')
-write(id_log,'(a)') 'SPICE kernels loaded through '//'./data/kernels_to_load.furnsh'
+! Load SPICE kernels - this is only necessary if we are using SPICE in this run.
+if (iephem == 1) then
+  call FURNSH('./data/kernels_to_load.furnsh')
+  write(id_log,'(a)') 'SPICE kernels loaded through '//'./data/kernels_to_load.furnsh'
+
+end if
 
 ! ==============================================================================
 ! 03. TEST PROPAGATION

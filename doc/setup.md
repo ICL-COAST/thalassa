@@ -24,7 +24,7 @@ The latest version of the toolkit, N0066, is downloadable from [here](https://na
   *  [SPK kernel(s) for the JPL Developmental Ephemerides](https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/ "SPK kernels"). By default, THALASSA uses DE431,  
   *  [PCK kernel](https://naif.jpl.nasa.gov/pub/naif/generic_kernels/pck/ "PCK kernels") containing the planetary masses,
   *  [NAIF leapseconds kernel](https://naif.jpl.nasa.gov/pub/naif/generic_kernels/lsk/ "LSK kernels").  
-  The default names for these kernels are ``de431_part-1.bsp``, ``de431_part-2.bsp``, ``naif0012.tls``, ``gm_de431.tpc``. Note that the SPK kernels containing the Solar System ephemerides can be quite large (~3 GB).
+  The default names for these kernels are ``de431_part-1.bsp``, ``de431_part-2.bsp``, ``naif0012.tls``, ``gm_de431.tpc``. Note that the SPK kernels containing the Solar System ephemerides can be quite large (~3 GB). Note that the user can choose different SPK, PCK and leapseconds kernels by specifying their path in ``data/kernels_to_load.furnsh``. More information is available in the NAIF SPICE tutorials, in particular [the intro to kernels](https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/Tutorials/pdf/individual_docs/12_intro_to_kernels.pdf "NAIF tutorials - Intro to Kernels").
 
 4.  Compile the code by running ``make`` in the THALASSA root folder, which generates the ``thalassa.x`` executable.
 
