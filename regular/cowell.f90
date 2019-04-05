@@ -92,7 +92,7 @@ subroutine COWELL_EVT(neq,t,y,ng,roots)
 
 ! MODULES
 use SUN_MOON,    only: EPHEM
-use AUXILIARIES, only: MJD0,MJDnext,MJDf,TU,DU
+use AUXILIARIES, only: MJD0,MJDf,TU,DU
 use PHYS_CONST,  only: secsPerDay,reentry_radius_nd,ReqM
 use SETTINGS,    only: imoon, imcoll
 
