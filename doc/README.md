@@ -1,11 +1,14 @@
 # Introduction to THALASSA
-THALASSA is a Fortran orbit propagation code for bodies in the Earth-Moon-Sun system. It works by integrating either Newtonian equations in Cartesian coordinates or regularized equations of motion with the LSODAR (Livermore Solver for Ordinary Differential equations with Automatic Rootfinding).
+THALASSA is a Fortran orbit propagation code for bodies in the Earth-Moon-Sun system. It works by integrating either Newtonian equations in Cartesian coordinates or regularized equations of motion with the LSODAR (Livermore Solver for Ordinary Differential equations with Automatic Root-finding).
 
-THALASSA is a command-line tool, and has been developed and tested on MacOS and Ubuntu Linux platforms, using the ``gfortran`` compiler. Attention has been paid to avoid using advanced Fortran constructs: while they greatly improve the capabilities of the language, their portability is usually awful.
+THALASSA is a command-line tool, and has been developed and tested on MacOS and Ubuntu Linux platforms, using the ``gfortran`` compiler. Attention has been paid to avoid using advanced Fortran constructs: while they greatly improve the capabilities of the language, their portability has been found to be problematic. This might change in the future.
 
 The repository also includes some Python3 scripts to perform batch propagations. This feature is currently experimental, but it shouldn't be too difficult for a Python user to generalize the scripts to perform batch propagations on discrete grids of orbital elements.
 
 Details on the mathematical fundamentals of THALASSA are contained in [Amato et al., 2018](#Amato2018).
+
+# Giving credit
+If you use THALASSA in your research, please consider giving credit by citing the article specifying the mathematical fundamentals of THALASSA, [Amato et al., 2018](#Amato2018), and/or acknowledging this repository.
 
 # THALASSA User Guide
 THALASSA reads settings and initial conditions from two text files. Their paths can be specified as arguments to the THALASSA executable,
