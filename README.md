@@ -89,9 +89,6 @@ You should check the `stats.dat` file for any errors that might have taken place
 * `-3`: maximum number of steps reached. Try specifying a larger time step in the input file.
 * `-10`: unknown exception, try debugging to check what's the problem.
 
-## Acknowledging the use of the software
-If you use THALASSA in your work, please acknowledge this repository and [Amato et al., 2018](#Amato2018).
-
 ## References
 1.  <a name="Amato2018"></a>Amato, D., Bombardelli, C., Baù, G., Morand, V., and Rosengren, A. J. "Non-averaged regularized formulations as an alternative to semi-analytical orbit propagation methods". Submitted to Celestial Mechanics and Dynamical Astronomy, 2018.
 2.  <a name="Montenbruck2000"></a>Montenbruck, O., and Gill, E. "Satellite Orbits. Models, Methods, and Applications". Springer-Verlag Berlin Heidelberg, 2000.
