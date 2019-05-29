@@ -8,7 +8,7 @@ The repository also includes some Python3 scripts to perform batch propagations.
 Details on the mathematical fundamentals of THALASSA are contained in [Amato et al., 2018](#Amato2018).
 
 # Giving credit
-If you use THALASSA in your research, please consider giving credit by citing the article specifying the mathematical fundamentals of THALASSA, [Amato et al., 2018](#Amato2018), and/or acknowledging this repository.
+If you use THALASSA in your research, please consider giving credit by citing the [article](https://doi.org/10.1007/s10569-019-9897-1) detailing the mathematical fundamentals (Amato et al., 2019). In addition, you can cite the THALASSA [ASCL entry](http://ascl.net/1905.018) according to the [ASCL guidelines](http://ascl.net/home/getwp/351).
 
 # THALASSA User Guide
 THALASSA reads settings and initial conditions from two text files. Their paths can be specified as arguments to the THALASSA executable,
