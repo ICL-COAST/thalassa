@@ -177,7 +177,7 @@ if (ABS(En) > zero) then
 
 else ! Exactly parabolic orbit, should be extremely rare
     a  = HUGE(0._dk)
-    p  = DOT_PRODUCT(h,h)
+    p  = DOT_PRODUCT(h,h)/mu
 
 end if
 
