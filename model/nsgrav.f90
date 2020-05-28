@@ -23,7 +23,7 @@ module NSGRAV
 ! MODULES
 use KINDS,      only: dk
 use SETTINGS,   only: gdeg,gord
-use IO,         only: id_earth
+use IO,         only: id_earth, id_eop
 use PHYS_CONST, only: qk,GE,RE,flatt,omegaE,secsPerDay,secsPerSidDay,twopi,&
 &ERR_constant
 implicit none
@@ -38,10 +38,62 @@ real(dk),allocatable  ::  Anm(:,:),Dnm(:,:),Enm(:,:),Fnm(:,:),Gnm(:,:)
 real(dk),allocatable  ::  Rm(:),Im(:),Pn(:)
 real(dk),allocatable  ::  Aux1(:),Aux2(:),Aux3(:),Aux4(:,:)
 
-
-
+! earth orientation parameters array
+real(dk),allocatable  ::  eop(:,:)
 
 contains
+
+subroutine INITIALIZE_EOP(eopfile)
+
+! formal parameters
+character(len=*), intent(in)  ::  eopfile
+
+! local parameters
+integer        :: io, nlines, i
+character(200) :: line
+character(200) :: format
+real(dk)       :: mjd, pmx, pmy, UT1_UTC, LOD, dx00, dy00
+
+! set number of lines to zero
+nlines = 0
+
+! count lines
+open(unit=id_eop,file=trim(eopfile),status='old',action='read')
+do
+  read(id_eop,*,iostat=io)
+  if (io/=0) exit
+  nlines = nlines + 1
+end do
+close(id_eop)
+
+! rewind 
+rewind(id_eop)
+
+! allocate
+if (allocated(eop)) deallocate(eop)
+allocate(eop(1:nlines, 1:7))
+
+! read in eop data
+open(unit=id_eop,file=trim(eopfile),status='old',action='read')
+do i = 1,nlines
+
+  ! read line
+  read(id_eop, '(7X,F8.2,3X,F9.6,10X,F9.6,12X,F10.7,11X,F7.4,11X,F9.3,10X,F9.3,67X)')mjd,pmx,pmy,UT1_UTC,LOD,dx00,dy00
+
+  ! add to EOP array
+  eop(i,1) = mjd
+  eop(i,2) = pmx
+  eop(i,3) = pmy
+  eop(i,4) = UT1_UTC
+  eop(i,5) = LOD
+  eop(i,6) = dx00
+  eop(i,7) = dy00
+
+enddo
+
+close(id_eop)
+
+end subroutine INITIALIZE_EOP
 
 
 
