@@ -237,7 +237,8 @@ integer  ::  iwr
 
 ! ==============================================================================
 
-write(fid,'(6(es22.15,'',''),es22.15)') (yx(iwr,1:7), iwr=1,npts)
+! write(fid,'(6(es22.15,'',''),es22.15)') (yx(iwr,1:7), iwr=1,npts)
+write(fid,'(7(es22.15,'',''))') (yx(iwr,1:7), iwr=1,npts)
 close(fid)
 
 end subroutine DUMP_TRAJ

@@ -84,7 +84,7 @@ sinf = (sqrt(1._dk - e**2)*sinE)/(1._dk - e*cosE)
 cosf = (cosE - e)/(1._dk - e*cosE)
 
 ! ==============================================================================
-! 02. COMPUTE POS, VEL IN PERifOCAL FRAME
+! 02. COMPUTE POS, VEL IN PERIFOCAL FRAME
 ! ==============================================================================
 
 R_pf = p*[cosf/(1._dk+e*cosf), sinf/(1._dk+e*cosf), 0._dk]
