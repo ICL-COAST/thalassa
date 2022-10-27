@@ -43,4 +43,4 @@ eqs:       2
 # verb:      1 = Toggle verbose output, 0 = otherwise
 # out:       Full path to output directory
 verb:      1
-out:   /Users/user/Documents/THALASSA/
+out:   ./out/
