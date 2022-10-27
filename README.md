@@ -89,7 +89,7 @@ You should check the `stats.dat` file for any errors that might have taken place
 * `-3`: maximum number of steps reached. Try specifying a larger time step in the input file.
 * `-10`: unknown exception, try debugging to check what's the problem.
 
-# Running THALASSA in a Container
+## Running THALASSA in a Container
 THALASSA can take advantage of containerisation by being built with the `Dockerfile` in the repository's root directory. This will automatically download and install the required compile-time and run-time dependencies. The kernels required by SPICE (listed in `data/kernels_to_load.furnsh`) must be downloaded manually, and provided to the container via a volume bind mount.
 
 An example of using the container is provided below, including the binds for the input, output, and kernel directories:
