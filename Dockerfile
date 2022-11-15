@@ -32,7 +32,6 @@ WORKDIR /sofa
 # Install packages
 RUN apk add gfortran curl unzip make
 
-
 # Download and unpack SOFA
 # WARNING: downloaded using http due to SSL certificate issues
 RUN curl -O http://www.iausofa.org/2021_0512_F/sofa_f.zip
@@ -71,6 +70,7 @@ RUN make
 
 
 ## Release
+# Base on Alpine Linux
 FROM alpine:latest AS RELEASE
 
 # TODO: addMetadata
