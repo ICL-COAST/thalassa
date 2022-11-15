@@ -3,17 +3,13 @@
 FROM alpine:latest AS BUILDER_SPICE
 
 # Update and upgrade packages
-RUN apk update && \
-	apk upgrade
+RUN apk update && apk upgrade
 
 # Change workdirectory
 WORKDIR /spice
 
 # Install packages
-RUN apk add gfortran \
-			curl \
-			tar \
-			tcsh
+RUN apk add gfortran curl tar tcsh
 
 # Download and unpack SPICE
 RUN curl -O https://naif.jpl.nasa.gov/pub/naif/toolkit//FORTRAN/PC_Linux_gfortran_64bit/packages/toolkit.tar.Z
@@ -28,17 +24,14 @@ RUN tcsh -f makeall.csh
 FROM alpine:latest AS BUILDER_SOFA
 
 # Update and upgrade packages
-RUN apk update && \
-	apk upgrade
+RUN apk update && apk upgrade
 
 # Change workdirectory
 WORKDIR /sofa
 
 # Install packages
-RUN apk add gfortran \
-			curl \
-			unzip \
-			make
+RUN apk add gfortran curl unzip make
+
 
 # Download and unpack SOFA
 # WARNING: downloaded using http due to SSL certificate issues
@@ -55,16 +48,13 @@ RUN make
 FROM alpine:latest AS BUILDER_THALASSA
 
 # Update and upgrade packages
-RUN apk update && \
-	apk upgrade
+RUN apk update && apk upgrade
 
 # Change workdirectory
 WORKDIR /thalassa
 
 # Install packages
-RUN apk add gfortran \
-			libc-dev \ 
-			make
+RUN apk add gfortran libc-dev make
 
 # Copy THALASSA source
 COPY . .
@@ -79,22 +69,20 @@ COPY --from=BUILDER_SOFA /sofa/sofa/20210512/f77/src/libsofa.a /thalassa/lib/lib
 # Build THALASSA
 RUN make
 
+
 ## Release
 FROM alpine:latest AS RELEASE
 
 # TODO: addMetadata
 
 # Update and upgrade packages
-RUN apk update && \
-	apk upgrade
+RUN apk update && apk upgrade
 
 # Change workdirectory
 WORKDIR /thalassa
 
 # Install packages
-RUN apk add libgfortran \
-			libgcc \
-			libquadmath
+RUN apk add libgfortran libgcc libquadmath
 
 # Change workdirectory
 WORKDIR /thalassa
