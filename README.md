@@ -99,6 +99,7 @@ This will automatically download and install the required compile-time and run-t
 An example of using the container is provided below, including the binds for the input, output, and kernel directories:
 ```
 docker run \
+       --rm \
        -v <host input directory>:/thalassa/in/ \
        -v <host output directory>:/thalassa/out/ \
        -v <host kernel directory>:/thalassa/data/kernels/ \
