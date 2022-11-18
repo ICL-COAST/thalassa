@@ -1,0 +1,7 @@
+# Ignore SPICE kernels
+data/kernels/*.bsp
+data/kernels/*.tls
+data/kernels/*.tpc
+
+# Ignore libraries
+lib/*.a

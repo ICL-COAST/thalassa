@@ -30,12 +30,12 @@ RUN apk update && apk upgrade
 WORKDIR /sofa
 
 # Install packages
-RUN apk add gfortran curl unzip make
+RUN apk add gfortran curl tar make
 
 # Download and unpack SOFA
 # WARNING: downloaded using http due to SSL certificate issues
-RUN curl -O http://www.iausofa.org/2021_0512_F/sofa_f.zip
-RUN unzip sofa_f.zip
+RUN curl -O http://www.iausofa.org/2021_0512_F/sofa_f-20210512.tar.Z
+RUN tar -zxvf sofa_f-20210512.tar.Z
 
 # Compile SOFA
 WORKDIR /sofa/sofa/20210512/f77/src
@@ -49,11 +49,11 @@ FROM alpine:latest AS BUILDER_THALASSA
 # Update and upgrade packages
 RUN apk update && apk upgrade
 
-# Change workdirectory
-WORKDIR /thalassa
-
 # Install packages
 RUN apk add gfortran libc-dev make
+
+# Change workdirectory
+WORKDIR /thalassa
 
 # Copy THALASSA source
 COPY . .
@@ -77,9 +77,6 @@ FROM alpine:latest AS RELEASE
 
 # Update and upgrade packages
 RUN apk update && apk upgrade
-
-# Change workdirectory
-WORKDIR /thalassa
 
 # Install packages
 RUN apk add libgfortran libgcc libquadmath
