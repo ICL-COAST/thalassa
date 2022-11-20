@@ -27,14 +27,12 @@ for kernel in ${kernelarray[*]}; do
         downloadstr="$downloadstr -O $kernel"
     fi
 done
-echo ""
 
 # Download kernels
 if [ -z "${downloadstr}" ]
 then
-    echo "No kernels to download..."
+    exit 0
 else
     echo "Downloading remaining kernels..."
     curl $downloadstr
 fi
-echo ""
