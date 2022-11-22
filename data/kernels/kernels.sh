@@ -34,5 +34,5 @@ then
     exit 0
 else
     echo "Downloading remaining kernels..."
-    curl $downloadstr
+    curl -Z $downloadstr
 fi
