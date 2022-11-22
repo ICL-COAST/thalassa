@@ -5,19 +5,18 @@ FROM alpine:latest AS BUILDER_SPICE
 # Update and upgrade packages
 RUN apk update && apk upgrade
 
-# Change workdirectory
-WORKDIR /spice
-
 # Install packages
 RUN apk add gfortran curl tar tcsh
 
-# Download and unpack SPICE
-RUN curl -O https://naif.jpl.nasa.gov/pub/naif/toolkit//FORTRAN/PC_Linux_gfortran_64bit/packages/toolkit.tar.Z
-RUN tar -zxvf toolkit.tar.Z
+# Change work directory
+WORKDIR /spice
 
-# Compile SPICE
-WORKDIR /spice/toolkit
-RUN tcsh -f makeall.csh
+# Copy SPICE script
+COPY external/spice.sh spice.sh
+
+# Download, unpack, and compile SPICE
+RUN sh spice.sh
+
 
 ## SOFA builder
 # Base on Alpine Linux
@@ -26,20 +25,17 @@ FROM alpine:latest AS BUILDER_SOFA
 # Update and upgrade packages
 RUN apk update && apk upgrade
 
-# Change workdirectory
-WORKDIR /sofa
-
 # Install packages
 RUN apk add gfortran curl tar make
 
-# Download and unpack SOFA
-# WARNING: downloaded using http due to SSL certificate issues
-RUN curl -O http://www.iausofa.org/2021_0512_F/sofa_f-20210512.tar.Z
-RUN tar -zxvf sofa_f-20210512.tar.Z
+# Change work directory
+WORKDIR /sofa
 
-# Compile SOFA
-WORKDIR /sofa/sofa/20210512/f77/src
-RUN make
+# Copy SOFA script
+COPY external/sofa.sh sofa.sh
+
+# Download, unpack, and compile SOFA
+RUN sh sofa.sh
 
 
 ## THALASSA Builder
@@ -50,7 +46,7 @@ FROM alpine:latest AS BUILDER_THALASSA
 RUN apk update && apk upgrade
 
 # Install packages
-RUN apk add gfortran libc-dev make
+RUN apk add gfortran libc-dev make cmake
 
 # Change workdirectory
 WORKDIR /thalassa
@@ -59,14 +55,16 @@ WORKDIR /thalassa
 COPY . .
 
 # Copy SPICE from BUILDER_SPICE
-# TODO: handle SPICE kernels
-COPY --from=BUILDER_SPICE /spice/toolkit/lib/spicelib.a /thalassa/lib/spicelib.a
+COPY --from=BUILDER_SPICE /spice/spicelib.a /thalassa/external/spicelib.a
 
 # Copy SOFA from BUILDER_SOFA
-COPY --from=BUILDER_SOFA /sofa/sofa/20210512/f77/src/libsofa.a /thalassa/lib/libsofa.a
+COPY --from=BUILDER_SOFA /sofa/libsofa.a /thalassa/external/libsofa.a
 
-# Build THALASSA
-RUN make
+# Configure CMake files for THALASSA
+RUN cmake -B/thalassa/build
+
+# Build THALASSA with CMake
+RUN cmake --build /thalassa/build --config Release
 
 
 ## Release
@@ -85,7 +83,7 @@ RUN apk add libgfortran libgcc libquadmath
 WORKDIR /thalassa
 
 # Copy THALASSA files from BUILDER_THALASSA
-COPY --from=BUILDER_THALASSA /thalassa/thalassa.x /thalassa/thalassa.x
+COPY --from=BUILDER_THALASSA /thalassa/thalassa_main /thalassa/thalassa_main
 COPY --from=BUILDER_THALASSA /thalassa/data /thalassa/data
 COPY --from=BUILDER_THALASSA /thalassa/in /thalassa/in
 
@@ -99,4 +97,4 @@ RUN adduser -D thalassa
 USER thalassa
 
 # Run THALASSA
-ENTRYPOINT ./thalassa.x
+ENTRYPOINT ./thalassa_main
