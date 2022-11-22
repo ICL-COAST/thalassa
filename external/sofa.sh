@@ -15,13 +15,13 @@ fi
 
 # Download and extract SOFA
 echo "Downloading SOFA..."
-curl -O http://www.iausofa.org/2021_0512_F/sofa_f-20210512.tar.Z
-tar -zxvf sofa_f-20210512.tar.Z
+curl -O http://www.iausofa.org/2021_0512_F/sofa_f-20210512.tar.Z > /dev/null 2>&1
+tar -zxvf sofa_f-20210512.tar.Z > /dev/null 2>&1
 
 # Compile SOFA
 echo "Compiling SOFA..."
 cd $DIR/sofa/20210512/f77/src
-make
+make > /dev/null 2>&1
 
 # Copy to working directory
 cp libsofa.a $DIR
