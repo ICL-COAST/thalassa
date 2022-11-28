@@ -1,2 +1,15 @@
-# Ignore libraries
-*.a
+# Ignore all files
+*
+
+# Allow .gitignore
+!.gitignore
+
+# Allow CMake files
+!CMakeLists.txt
+
+# Allow readme
+!README.md
+
+# Allow library scripts
+!sofa.sh
+!spice.sh
