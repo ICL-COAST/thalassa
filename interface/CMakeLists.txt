@@ -2,5 +2,5 @@
 enable_language(C)
 
 # Add CTHALASSA executable and link to THALASSA
-add_executable(cthalassa cthalassa.c cthalassa.f90)
+add_executable(cthalassa cthalassa.c cthalassa.f90 cthalassa_types.f90)
 target_link_libraries(cthalassa PUBLIC thalassa)
