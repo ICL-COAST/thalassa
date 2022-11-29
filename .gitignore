@@ -1,6 +1,9 @@
 # Build directory
 build
 
+# Module files
+*.mod
+
 # Binary
 thalassa_main
 
