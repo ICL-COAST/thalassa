@@ -105,15 +105,25 @@ module CTHALASSA
 
         subroutine THALASSA_CLOSE() BIND(C)
             ! Import THALASSA modules
-            use SETTINGS, only: iephem
-            use SUN_MOON, only: GslSun, GslMoon
+            use SETTINGS, only: isun, imoon, iephem
+            use NSGRAV,   only: DEINITIALIZE_NSGRAV
+            use SUN_MOON, only: DEINITIALIZE_LEGENDRE, GslSun, GslMoon
 
             ! Deallocate memory for file paths
             deallocate(phys_path)
             deallocate(earth_path)
             deallocate(kernel_path)
 
-            ! TODO: Deallocate memory for Legendre coefficients
+            ! Deallocate memory for Earth model data
+            call DEINITIALIZE_NSGRAV()
+
+            ! Deallocate memory for Legendre coefficients
+            if (isun > 1) then
+                call DEINITIALIZE_LEGENDRE(GslSun)
+            end if
+            if (imoon > 1) then
+                call DEINITIALIZE_LEGENDRE(GslMoon)
+            end if
             
             ! Unload SPICE kernels
             if (iephem == 1) then
