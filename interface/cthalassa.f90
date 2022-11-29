@@ -1,8 +1,19 @@
 module CTHALASSA
+    ! Description:
+    !    Interface to call THALASSA propagations via C
+    ! 
+    ! Author:
+    !    Max Hallgarten La Casta
+    !    Imperial College London
+    !    m.hallgarten-la-casta21@imperial.ac.uk
+
+    ! Load modules
     use, intrinsic :: iso_c_binding
     use            :: CTHALASSA_TYPES
+
     implicit none
 
+    ! Strings for filepaths
     character(len=:), allocatable :: phys_path
     character(len=:), allocatable :: earth_path
     character(len=:), allocatable :: kernel_path
@@ -10,6 +21,14 @@ module CTHALASSA
     contains
 
         subroutine THALASSA_OPEN(model, paths) BIND(C)
+            ! Description:
+            !    Opens the THALASSA interface
+            ! 
+            ! Author:
+            !    Max Hallgarten La Casta
+            !    Imperial College London
+            !    m.hallgarten-la-casta21@imperial.ac.uk
+
             ! Import THALASSA modules
             use PHYS_CONST, only: READ_PHYS
             use NSGRAV,     only: INITIALIZE_NSGRAV
@@ -57,6 +76,14 @@ module CTHALASSA
         end subroutine THALASSA_OPEN
 
         subroutine THALASSA_CLOSE() BIND(C)
+            ! Description:
+            !    Closes the THALASSA interface
+            ! 
+            ! Author:
+            !    Max Hallgarten La Casta
+            !    Imperial College London
+            !    m.hallgarten-la-casta21@imperial.ac.uk
+
             ! Import THALASSA modules
             use SETTINGS, only: isun, imoon, iephem
             use NSGRAV,   only: DEINITIALIZE_NSGRAV
@@ -88,6 +115,14 @@ module CTHALASSA
         end subroutine THALASSA_CLOSE
 
         subroutine THALASSA_RUN(initialstate, finalstate, object, propagator) bind(C)
+            ! Description:
+            !    Runs a THALASSA propagation
+            ! 
+            ! Author:
+            !    Max Hallgarten La Casta
+            !    Imperial College London
+            !    m.hallgarten-la-casta21@imperial.ac.uk
+
             ! Load THALASSA modules
             use KINDS,       only: dk
             use AUXILIARIES, only: MJD0
@@ -132,6 +167,14 @@ module CTHALASSA
         end subroutine
 
         subroutine PTR_TO_STR(ptr, ptr_len, str)
+            ! Description:
+            !    Converts a C char array pointer to a Fortran string
+            ! 
+            ! Author:
+            !    Max Hallgarten La Casta
+            !    Imperial College London
+            !    m.hallgarten-la-casta21@imperial.ac.uk
+
             ! Subroutine parameters
             character(kind=c_char), intent(in)  :: ptr(*)
             integer(c_size_t),      intent(in)  :: ptr_len
@@ -147,6 +190,14 @@ module CTHALASSA
         end subroutine PTR_TO_STR
 
         subroutine OPEN_NULL_LOG()
+            ! Description:
+            !    Point the log file id to the null
+            ! 
+            ! Author:
+            !    Max Hallgarten La Casta
+            !    Imperial College London
+            !    m.hallgarten-la-casta21@imperial.ac.uk
+
             ! Load THALASSA modules
             use IO, only: id_log
 
@@ -162,6 +213,14 @@ module CTHALASSA
         end subroutine OPEN_NULL_LOG
 
         subroutine CLOSE_NULL_LOG()
+            ! Description:
+            !    Closes the log file
+            ! 
+            ! Author:
+            !    Max Hallgarten La Casta
+            !    Imperial College London
+            !    m.hallgarten-la-casta21@imperial.ac.uk
+
             ! Load THALASSA modules
             use IO, only: id_log
 
@@ -170,6 +229,14 @@ module CTHALASSA
         end subroutine CLOSE_NULL_LOG
 
         subroutine LOAD_PHYSICALMODEL(model)
+            ! Description:
+            !    Load physical model parameters
+            ! 
+            ! Author:
+            !    Max Hallgarten La Casta
+            !    Imperial College London
+            !    m.hallgarten-la-casta21@imperial.ac.uk
+
             ! Import THALASSA modules
             use SETTINGS, only: insgrav, isun, imoon, idrag, iF107, iSRP, iephem, gdeg, gord, Mord, Sord
 
@@ -193,6 +260,14 @@ module CTHALASSA
         end subroutine LOAD_PHYSICALMODEL
 
         subroutine LOAD_PROPAGATOR(propagator, tspan, tstep)
+            ! Description:
+            !    Loads propagator parameters
+            ! 
+            ! Author:
+            !    Max Hallgarten La Casta
+            !    Imperial College London
+            !    m.hallgarten-la-casta21@imperial.ac.uk
+
             ! Import THALASSA modules
             use KINDS,    only: dk
             use SETTINGS, only: mxstep, tol, imcoll, eqs
@@ -213,6 +288,14 @@ module CTHALASSA
         end subroutine LOAD_PROPAGATOR
 
         subroutine LOAD_OBJECT(object)
+            ! Description:
+            !    Loads object parameters
+            ! 
+            ! Author:
+            !    Max Hallgarten La Casta
+            !    Imperial College London
+            !    m.hallgarten-la-casta21@imperial.ac.uk
+
             ! Load THALASSA modules
             use PHYS_CONST, only: SCMass, ADrag, ASRP, CD, CR, A2M_Drag, A2M_SRP
 
@@ -232,6 +315,14 @@ module CTHALASSA
         end subroutine LOAD_OBJECT
 
         subroutine LOAD_STATE(state, mjd, RV)
+            ! Description:
+            !    Loads an object state from a struct
+            ! 
+            ! Author:
+            !    Max Hallgarten La Casta
+            !    Imperial College London
+            !    m.hallgarten-la-casta21@imperial.ac.uk
+
             ! Load THALASSA modules
             use KINDS, only: dk
 
@@ -245,6 +336,14 @@ module CTHALASSA
         end subroutine LOAD_STATE
 
         subroutine SAVE_STATE(state, mjd, RV)
+            ! Description:
+            !    Saves an object state into a struct
+            ! 
+            ! Author:
+            !    Max Hallgarten La Casta
+            !    Imperial College London
+            !    m.hallgarten-la-casta21@imperial.ac.uk
+
             ! Load THALASSA modules
             use KINDS, only: dk
 
