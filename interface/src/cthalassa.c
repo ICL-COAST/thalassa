@@ -3,61 +3,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-typedef struct THALASSAPhysicalModelStruct {
-    // Physical model
-    int insgrav;
-    int isun;
-    int imoon;
-    int idrag;
-    int iF107;
-    int iSRP;
-    int iephem;
-    int gdeg;
-    int gord;
-} THALASSAPhysicalModelStruct;
-
-typedef struct THALASSAPropagatorStruct {
-    // Integration
-    double tol;
-    double tspan;
-    double tstep;
-    double mxstep;
-    int imcoll;
-
-    // Equations of motion
-    int eqs;
-} THALASSAPropagatorStruct;
-
-typedef struct THALASSAObjectStruct {
-    // Physical characteristics
-    double mass;
-    double area_drag;
-    double area_srp;
-    double cd;
-    double cr;
-} THALASSAObjectStruct;
-
-typedef struct THALASSAStateStruct {
-    // Epoch
-    double mjd;
-
-    // State
-    double RV[6];
-} THALASSAStateStruct;
-
-typedef struct THALASSAPathStruct {
-    // Physical constants path
-    char phys_path[512];
-    size_t phys_path_len;
-
-    // Earth model path
-    char earth_path[512];
-    size_t earth_path_len;
-
-    // SPICE kernel path
-    char kernel_path[512];
-    size_t kernel_path_len;  
-} THALASSAPathStruct;
+#include <cthalassa.h>
 
 THALASSAPathStruct *create_thalassa_path_struct(char *phys_path, char *earth_path, char *kernel_path) {
     // Allocate pointer
@@ -78,10 +24,6 @@ THALASSAPathStruct *create_thalassa_path_struct(char *phys_path, char *earth_pat
     // Return pointer
     return paths;
 }
-
-void thalassa_open(THALASSAPhysicalModelStruct*, THALASSAPathStruct*);
-void thalassa_close();
-void thalassa_run(THALASSAStateStruct*, THALASSAStateStruct*, THALASSAObjectStruct*, THALASSAPropagatorStruct*);
 
 int main () {
     // Declare physical model parameters, and paths
