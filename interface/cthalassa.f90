@@ -70,6 +70,9 @@ module CTHALASSA
             type(THALASSA_PHYSICALMODEL_STRUCT), intent(in) :: model
             type(THALASSA_PATHS_STRUCT),         intent(in) :: paths
 
+            ! Dump log to NULL
+            call OPEN_NULL_LOG()
+
             ! Load physical model
             call LOAD_PHYSICALMODEL(model)
 
@@ -128,7 +131,10 @@ module CTHALASSA
             ! Unload SPICE kernels
             if (iephem == 1) then
                 call UNLOAD(kernel_path)
-            end if  
+            end if
+
+            ! Close log
+            call CLOSE_NULL_LOG()
         end subroutine THALASSA_CLOSE
 
         subroutine THALASSA_RUN(initialstate, finalstate, object, propagator) bind(C)
@@ -189,6 +195,29 @@ module CTHALASSA
                 str(i:i) = ptr(i)
             end do
         end subroutine PTR_TO_STR
+
+        subroutine OPEN_NULL_LOG()
+            ! Load THALASSA modules
+            use IO, only: id_log
+
+            ! Locals
+            character(*), parameter :: nulunix='/dev/null', nulwin='NUL'
+            integer                 :: ios
+
+            ! Open null file
+            ! Modified from: https://scivision.github.io/fortran2018-examples/sourcefile/devnull.f90.html (accessed 29/11/2022)
+            open(unit=id_log, file=nulunix, status='old', iostat=ios, action='write')
+            if (ios /= 0) open(unit=id_log, file=nulwin, status='old', iostat=ios, action='write')
+            if (ios /= 0) error stop 'could not open a NULL file handle'
+        end subroutine OPEN_NULL_LOG
+
+        subroutine CLOSE_NULL_LOG()
+            ! Load THALASSA modules
+            use IO, only: id_log
+
+            ! Close log
+            close(id_log)
+        end subroutine CLOSE_NULL_LOG
 
         subroutine LOAD_PHYSICALMODEL(model)
             ! Import THALASSA modules
