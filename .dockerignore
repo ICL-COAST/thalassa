@@ -4,4 +4,8 @@ data/kernels/*.tls
 data/kernels/*.tpc
 
 # Ignore libraries
+external/*.a
 lib/*.a
+
+# Ignore build
+build/*
