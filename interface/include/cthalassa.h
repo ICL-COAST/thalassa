@@ -121,4 +121,17 @@ void thalassa_close();
  */
 void thalassa_run(THALASSAStateStruct* initialstate, THALASSAStateStruct* finalstate, THALASSAObjectStruct* object, THALASSAPropagatorStruct* propagator);
 
+/**
+ * @brief Generate a new THALASSA filepaths struct
+ * 
+ * @author Max Hallgarten La Casta
+ * @date 2022-11-29
+ * 
+ * @param[in] phys_path Filepath for physical constants
+ * @param[in] earth_path Filepath for the Earth model
+ * @param[in] kernel_path Filepath for SPICE kernels
+ * @return THALASSAPathStruct* Filepaths struct
+ */
+THALASSAPathStruct* THALASSAPathStruct_new(char *phys_path, char *earth_path, char *kernel_path);
+
 #endif
