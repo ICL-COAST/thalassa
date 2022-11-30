@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include <cthalassa.h>
+#include <cthalassa/cthalassa.h>
 
 THALASSAPathStruct* THALASSAPathStruct_new(char *phys_path, char *earth_path, char *kernel_path) {
     // Allocate pointer
