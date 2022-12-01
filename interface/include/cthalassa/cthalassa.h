@@ -5,7 +5,7 @@
 
 /**
  * @brief Struct for physical model parameters
- * 
+ *
  * @author Max Hallgarten La Casta
  * @date 2022-11-29
  */
@@ -24,7 +24,7 @@ typedef struct THALASSAPhysicalModelStruct {
 
 /**
  * @brief Struct for propagator parameters
- * 
+ *
  * @author Max Hallgarten La Casta
  * @date 2022-11-29
  */
@@ -42,7 +42,7 @@ typedef struct THALASSAPropagatorStruct {
 
 /**
  * @brief Struct for object parameters
- * 
+ *
  * @author Max Hallgarten La Casta
  * @date 2022-11-29
  */
@@ -57,7 +57,7 @@ typedef struct THALASSAObjectStruct {
 
 /**
  * @brief Struct for state vectors
- * 
+ *
  * @author Max Hallgarten La Casta
  * @date 2022-11-29
  */
@@ -71,7 +71,7 @@ typedef struct THALASSAStateStruct {
 
 /**
  * @brief Struct for model filepaths
- * 
+ *
  * @author Max Hallgarten La Casta
  * @date 2022-11-29
  */
@@ -86,23 +86,23 @@ typedef struct THALASSAPathStruct {
 
     // SPICE kernel path
     char kernel_path[512];
-    size_t kernel_path_len;  
+    size_t kernel_path_len;
 } THALASSAPathStruct;
 
 /**
  * @brief Open the THALASSA interface
- * 
+ *
  * @author Max Hallgarten La Casta
  * @date 2022-11-29
  *
  * @param[in] model Physical model parameters
  * @param[in] paths Physical model filepaths
  */
-void thalassa_open(THALASSAPhysicalModelStruct* model, THALASSAPathStruct* paths);
+void thalassa_open(THALASSAPhysicalModelStruct *model, THALASSAPathStruct *paths);
 
 /**
  * @brief Close the THALASSA interface
- * 
+ *
  * @author Max Hallgarten La Casta
  * @date 2022-11-29
  */
@@ -110,28 +110,15 @@ void thalassa_close();
 
 /**
  * @brief Propagate an object using THALASSA
- * 
+ *
  * @author Max Hallgarten La Casta
  * @date 2022-11-29
- * 
+ *
  * @param[in] initialstate Initial state of the object
  * @param[out] finalstate Final state of the object
  * @param[in] object Object parameters
  * @param[in] propagator Propagator parameters
  */
-void thalassa_run(THALASSAStateStruct* initialstate, THALASSAStateStruct* finalstate, THALASSAObjectStruct* object, THALASSAPropagatorStruct* propagator);
-
-/**
- * @brief Generate a new THALASSA filepaths struct
- * 
- * @author Max Hallgarten La Casta
- * @date 2022-11-29
- * 
- * @param[in] phys_path Filepath for physical constants
- * @param[in] earth_path Filepath for the Earth model
- * @param[in] kernel_path Filepath for SPICE kernels
- * @return THALASSAPathStruct* Filepaths struct
- */
-THALASSAPathStruct* THALASSAPathStruct_new(char *phys_path, char *earth_path, char *kernel_path);
+void thalassa_run(THALASSAStateStruct *initialstate, THALASSAStateStruct *finalstate, THALASSAObjectStruct *object, THALASSAPropagatorStruct *propagator);
 
 #endif
