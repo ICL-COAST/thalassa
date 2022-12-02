@@ -98,7 +98,8 @@ typedef struct THALASSAPathStruct {
  * @param[in] model Physical model parameters
  * @param[in] paths Physical model filepaths
  */
-void thalassa_open(THALASSAPhysicalModelStruct *model, THALASSAPathStruct *paths);
+void thalassa_open(THALASSAPhysicalModelStruct *model,
+                   THALASSAPathStruct *paths);
 
 /**
  * @brief Close the THALASSA interface
@@ -119,6 +120,8 @@ void thalassa_close();
  * @param[in] object Object parameters
  * @param[in] propagator Propagator parameters
  */
-void thalassa_run(THALASSAStateStruct *initialstate, THALASSAStateStruct *finalstate, THALASSAObjectStruct *object, THALASSAPropagatorStruct *propagator);
+void thalassa_run(THALASSAStateStruct *initialstate,
+                  THALASSAStateStruct *finalstate, THALASSAObjectStruct *object,
+                  THALASSAPropagatorStruct *propagator);
 
 #endif

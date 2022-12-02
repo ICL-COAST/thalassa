@@ -2,8 +2,8 @@
 enable_language(C)
 
 # Collect files
-file(GLOB_RECURSE src_c ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c)
-file(GLOB_RECURSE src_f90 ${CMAKE_CURRENT_SOURCE_DIR}/src/*.f90)
+file(GLOB_RECURSE src_c CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c)
+file(GLOB_RECURSE src_f90 CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.f90)
 set(src_h ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 # Add CTHALASSA executable, include headers, and link to THALASSA
