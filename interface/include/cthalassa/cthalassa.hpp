@@ -7,7 +7,7 @@ namespace cthalassa {
 
     extern "C" {
     // clang-format off
-        #include "cthalassa.h"
+        #include <cthalassa/cthalassa.h>
     // clang-format on
     }
 
