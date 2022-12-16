@@ -69,8 +69,7 @@ namespace cthalassa {
         /// @brief Gravity model order
         int gord = 2;
 
-        /// @brief Method to implicitly cast the structure to its equivalent in
-        /// CTHALASSA
+        /// @brief Method to implicitly cast the structure to its internal equivalent in CTHALASSA
         operator cthalassa::internal::THALASSAPhysicalModelStruct() const {
             return cthalassa::internal::THALASSAPhysicalModelStruct{insgrav, isun, imoon, idrag, iF107, iSRP, iephem, gdeg, gord};
         }
@@ -91,8 +90,7 @@ namespace cthalassa {
         /// @brief Filepath for SPICE kernel
         std::string kernel_path;
 
-        /// @brief Method to implicitly cast the structure to its equivalent in
-        /// CTHALASSA
+        /// @brief Method to implicitly cast the structure to its internal equivalent in CTHALASSA
         operator cthalassa::internal::THALASSAPathStruct() const {
             // Declare new path struct
             cthalassa::internal::THALASSAPathStruct paths;
@@ -141,8 +139,7 @@ namespace cthalassa {
         /// @brief Step size [solar days]
         double tstep;
 
-        /// @brief Method to implicitly cast the structure to its equivalent in
-        /// CTHALASSA
+        /// @brief Method to implicitly cast the structure to its internal equivalent in CTHALASSA
         operator cthalassa::internal::THALASSAPropagatorStruct() const {
             return cthalassa::internal::THALASSAPropagatorStruct{tol, tspan, tstep, mxstep, imcoll, eqs};
         }
@@ -169,8 +166,7 @@ namespace cthalassa {
         /// @brief Coefficient of reflectivity [-]
         double cr;
 
-        /// @brief Method to implicitly cast the structure to its equivalent in
-        /// CTHALASSA
+        /// @brief Method to implicitly cast the structure to its internal equivalent in CTHALASSA
         operator cthalassa::internal::THALASSAObjectStruct() const { return cthalassa::internal::THALASSAObjectStruct{mass, area_drag, area_srp, cd, cr}; }
     } PropagatorSpacecraft;
 
