@@ -211,15 +211,19 @@ namespace cthalassa {
         ~Propagator();
 
         /**
-         * @brief Propagate the spacecraft
+         * @brief Propagate a state
          *
          * @author Max Hallgarten La Casta
          *
-         * @param[in] times Vector of times in Modified Julian Date (MJD)
-         * @param[in] stateIn Initial state vector
-         * @param[out] statesOut State vectors at the requested times
+         * @param[in] tStart Initial time
+         * @param[in] tEnd Final time
+         * @param[in] tStep Output time step
+         * @param[in] stateIn Initial state
+         * @param[out] timesOut Output times
+         * @param[out] statesOut Output states
          */
-        void propagate(const std::vector<double> &times, const std::vector<double> &stateIn, std::vector<std::vector<double>> &statesOut) const;
+        void propagate(const double &tStart, const double &tEnd, const double &tStep, const std::vector<double> &stateIn, std::vector<double> &timesOut,
+                       std::vector<std::vector<double>> &statesOut) const;
     };
 
 } // namespace cthalassa

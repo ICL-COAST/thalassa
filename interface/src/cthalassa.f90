@@ -114,9 +114,9 @@ module CTHALASSA
             call CLOSE_NULL_LOG()
         end subroutine THALASSA_CLOSE
 
-        subroutine THALASSA_RUN(initialstate, finalstate, object, propagator) bind(C)
+        subroutine THALASSA_RUN(initialtime, initialstate, outputmatrix, object, propagator) bind(C)
             ! Description:
-            !    Runs a THALASSA propagation
+            !    Runs a THALASSA propagation with verbose output
             ! 
             ! Author:
             !    Max Hallgarten La Casta
@@ -129,8 +129,9 @@ module CTHALASSA
             use PROPAGATE,   only: DPROP_REGULAR
 
             ! Subroutine parameters
-            type(THALASSA_STATE_STRUCT),      intent(in)  :: initialstate
-            type(THALASSA_STATE_STRUCT),      intent(out) :: finalstate
+            real(c_double),                   intent(in)  :: initialtime
+            real(c_double),                   intent(in)  :: initialstate(1:6)
+            type(c_ptr),                      intent(out) :: outputmatrix
             type(THALASSA_OBJECT_STRUCT),     intent(in)  :: object
             type(THALASSA_PROPAGATOR_STRUCT), intent(in)  :: propagator
 
@@ -138,12 +139,12 @@ module CTHALASSA
             ! Integration span and dt [solar days]
             real(dk) :: tspan, tstep
             ! Initial conditions (EMEJ2000)
-            real(dk) :: RV0(1:6), R0(1:3), V0(1:3)
+            real(dk) :: R0(1:3), V0(1:3)
             ! Measurement of CPU time, diagnostics
             integer  :: exitcode
             ! Trajectory
-            integer               :: npts
-            real(dk), allocatable :: cart(:, :)
+            real(c_double), allocatable, target, save :: cart(:, :) ! Variable saved to ensure that it is not deallocated
+                                                                    ! before the values can be read from C
             ! Function calls and integration steps
             integer :: int_steps, tot_calls
 
@@ -154,16 +155,15 @@ module CTHALASSA
             call LOAD_OBJECT(object)
 
             ! Load initial conditions
-            call LOAD_STATE(initialstate, MJD0, RV0)
-            R0 = RV0(1:3)
-            V0 = RV0(4:6)
+            MJD0 = initialtime;
+            R0 = initialstate(1:3)
+            V0 = initialstate(4:6)
 
             ! Propagate orbit
             call DPROP_REGULAR(R0, V0, tspan, tstep, cart, int_steps, tot_calls, exitcode)
 
-            ! Store final state
-            npts = size(cart, 1)
-            call SAVE_STATE(finalstate, cart(npts, 1), cart(npts, 2:7))
+            ! Store pointer to dates and Cartesian states
+            outputmatrix = C_LOC(cart)
         end subroutine
 
         subroutine PTR_TO_STR(ptr, ptr_len, str)

@@ -7,7 +7,6 @@
  * @brief Struct for physical model parameters
  *
  * @author Max Hallgarten La Casta
- * @date 2022-11-29
  */
 typedef struct THALASSAPhysicalModelStruct {
     // Physical model
@@ -26,7 +25,6 @@ typedef struct THALASSAPhysicalModelStruct {
  * @brief Struct for propagator parameters
  *
  * @author Max Hallgarten La Casta
- * @date 2022-11-29
  */
 typedef struct THALASSAPropagatorStruct {
     // Integration
@@ -44,7 +42,6 @@ typedef struct THALASSAPropagatorStruct {
  * @brief Struct for object parameters
  *
  * @author Max Hallgarten La Casta
- * @date 2022-11-29
  */
 typedef struct THALASSAObjectStruct {
     // Physical characteristics
@@ -59,7 +56,6 @@ typedef struct THALASSAObjectStruct {
  * @brief Struct for state vectors
  *
  * @author Max Hallgarten La Casta
- * @date 2022-11-29
  */
 typedef struct THALASSAStateStruct {
     // Epoch
@@ -73,7 +69,6 @@ typedef struct THALASSAStateStruct {
  * @brief Struct for model filepaths
  *
  * @author Max Hallgarten La Casta
- * @date 2022-11-29
  */
 typedef struct THALASSAPathStruct {
     // Physical constants path
@@ -93,35 +88,31 @@ typedef struct THALASSAPathStruct {
  * @brief Open the THALASSA interface
  *
  * @author Max Hallgarten La Casta
- * @date 2022-11-29
  *
  * @param[in] model Physical model parameters
  * @param[in] paths Physical model filepaths
  */
-void thalassa_open(THALASSAPhysicalModelStruct *model,
-                   THALASSAPathStruct *paths);
+void thalassa_open(THALASSAPhysicalModelStruct *model, THALASSAPathStruct *paths);
 
 /**
  * @brief Close the THALASSA interface
  *
  * @author Max Hallgarten La Casta
- * @date 2022-11-29
  */
 void thalassa_close();
 
 /**
- * @brief Propagate an object using THALASSA
+ * @brief Execute a propagation with THALASSA
  *
  * @author Max Hallgarten La Casta
- * @date 2022-11-29
  *
- * @param[in] initialstate Initial state of the object
- * @param[out] finalstate Final state of the object
- * @param[in] object Object parameters
- * @param[in] propagator Propagator parameters
+ * @param[in] initialtime Initial times
+ * @param[in] initialstate Initial Cartesian states
+ * @param[out] outputmatrix Matrix containing propagation results
+ * @param[out] object Object parameters
+ * @param[out] propagator Propagator parameters
  */
-void thalassa_run(THALASSAStateStruct *initialstate,
-                  THALASSAStateStruct *finalstate, THALASSAObjectStruct *object,
-                  THALASSAPropagatorStruct *propagator);
+void thalassa_run(const double *initialtime, const double *initialstate, double **outputmatrix, const THALASSAObjectStruct *object,
+                  const THALASSAPropagatorStruct *propagator);
 
 #endif
