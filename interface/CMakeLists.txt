@@ -9,11 +9,16 @@ file(GLOB_RECURSE src_hpp CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/include/
 file(GLOB_RECURSE src_f90 CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.f90)
 set(src_headers ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-# Add CTHALASSA library, include headers, and link to THALASSA
+# Add CTHALASSA library
 add_library(cthalassa ${src_c} ${src_cpp} ${src_h} ${src_hpp} ${src_f90})
+# Include CTHALASSA headers
 target_include_directories(cthalassa PUBLIC ${src_headers})
+# Link CTHALASSA to THALASSA
 target_link_libraries(cthalassa PUBLIC thalassa)
+# Enable fork for propagations
+target_compile_definitions(cthalassa PUBLIC CTHALASSA_USE_FORK)
 
 # Add CTHALASSA interface example
 add_executable(interface_example interface_example.cpp)
+# Link to CTHALASSA
 target_link_libraries(interface_example PRIVATE cthalassa)

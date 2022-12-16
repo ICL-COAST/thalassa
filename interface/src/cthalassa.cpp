@@ -2,7 +2,11 @@
 
 #include <math.h>
 
-#include <iostream>
+#ifdef CTHALASSA_USE_FORK
+#include <sys/mman.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#endif
 
 namespace cthalassa {
 
@@ -44,11 +48,35 @@ namespace cthalassa {
         settings.tspan = tSpan;
         settings.tstep = tStep;
 
+#ifdef CTHALASSA_USE_FORK
+        // Declare shared output pointer
+        size_t sharedMemorySize = 7 * ntime * sizeof(double);
+        double *output = (double *)mmap(NULL, sharedMemorySize, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANON, -1, 0);
+
+        // Propagate
+        if (fork() == 0) { // child process
+            // Declare local output pointer
+            double *outputLocal;
+
+            // Propagate
+            cthalassa::internal::thalassa_run(&tStart, &initialState[0], &outputLocal, &spacecraft, &settings);
+
+            // Copy local output to shared output
+            std::memcpy(output, outputLocal, sharedMemorySize);
+
+            // Exit child process
+            exit(0);
+        } else { // parent process
+            // Wait for child process to finish
+            wait(NULL);
+        }
+#else
         // Declare output pointer
         double *output;
 
         // Propagate
         cthalassa::internal::thalassa_run(&tStart, &initialState[0], &output, &spacecraft, &settings);
+#endif
 
         // Extract output
         for (size_t itime = 0; itime < ntime; itime++) {
@@ -61,8 +89,13 @@ namespace cthalassa {
             }
         }
 
+#ifdef CTHALASSA_USE_FORK
+        // Free output pointer
+        munmap(output, sharedMemorySize);
+#else
         // Free output pointer
         free(output);
+#endif
     }
 
 } // namespace cthalassa
