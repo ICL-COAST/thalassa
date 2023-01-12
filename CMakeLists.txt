@@ -21,5 +21,8 @@ add_subdirectory(external)
 # Compile THALASSA library
 add_subdirectory(src)
 
+# Compile CTHALASSA library
+add_subdirectory(interface)
+
 # Compile THALASSA main file
 add_subdirectory(app)

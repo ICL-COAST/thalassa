@@ -142,7 +142,33 @@ ERR_constant = secsPerDay/secsPerSidDay
 
 end subroutine INITIALIZE_NSGRAV
 
+subroutine DEINITIALIZE_NSGRAV()
+! Description:
+!    Deallocate memory used for Earth gravity data
+! 
+! Author:
+!    Max Hallgarten La Casta
+!    Imperial College London
+!    m.hallgarten-la-casta21@imperial.ac.uk
+! 
+! ==============================================================================
 
+! Deallocate memory
+deallocate(Cnm)
+deallocate(Snm)
+deallocate(Anm)
+deallocate(Dnm)
+deallocate(Gnm)
+deallocate(Enm)
+deallocate(Fnm)
+deallocate(Rm)
+deallocate(Im)
+deallocate(Pn)
+deallocate(Aux1)
+deallocate(Aux2)
+deallocate(Aux3)
+deallocate(Aux4)
+end subroutine
 
 
 function NORMFACT(l,m)

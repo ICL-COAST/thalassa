@@ -1,0 +1,8 @@
+---
+BasedOnStyle: LLVM
+IndentWidth: 4
+NamespaceIndentation: All
+ColumnLimit: 160
+AlwaysBreakTemplateDeclarations: Yes
+AccessModifierOffset: -4
+AlwaysBreakAfterReturnType: None

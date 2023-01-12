@@ -74,6 +74,24 @@ end do
 
 end subroutine INITIALIZE_LEGENDRE
 
+subroutine DEINITIALIZE_LEGENDRE(Gsl)
+! Description:
+!    Deallocate memory used for Legendre coefficients
+! 
+! Author:
+!    Max Hallgarten La Casta
+!    Imperial College London
+!    m.hallgarten-la-casta21@imperial.ac.uk
+! 
+! ==============================================================================
+
+! VARIABLES
+! Arguments IN
+real(dk), allocatable, intent(inout) :: Gsl(:,:)
+
+! Deallocate memory
+deallocate(Gsl)
+end subroutine
 
 
 function ACC_THBOD_EJ2K_TRUNC_ND(r,rho,GM_main,GM_thbod,ord,Gsl)
