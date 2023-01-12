@@ -6,7 +6,7 @@ build
 
 # Binary
 thalassa_main
-interface_example
+thalassa_interface_example
 
 # Outputs
 .vscode
