@@ -26,31 +26,31 @@ void parse_model(const mxArray *modelArray, THALASSAPhysicalModelStruct *model) 
         // Update fields
         if (strcmp(fname, "insgrav") == 0) {
             tmp = mxGetScalar(mxGetFieldByNumber(modelArray, 0, ifield));
-            model->insgrav = (int)tmp;
+            model->insgrav = round(tmp);
         } else if (strcmp(fname, "isun") == 0) {
             tmp = mxGetScalar(mxGetFieldByNumber(modelArray, 0, ifield));
-            model->isun = (int)tmp;
+            model->isun = round(tmp);
         } else if (strcmp(fname, "imoon") == 0) {
             tmp = mxGetScalar(mxGetFieldByNumber(modelArray, 0, ifield));
-            model->imoon = (int)tmp;
+            model->imoon = round(tmp);
         } else if (strcmp(fname, "idrag") == 0) {
             tmp = mxGetScalar(mxGetFieldByNumber(modelArray, 0, ifield));
-            model->idrag = (int)tmp;
+            model->idrag = round(tmp);
         } else if (strcmp(fname, "iF107") == 0) {
             tmp = mxGetScalar(mxGetFieldByNumber(modelArray, 0, ifield));
-            model->iF107 = (int)tmp;
+            model->iF107 = round(tmp);
         } else if (strcmp(fname, "iSRP") == 0) {
             tmp = mxGetScalar(mxGetFieldByNumber(modelArray, 0, ifield));
-            model->iSRP = (int)tmp;
+            model->iSRP = round(tmp);
         } else if (strcmp(fname, "iephem") == 0) {
             tmp = mxGetScalar(mxGetFieldByNumber(modelArray, 0, ifield));
-            model->iephem = (int)tmp;
+            model->iephem = round(tmp);
         } else if (strcmp(fname, "gdeg") == 0) {
             tmp = mxGetScalar(mxGetFieldByNumber(modelArray, 0, ifield));
-            model->gdeg = (int)tmp;
+            model->gdeg = round(tmp);
         } else if (strcmp(fname, "gord") == 0) {
             tmp = mxGetScalar(mxGetFieldByNumber(modelArray, 0, ifield));
-            model->gord = (int)tmp;
+            model->gord = round(tmp);
         } else {
             mexErrMsgTxt("Unknown parameter in physical model structure");
         }
@@ -127,10 +127,10 @@ void parse_propagator(const mxArray *settingsArray, THALASSAPropagatorStruct *se
             settings->mxstep = tmp;
         } else if (strcmp(fname, "imcoll") == 0) {
             tmp = mxGetScalar(mxGetFieldByNumber(settingsArray, 0, ifield));
-            settings->imcoll = (int)tmp;
+            settings->imcoll = round(tmp);
         } else if (strcmp(fname, "eqs") == 0) {
             tmp = mxGetScalar(mxGetFieldByNumber(settingsArray, 0, ifield));
-            settings->eqs = (int)tmp;
+            settings->eqs = round(tmp);
         } else {
             mexErrMsgTxt("Unknown parameter in settings structure");
         }
