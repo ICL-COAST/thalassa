@@ -2,10 +2,10 @@
 cmake_minimum_required(VERSION 3.16.3)
 
 # Set project metadata
-project(thalassa)
+project(thalassa LANGUAGES C CXX Fortran)
 
-# Enable Fortran
-enable_language(Fortran)
+# Set C++ standard
+set(CMAKE_CXX_STANDARD 11)
 
 # Set output directories
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib)
