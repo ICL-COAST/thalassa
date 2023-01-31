@@ -1,6 +1,11 @@
 # Set minimum CMake version
 cmake_minimum_required(VERSION 3.16.3)
 
+# Force compilers
+set(CMAKE_C_COMPILER "gcc")
+set(CMAKE_CXX_COMPILER "g++")
+set(CMAKE_Fortran_COMPILER "gfortran")
+
 # Set project metadata
 project(thalassa LANGUAGES C CXX Fortran)
 
