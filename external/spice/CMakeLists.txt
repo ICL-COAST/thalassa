@@ -1,5 +1,8 @@
 include(FetchContent)
 
+# Show download progress
+set(FETCHCONTENT_QUIET FALSE)
+
 # Set URL based on operating system
 if(UNIX)
     # Set Linux version
