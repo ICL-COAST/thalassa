@@ -1,0 +1,37 @@
+% MTHALASSA Propagate an orbit, using the THALASSA propagator.
+%   [times, states] = mthalassa(state, model, paths, settings, spacecraft)
+%
+%   state
+%     .mjd          Initial time.
+%     .RV           Initial state.
+%
+%   model
+%     .insgrav:     0 = sph. grav. field, 1 = non-spherical grav. field.
+%     .isun:        0 = no Sun perturbation, 1 = full acceleration in rect coordinates, values >1 select order of truncated perturbing acceleration expansion.
+%     .imoon:       0 = no Moon perturbation, 1 = full acceleration in rect coordinates, values >1 select order of truncated perturbing acceleration expansion.
+%     .idrag:       0 = no atmospheric drag, 1 = Wertz model, 2 = US76 (PATRIUS), 3 = J77 (Carrara - INPE), 4 = NRLMSISE-00 (Picone - NRL)
+%     .iF107:       0 = constant F10.7 flux, 1 = variable F10.7 flux
+%     .iSRP:        0 = no SRP perturbation, 1 = SRP, no eclipses, 2 = SRP with conical Earth shadow
+%     .iephem:      Ephemerides source. 1 = DE431 ephemerides. 2 = Simpl. Meeus & Brown
+%     .gdeg:        Maximum degree of the gravitational potential.
+%     .gord:        Maximum order of the gravitational potential.
+%
+%   paths
+%     .phys_path:   Filepath for physical constants.
+%     .earth_path:  Filepath for Earth potential.
+%     .kernel_path: Filepath for SPICE kernels.
+%
+%   settings
+%     .tol:         Absolute = relative tolerance for the test propagation.
+%     .tspan:       Propagation time span [solar days].
+%     .tstep:       Step size [solar days].
+%     .mxstep:      Maximum number of integration/output steps.
+%     .imcoll:      0 = do not check for collisions with the Moon, 1 = otherwise.
+%     .eqs:         Type of the equations of motion. 1 = Cowell, 2 = EDromo(t), 3 = EDromo(c), 4 = EDromo(l), 5 = KS (t), 6 = KS (l), 7 = Sti-Sche (t), 8 = Sti-Sche (l).
+%   
+%   spacecraft
+%     .mass:        Spacecraft mass [kg].
+%     .area_drag:   Area (drag) [m^2].
+%     .area_srp:    Area (SRP) [m^2].
+%     .cd:          CD [-].
+%     .cr:          CR [-].
