@@ -88,7 +88,7 @@ Alternatively, for more manual use, the static library is available in `./lib/`,
 
 It is recommended to use the definitions in `./interface/cpp/include/cthalassa.hpp` as these are more user friendly, and take care of pre- and post-propagation processing. Nevertheless, the C definitions used by CTHALASSA to interface with Fortran are available in `./interface/cpp/include/cthalassa.h`.
 
-Note: THALASSA was designed for single threaded execution. CTHALASSA provides multi-thread safety by spawning a subprocess for each propagation with `fork`. This introduces a dependency on POSIX compliance, however this should not be a problem on most Linux and MacOS distributions. The use of `fork` has resulted in issues when trying to call CTHALASSA from within an OpenMP thread.
+Note: THALASSA was designed for single threaded execution. It is *not* thread safe by default. CTHALASSA spawns subprocesses for each propagation with `fork` to provide thread safety, however this depends on POSIX compliance. This can be deactivated, if required, by appending `-DCTHALASSA_USE_FORK=OFF` to the `CMake` configuration command. Issues have been seen with `OpenMP` and `fork`, therefore native threading is recommended.
 
 ### MTHALASSA
 The recommended method for using MTHALASSA is to add THALASSA's library directory to Matlab's path at the beginning of a script:
