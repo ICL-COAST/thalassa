@@ -13,7 +13,10 @@ target_include_directories(cthalassa PUBLIC ${src_headers})
 # Link CTHALASSA to THALASSA
 target_link_libraries(cthalassa PUBLIC thalassa)
 # Enable fork for propagations
-target_compile_definitions(cthalassa PUBLIC CTHALASSA_USE_FORK)
+option(CTHALASSA_USE_FORK "Use fork in CTHALASSA to spawn subprocesses" ON)
+if(CTHALASSA_USE_FORK)
+    target_compile_definitions(cthalassa PUBLIC "CTHALASSA_USE_FORK")
+endif()
 
 # Add CTHALASSA interface example
 add_executable(thalassa_interface_example thalassa_interface_example.cpp)
