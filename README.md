@@ -1,24 +1,116 @@
-# Introduction to THALASSA
+# THALASSA
 THALASSA is a Fortran orbit propagation code for bodies in the Earth-Moon-Sun system. It works by integrating either Newtonian equations in Cartesian coordinates or regularized equations of motion with the LSODAR (Livermore Solver for Ordinary Differential equations with Automatic Root-finding).
 
 THALASSA is a command-line tool, and has been developed and tested on MacOS and Ubuntu Linux platforms, using the ``gfortran`` compiler. Attention has been paid to avoid using advanced Fortran constructs: while they greatly improve the capabilities of the language, their portability has been found to be problematic. This might change in the future.
 
-The repository also includes some Python3 scripts to perform batch propagations. This feature is currently experimental, but it shouldn't be too difficult for a Python user to generalize the scripts to perform batch propagations on discrete grids of orbital elements.
+The repository also includes some Python3 scripts to perform batch propagations. This feature is currently experimental, but it shouldn't be too difficult for a Python user to generalize the scripts to perform batch propagations on discrete grids of orbital elements. Interfaces for C/C++ (CTHALASSA) and Matlab (MTHALASSA) have been developed to avoid the file input/output bottleneck.
 
 Details on the mathematical fundamentals of THALASSA are contained in [Amato et al., 2018](#Amato2018).
 
 # Giving credit
 If you use THALASSA in your research, please consider giving credit by citing the [article](https://doi.org/10.1007/s10569-019-9897-1) detailing the mathematical fundamentals (Amato et al., 2019). In addition, you can cite the THALASSA [ASCL entry](http://ascl.net/1905.018) according to the [ASCL guidelines](http://ascl.net/home/getwp/351).
 
-# THALASSA User Guide
-THALASSA reads settings and initial conditions from two text files. Their paths can be specified as arguments to the THALASSA executable,
+# Getting Started
+## Prerequisites
+THALASSA was originally developed using the `gfortran` compiler. Compilation of CTHALASSA and MTHALASSA require additional compilers from the GNU compiler collection. Additionally, compilation of MTHALASSA requires a Matlab installation with an activated licence.
 
-    ./thalassa.x [settings_file] [object_file]
+Compilers:
+* `gcc`
+* `g++`
+* `gfortran`
 
+Build system:
+* `CMake`
+* `make` (or an alternative generator for CMake)
+
+The source files for the `sofa` and `spice` libraries are automatically downloaded and extracted during CMake's configuration stage.
+
+THALASSA is also dependent on `spice` kernels if precise ephemerides are required. A bash script (`./dependencies.sh`) is provided for convenience to download THALASSA's default `spice` kernels.
+
+## Compilation
+### Traditional
+THALASSA is compiled with two `CMake` commands. These configure the project and then build it:
+```
+cmake -B ./build -S .
+```
+```
+cmake --build ./build
+```
+By default, all targets will be built, including THALASSA, CTHALASSA, and MTHALASSA.
+
+Note: if `CMake` freezes during the configuration stage, and Matlab is installed, this may be due to the Matlab license not being activated, preventing the successful configuration of the `MEX` compiler.
+
+### Container
+THALASSA can take advantage of containerisation by being built with the `Dockerfile` in the repository's root directory:
+```
+docker build -t thalassa .
+```
+This will automatically download and install the required compile-time and run-time dependencies. The kernels required by `spice` (listed in `./data/kernels_to_load.furnsh`) must be downloaded manually, and provided to the container via a volume bind mount.
+
+## Usage
+### THALASSA
+THALASSA reads settings and initial conditions from two text files. Their paths can be specified as arguments to the THALASSA executable:
+```
+./thalassa_main [settings_file] [object_file]
+```
 If no arguments are provided, THALASSA will read settings and initial conditions from the files `./in/input.txt` and `./in/object.txt`. Sample files are included in the repository.
 
 Fortran is quite strict when interpreting text. When changing the input files, make sure to respect *all* columns and *do not* insert additional rows without changing the code. Explanatory comments in the files are preceded by pound characters.
 
+The code will write the files `cart.dat` and `orbels.dat` to the directory specified by the user. These contain the numerically integrated trajectory in cartesian coordinates and orbital elements respectively, in the EMEJ2000 reference frame. Additionally, the code writes a file `stats.dat` containing integration statistics along with the value of the orbital elements at the final epoch, and a `propagation.log` file which contains diagnostics for the current propagation.
+
+You should check the `stats.dat` file for any errors that might have taken place during the execution. In particular, THALASSA will write to the log file and to stdout the exit code of the propagation. This is an integer number with the following meaning:
+* `0`: nominal exit, reached end time specified in `input.txt`
+* `1`: nominal exit, collided with the Earth (atmospheric re-entry).
+* `-2`: floating point exception, detected NaNs in the state vector. This is usually caused by the orbit having become hyperbolic when using EDromo, or in some more exotic cases due to a solver tolerance that's too large.
+* `-3`: maximum number of steps reached. Try specifying a larger time step in the input file.
+* `-10`: unknown exception, try debugging to check what's the problem.
+
+
+An example of using the container is provided below, including the binds for the input, output, and kernel directories:
+```
+docker run \
+       --rm \
+       -v <host input directory>:/thalassa/in/:ro \
+       -v <host output directory>:/thalassa/out/ \
+       -v <host kernel directory>:/thalassa/data/kernels/:ro \
+       thalassa
+```
+
+Alternatively, individual files within the required directories can be bound, if one does not want to expose the entire directory to the container.
+
+Note: the output directory specified in `input.txt` MUST be `./out/` to ensure that the output of THALASSA is saved successfully through the bind to the host.
+
+### CTHALASSA
+CTHALASSA is available as a `CMake` target for easy integration with other `CMake`-based projects. This automatically includes the header files, and takes care of its dependency on THALASSA.
+
+Alternatively, for more manual use, the static library is available in `./lib/`, and the header files in `./interface/cpp/include/`.
+
+It is recommended to use the definitions in `./interface/cpp/include/cthalassa.hpp` as these are more user friendly, and take care of pre- and post-propagation processing. Nevertheless, the C definitions used by CTHALASSA to interface with Fortran are available in `./interface/cpp/include/cthalassa.h`.
+
+Note: THALASSA was designed for single threaded execution. It is *not* thread safe by default. CTHALASSA spawns subprocesses for each propagation with `fork` to provide thread safety, however this depends on POSIX compliance. This can be deactivated, if required, by appending `-DCTHALASSA_USE_FORK=OFF` to the `CMake` configuration command. Issues have been seen with `OpenMP` and `fork`, therefore native threading is recommended.
+
+### MTHALASSA
+The recommended method for using MTHALASSA is to add THALASSA's library directory to Matlab's path at the beginning of a script:
+```
+addpath(<THALASSA lib directory>)
+```
+
+MTHALASSA can then be used with the following signature:
+```
+[times, states] = mthalassa(state, model, paths, settings, spacecraft)
+```
+
+A documentation file is automatically generated which can be accessed from Matlab:
+```
+help mthalassa
+```
+
+An example of using MTHALASSA is available (`./interface/matlab/thalassa_interface_example.m`) which propagates an orbit via the interface.
+
+Note: issues have been found when attempting to build MTHALASSA on Apple machines with ARM processors. The current release of Matlab for MacOS still uses x86_64 via Rosetta, however `CMake` defaults to building MTHALASSA for the native architecture. A potential solution is currently under consideration.
+
+# THALASSA Input Format
 ## Initial conditions file
 The initial conditions file contains the initial orbital elements and physical characteristics of the object to be propagated. The orbital elements are expressed in the EMEJ2000 frame; all the epochs are in Terrestrial Time [(Montenbruck and Gill, 2000)](#Montenbruck2000).
 
@@ -33,7 +125,7 @@ The first section contains integer flags that allow the user to tune the paramet
 *  `isun`: values >1 are interpreted as the order of the Legendre expansion for the solar gravitational perturbing acceleration. 1 toggles the acceleration using the full expression in rectangular coordinates. 0 disables the perturbation. See [Amato et al. (2018)](#Amato2018) for details.
 *  `imoon`: values >1 are interpreted as the order of the Legendre expansion for the lunar gravitational perturbing acceleration. 1 toggles the acceleration using the full expression in rectangular coordinates. 0 disables the perturbation. See [Amato et al. (2018)](#Amato2018) for details.
 *  `idrag`: select atmospheric model. 0 = no drag, 1 = patched exponential model [(table 8-4 of Vallado and McClain, 2013)](#Vallado2013), 2 = US 1976 Standard Atmosphere [(NASA et al., 1976)](#US1976), 3 = Jacchia 1977 [(Jacchia, 1977)](#Jacchia1977), 4 = NRLMSISE-00 [(Picone et al., 2000)](#Picone2000).
-*  `iF107`: 1 toggles variable F10.7 flux, 0 uses the constant value specified in `data/physical_constants.txt`
+*  `iF107`: 1 toggles variable F10.7 flux, 0 uses the constant value specified in `./data/physical_constants.txt`
 *  `iSRP`: select SRP model. 0 = no SRP, 1 = SRP with no eclipses, 2 = SRP with conical shadow using the $\nu$ factor from [Montenbruck and Gill (2000)](#Montenbruck2000).
 *  `iephem`: select the source of ephemerides of the Sun and the Moon. 1 uses SPICE-read ephemerides (DE431 by default), 2 uses a set of simplified analytical ephemerides by [Meeus (1998)](#Meeus1998).
 *  `gdeg`: selects the degree of the Earth's gravitational field (up to 95, although a maximum degree of 15 is recommended).
@@ -62,11 +154,6 @@ The choice of equations depends on the type of orbit being integrated. For LEOs 
 As a rule of thumb, weakly-perturbed orbits can be integrated most efficiently by using orbital elements.
 Strongly-perturbed orbits should be integrated using coordinates, i.e. sets 1, 5, 6.
 
-## Physical data files
-The directory `data/` stores files containing information on the physical model used by THALASSA. `data/earth_potential/GRIM5-S1.txt` contains the harmonic coefficients of the GRIM5-S1 potential, in its native format.
-The file `data/physical_constants.txt` contains several astronomical and physical constants that are used during the integration.
-The constant values of the solar flux and of the planetary index and amplitude are specified here, along with the height at which the orbiter is considered to have re-entered the atmosphere of the Earth.
-
 ### Output
 The last section contains settings for the output of THALASSA.
 *  `verb`: 1 toggles the printing of the current propagation progress, 0 otherwise
@@ -74,43 +161,12 @@ The last section contains settings for the output of THALASSA.
 
 It is recommended to untoggle the `verb` flag if THALASSA is used to propagate batches of initial conditions. Failure to do so could unnecessarily clutter `stdout`.
 
-## THALASSA output
-THALASSA is launched by executing `thalassa.x` as specified above.
+## Physical data files
+The directory `./data/` stores files containing information on the physical model used by THALASSA. `./data/earth_potential/GRIM5-S1.txt` contains the harmonic coefficients of the GRIM5-S1 potential, in its native format.
+The file `./data/physical_constants.txt` contains several astronomical and physical constants that are used during the integration.
+The constant values of the solar flux and of the planetary index and amplitude are specified here, along with the height at which the orbiter is considered to have re-entered the atmosphere of the Earth.
 
-![Launching THALASSA](/uploads/f2f23ecd72642545bd1774f31ca36602/thalassa_instructions.gif)
-
-The code will write the files `cart.dat` and `orbels.dat` to the directory specified by the user. These contain the numerically integrated trajectory in cartesian coordinates and orbital elements respectively, in the EMEJ2000 reference frame.
-Additionally, the code writes a file `stats.dat` containing integration statistics along with the value of the orbital elements at the final epoch, and a `propagation.log` file which contains diagnostics for the current propagation.
-
-You should check the `stats.dat` file for any errors that might have taken place during the execution. In particular, THALASSA will write to the log file and to stdout the exit code of the propagation. This is an integer number with the following meaning:
-* `0`: nominal exit, reached end time specified in `input.txt`
-* `1`: nominal exit, collided with the Earth (atmospheric re-entry).
-* `-2`: floating point exception, detected NaNs in the state vector. This is usually caused by the orbit having become hyperbolic when using EDromo, or in some more exotic cases due to a solver tolerance that's too large.
-* `-3`: maximum number of steps reached. Try specifying a larger time step in the input file.
-* `-10`: unknown exception, try debugging to check what's the problem.
-
-## Running THALASSA in a Container
-THALASSA can take advantage of containerisation by being built with the `Dockerfile` in the repository's root directory:
-```
-docker build -t thalassa .
-```
-This will automatically download and install the required compile-time and run-time dependencies. The kernels required by SPICE (listed in `data/kernels_to_load.furnsh`) must be downloaded manually, and provided to the container via a volume bind mount.
-
-An example of using the container is provided below, including the binds for the input, output, and kernel directories:
-```
-docker run \
-       --rm \
-       -v <host input directory>:/thalassa/in/ \
-       -v <host output directory>:/thalassa/out/ \
-       -v <host kernel directory>:/thalassa/data/kernels/ \
-       thalassa
-```
-
-Alternatively, individual files within the required directories can be bound, if one does not want to expose the entire directory to the container.
-
-Note: the output directory specified in `input.txt` MUST be `./out/` to ensure that the output of THALASSA is saved successfully through the bind to the host.
-
-## References
+# References
 1.  <a name="Amato2018"></a>Amato, D., Bombardelli, C., Baù, G., Morand, V., and Rosengren, A. J. "Non-averaged regularized formulations as an alternative to semi-analytical orbit propagation methods". Submitted to Celestial Mechanics and Dynamical Astronomy, 2018.
 2.  <a name="Montenbruck2000"></a>Montenbruck, O., and Gill, E. "Satellite Orbits. Models, Methods, and Applications". Springer-Verlag Berlin Heidelberg, 2000.
 3.  <a name="Vallado2013"></a>Vallado, D. A., and McClain, W. D. "Fundamentals of Astrodynamics and Applications". Microcosm Press, 2013.
