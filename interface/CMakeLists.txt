@@ -1,5 +1,9 @@
 # Add CTHALASSA
-add_subdirectory(cpp)
+if(THALASSA_BUILD_CTHALASSA)
+    add_subdirectory(cpp)
+endif()
 
 # Add MTHALASSA
-add_subdirectory(matlab)
+if(THALASSA_BUILD_MTHALASSA)
+    add_subdirectory(matlab)
+endif()
