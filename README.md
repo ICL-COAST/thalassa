@@ -38,7 +38,33 @@ cmake --build ./build
 ```
 By default, all targets will be built, including THALASSA, CTHALASSA, and MTHALASSA.
 
-Note: if `CMake` freezes during the configuration stage, and Matlab is installed, this may be due to the Matlab license not being activated, preventing the successful configuration of the `MEX` compiler.
+#### Known Issues/Limitations
+
+* If `CMake` freezes during the configuration stage, and Matlab is installed, this may be due to the Matlab license not being activated, preventing the successful configuration of the `MEX` compiler.
+
+* THALASSA was designed for single threaded execution. It is *not* thread safe by default. CTHALASSA spawns subprocesses for each propagation with `fork` to provide thread safety, however this depends on POSIX compliance. This can be deactivated, if required, by appending `-DCTHALASSA_USE_FORK=OFF` to the `CMake` configuration command. Issues have been seen with `OpenMP` and `fork`, therefore native threading is recommended.
+
+#### Compiling MTHALASSA on Apple Machines with ARM
+The current release of Matlab for MacOS uses `x86_64` via the Rosetta translation environment. Consequently, the `MEX` compiler targets `x86_64`. However, by default `CMake` will target the native architecture of the machine, in this case `arm64`. Furthermore, older versions of `CMake` are not aware of Rosetta installations, and will attempt to use the ARM version of the `MEX` compiler.
+
+To compile a compatible version of MTHALASSA, the follow actions must be taken:
+* Install an updated version of `CMake` (>=3.26)
+* Install `x86_64` versions of the C, C++, and Fortran compilers 
+
+The following flags must be appended to the `CMake` configuration command to force the architecture, and force the use of the `x86_64` compilers:
+```
+-DCMAKE_OSX_ARCHITECTURE=x86_64
+```
+```
+-DCMAKE_C_COMPILER=<C compiler path>
+```
+```
+-DCMAKE_CXX_COMPILER=<C++ compiler path>
+```
+```
+-DCMAKE_Fortran_COMPILER=<Fortran compiler path>
+```
+This will build `x86_64` versions of all of the THALASSA components, ensuring that it can be used via Matlab.
 
 ### Container
 THALASSA can take advantage of containerisation by being built with the `Dockerfile` in the repository's root directory:
@@ -66,7 +92,6 @@ You should check the `stats.dat` file for any errors that might have taken place
 * `-3`: maximum number of steps reached. Try specifying a larger time step in the input file.
 * `-10`: unknown exception, try debugging to check what's the problem.
 
-
 An example of using the container is provided below, including the binds for the input, output, and kernel directories:
 ```
 docker run \
@@ -88,7 +113,20 @@ Alternatively, for more manual use, the static library is available in `./lib/`,
 
 It is recommended to use the definitions in `./interface/cpp/include/cthalassa.hpp` as these are more user friendly, and take care of pre- and post-propagation processing. Nevertheless, the C definitions used by CTHALASSA to interface with Fortran are available in `./interface/cpp/include/cthalassa.h`.
 
-Note: THALASSA was designed for single threaded execution. It is *not* thread safe by default. CTHALASSA spawns subprocesses for each propagation with `fork` to provide thread safety, however this depends on POSIX compliance. This can be deactivated, if required, by appending `-DCTHALASSA_USE_FORK=OFF` to the `CMake` configuration command. Issues have been seen with `OpenMP` and `fork`, therefore native threading is recommended.
+CTHALASSA can be used by creating a `cthalassa::Propagator` object:
+```
+cthalassa::Propagator propagator(model, paths, settings, spacecraft);
+```
+The constructor takes multiple structures as input, including model parameters, filepaths to the physical model files (as described below), propagator settings, and spacecraft properties. These structures were designed to shadow the original text files used by THALASSA.
+
+The propagator can be called with the `propagate` method:
+```
+propagator.propagate(tStart, tEnd, tStep, stateIn, timesOut, statesOut);
+```
+
+An example for using CTHALASSA is available (`./interface/cpp/thalassa_interface_example.cpp`) which propagates an orbit via the interface.
+
+Note: it is recommended to use absolute filepaths for the physical model files. Furthermore, it is recommended to provide a custom `.furnsh` file also containing absolute filepaths when `spice` ephemerides are being used.
 
 ### MTHALASSA
 The recommended method for using MTHALASSA is to add THALASSA's library directory to Matlab's path at the beginning of a script:
@@ -108,7 +146,7 @@ help mthalassa
 
 An example of using MTHALASSA is available (`./interface/matlab/thalassa_interface_example.m`) which propagates an orbit via the interface.
 
-Note: issues have been found when attempting to build MTHALASSA on Apple machines with ARM processors. The current release of Matlab for MacOS still uses x86_64 via Rosetta, however `CMake` defaults to building MTHALASSA for the native architecture. A potential solution is currently under consideration.
+Note: it is recommended to use absolute filepaths for the physical model files. Furthermore, it is recommended to provide a custom `.furnsh` file also containing absolute filepaths when `spice` ephemerides are being used.
 
 # THALASSA Input Format
 ## Initial conditions file
