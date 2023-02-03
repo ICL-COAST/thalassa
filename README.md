@@ -44,7 +44,27 @@ By default, all targets will be built, including THALASSA, CTHALASSA, and MTHALA
 
 * THALASSA was designed for single threaded execution. It is *not* thread safe by default. CTHALASSA spawns subprocesses for each propagation with `fork` to provide thread safety, however this depends on POSIX compliance. This can be deactivated, if required, by appending `-DCTHALASSA_USE_FORK=OFF` to the `CMake` configuration command. Issues have been seen with `OpenMP` and `fork`, therefore native threading is recommended.
 
-* Issues have been found when attempting to build MTHALASSA on Apple machines with ARM processors. The current release of Matlab for MacOS still uses x86_64 via Rosetta, however `CMake` defaults to building MTHALASSA for the native architecture. A potential solution is currently under consideration.
+#### Compiling MTHALASSA on Apple Machines with ARM
+The current release of Matlab for MacOS uses `x86_64` via the Rosetta translation environment. Consequently, the `MEX` compiler targets `x86_64`. However, by default `CMake` will target the native architecture of the machine, in this case `arm64`. Furthermore, older versions of `CMake` are not aware of Rosetta installations, and will attempt to use the ARM version of the `MEX` compiler.
+
+To compile a compatible version of MTHALASSA, the follow actions must be taken:
+* Install an updated version of `CMake` (>=3.26)
+* Install `x86_64` versions of the C, C++, and Fortran compilers 
+
+The following flags must be appended to the `CMake` configuration command to force the architecture, and force the use of the `x86_64` compilers:
+```
+-DCMAKE_OSX_ARCHITECTURE=x86_64
+```
+```
+-DCMAKE_C_COMPILER=<C compiler path>
+```
+```
+-DCMAKE_CXX_COMPILER=<C++ compiler path>
+```
+```
+-DCMAKE_Fortran_COMPILER=<Fortran compiler path>
+```
+This will build `x86_64` versions of all of the THALASSA components, ensuring that it can be used via Matlab.
 
 ### Container
 THALASSA can take advantage of containerisation by being built with the `Dockerfile` in the repository's root directory:
