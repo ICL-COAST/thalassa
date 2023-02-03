@@ -53,7 +53,7 @@ To compile a compatible version of MTHALASSA, the follow actions must be taken:
 
 The following flags must be appended to the `CMake` configuration command to force the architecture, and force the use of the `x86_64` compilers:
 ```
--DCMAKE_OSX_ARCHITECTURE=x86_64
+-DCMAKE_OSX_ARCHITECTURES=x86_64
 ```
 ```
 -DCMAKE_C_COMPILER=<C compiler path>
