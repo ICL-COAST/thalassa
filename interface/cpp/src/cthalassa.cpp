@@ -1,6 +1,6 @@
 #include <cthalassa/cthalassa.hpp>
 
-#include <math.h>
+#include <cmath>
 
 #ifdef CTHALASSA_USE_FORK
 #include <sys/mman.h>

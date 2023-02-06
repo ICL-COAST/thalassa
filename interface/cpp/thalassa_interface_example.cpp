@@ -1,5 +1,3 @@
-#include <string.h>
-
 #include <cthalassa/cthalassa.hpp>
 
 int main() {
