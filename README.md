@@ -66,6 +66,15 @@ The following flags must be appended to the `CMake` configuration command to for
 ```
 This will build `x86_64` versions of all of the THALASSA components, ensuring that it can be used via Matlab.
 
+An example of installing `x86_64` versions of the GNU compilers via `Homebrew` is provided below:
+```
+arch -x86_64 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+```
+arch -x86_64 /usr/local/bin/brew install gcc
+```
+The compilers should be available under `/usr/local/Cellar/gcc/<version>/bin/`.
+
 ### Container
 THALASSA can take advantage of containerisation by being built with the `Dockerfile` in the repository's root directory:
 ```
