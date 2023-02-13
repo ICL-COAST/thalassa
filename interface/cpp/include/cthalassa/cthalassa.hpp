@@ -177,6 +177,10 @@ namespace cthalassa {
      */
     class Propagator {
 
+    public:
+        /// @brief Flag for interface isolation
+        const bool INTERFACE_ISOLATION_;
+
     private:
         /// @brief Model settings
         const PropagatorModel model_;
@@ -200,8 +204,10 @@ namespace cthalassa {
          * @param[in] paths Filepaths
          * @param[in] settings Propagator settings
          * @param[in] spacecraft Spacecraft
+         * @param[in] INTERFACE_ISOLATION Flag for isolating the opening/closing of the THALASSA interface (default: false)
          */
-        Propagator(const PropagatorModel &model, const PropagatorPaths &paths, const PropagatorSettings &settings, const PropagatorSpacecraft &spacecraft);
+        Propagator(const PropagatorModel &model, const PropagatorPaths &paths, const PropagatorSettings &settings, const PropagatorSpacecraft &spacecraft,
+                   const bool &INTERFACE_ISOLATION = false);
 
         /**
          * @brief Destroy the Propagator object
