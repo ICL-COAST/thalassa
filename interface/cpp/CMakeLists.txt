@@ -7,7 +7,7 @@ file(GLOB_RECURSE src_f90 CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.f9
 set(src_headers ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 # Add CTHALASSA library
-add_library(cthalassa ${src_c} ${src_cpp} ${src_h} ${src_hpp} ${src_f90})
+add_library(cthalassa STATIC ${src_c} ${src_cpp} ${src_h} ${src_hpp} ${src_f90})
 # Include CTHALASSA headers
 target_include_directories(cthalassa PUBLIC ${src_headers})
 # Link CTHALASSA to THALASSA
