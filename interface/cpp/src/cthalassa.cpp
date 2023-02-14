@@ -10,41 +10,46 @@
 
 namespace cthalassa {
 
+#ifdef CTHALASSA_USE_FORK
     Propagator::Propagator(const PropagatorModel &model, const PropagatorPaths &paths, const PropagatorSettings &settings,
                            const PropagatorSpacecraft &spacecraft, const bool &INTERFACE_ISOLATION)
         : model_(model), paths_(paths), settings_(settings), spacecraft_(spacecraft), INTERFACE_ISOLATION_(INTERFACE_ISOLATION) {
-#ifdef CTHALASSA_USE_FORK
         // Open THALASSA interface if interface isolation is not requested
         if (!INTERFACE_ISOLATION_) {
             cthalassa::internal::THALASSAPhysicalModelStruct modelTemp = model_;
             cthalassa::internal::THALASSAPathStruct pathsTemp = paths_;
             cthalassa::internal::thalassa_open(&modelTemp, &pathsTemp);
         }
+    }
 #else
+    Propagator::Propagator(const PropagatorModel &model, const PropagatorPaths &paths, const PropagatorSettings &settings,
+                           const PropagatorSpacecraft &spacecraft)
+        : model_(model), paths_(paths), settings_(settings), spacecraft_(spacecraft), INTERFACE_ISOLATION_(false) {
         // Always open THALASSA interface when not using fork
         cthalassa::internal::THALASSAPhysicalModelStruct modelTemp = model_;
         cthalassa::internal::THALASSAPathStruct pathsTemp = paths_;
         cthalassa::internal::thalassa_open(&modelTemp, &pathsTemp);
-#endif
     }
 
-    Propagator::~Propagator() {
+#endif
+
 #ifdef CTHALASSA_USE_FORK
+    Propagator::~Propagator() {
         // Close THALASSA interface if interface isolation is not requested
         if (!INTERFACE_ISOLATION_) {
             cthalassa::internal::thalassa_close();
         }
+    }
 #else
+    Propagator::~Propagator() {
         // Always close THALASSA interface when not using fork
         cthalassa::internal::thalassa_close();
-#endif
     }
+#endif
 
     void Propagator::propagate(const double &tStart, const double &tEnd, const double &tStep, const std::vector<double> &stateIn, std::vector<double> &timesOut,
                                std::vector<std::vector<double>> &statesOut) const {
         // Create copies of the parameter structures
-        cthalassa::internal::THALASSAPhysicalModelStruct modelTemp = model_;
-        cthalassa::internal::THALASSAPathStruct pathsTemp = paths_;
         cthalassa::internal::THALASSAPropagatorStruct settings = settings_;
         cthalassa::internal::THALASSAObjectStruct spacecraft = spacecraft_;
 
@@ -73,6 +78,8 @@ namespace cthalassa {
         if (fork() == 0) { // child process
             // Open THALASSA interface if isolation is enabled
             if (INTERFACE_ISOLATION_) {
+                cthalassa::internal::THALASSAPhysicalModelStruct modelTemp = model_;
+                cthalassa::internal::THALASSAPathStruct pathsTemp = paths_;
                 cthalassa::internal::thalassa_open(&modelTemp, &pathsTemp);
             }
 
