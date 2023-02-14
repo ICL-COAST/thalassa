@@ -2,6 +2,7 @@
 #define CTHALASSA_HPP_
 
 #include <cstring>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -183,18 +184,19 @@ namespace cthalassa {
 
     private:
         /// @brief Model settings
-        const PropagatorModel model_;
+        PropagatorModel model_;
 
         /// @brief Filepaths
-        const PropagatorPaths paths_;
+        PropagatorPaths paths_;
 
         /// @brief Propagator settings
-        const PropagatorSettings settings_;
+        PropagatorSettings settings_;
 
         /// @brief Spacecraft
-        const PropagatorSpacecraft spacecraft_;
+        PropagatorSpacecraft spacecraft_;
 
     public:
+#ifdef CTHALASSA_USE_FORK
         /**
          * @brief Construct a new Propagator object
          *
@@ -208,6 +210,19 @@ namespace cthalassa {
          */
         Propagator(const PropagatorModel &model, const PropagatorPaths &paths, const PropagatorSettings &settings, const PropagatorSpacecraft &spacecraft,
                    const bool &INTERFACE_ISOLATION = false);
+#else
+        /**
+         * @brief Construct a new Propagator object
+         *
+         * @author Max Hallgarten La Casta
+         *
+         * @param[in] model Model settings
+         * @param[in] paths Filepaths
+         * @param[in] settings Propagator settings
+         * @param[in] spacecraft Spacecraft
+         */
+        Propagator(const PropagatorModel &model, const PropagatorPaths &paths, const PropagatorSettings &settings, const PropagatorSpacecraft &spacecraft);
+#endif
 
         /**
          * @brief Destroy the Propagator object
@@ -230,6 +245,112 @@ namespace cthalassa {
          */
         void propagate(const double &tStart, const double &tEnd, const double &tStep, const std::vector<double> &stateIn, std::vector<double> &timesOut,
                        std::vector<std::vector<double>> &statesOut) const;
+
+        /**
+         * @brief Set the model settings
+         *
+         * @author Max Hallgarten La Casta
+         *
+         * @param[in] model Model settings
+         */
+        void setModel(const PropagatorModel &model) {
+            if (INTERFACE_ISOLATION_) {
+                // Interface isolation enabled: model can be updated
+                model_ = model;
+            } else {
+                // Interface isolation disabled: model cannot be updated
+                throw std::runtime_error("Interface isolation disabled: model cannot be changed");
+            }
+        };
+
+        /**
+         * @brief Get the model settings
+         *
+         * @author Max Hallgarten La Casta
+         *
+         * @return PropagatorModel Model settings
+         */
+        PropagatorModel getModel() const {
+            // Return model
+            return model_;
+        }
+
+        /**
+         * @brief Set the filepaths
+         *
+         * @author Max Hallgarten La Casta
+         *
+         * @param[in] paths Filepaths
+         */
+        void setPaths(const PropagatorPaths &paths) {
+            if (INTERFACE_ISOLATION_) {
+                // Interface isolation enabled: paths can be updated
+                paths_ = paths;
+            } else {
+                // Interface isolation disabled: paths cannot be updated
+                throw std::runtime_error("Interface isolation disabled: paths cannot be changed");
+            }
+        }
+
+        /**
+         * @brief Get the filepaths
+         *
+         * @author Max Hallgarten La Casta
+         *
+         * @return PropagatorPaths Filepaths
+         */
+        PropagatorPaths getPaths() const {
+            // Return paths
+            return paths_;
+        }
+
+        /**
+         * @brief Set the propagator settings
+         *
+         * @author Max Hallgarten La Casta
+         *
+         * @param[in] settings Propagator settings
+         */
+        void setSettings(const PropagatorSettings &settings) {
+            // Update settings
+            settings_ = settings;
+        }
+
+        /**
+         * @brief Get the propagator settings
+         *
+         * @author Max Hallgarten La Casta
+         *
+         * @return PropagatorSettings Propagator settings
+         */
+        PropagatorSettings getSettings() const {
+            // Return settings
+            return settings_;
+        }
+
+        /**
+         * @brief Set the spacecraft
+         *
+         * @author Max Hallgarten La Casta
+         *
+         * @param[in] spacecraft Spacecraft
+         */
+        void setSpacecraft(const PropagatorSpacecraft &spacecraft) {
+            // Update spacecraft parameters
+            spacecraft_ = spacecraft;
+        }
+
+        /**
+         * @brief Get the spacecraft
+         *
+         * @author Max Hallgarten La Casta
+         *
+         * @return PropagatorSpacecraft Spacecraft
+         */
+        PropagatorSpacecraft getSpacecraft() const {
+            // Return spacecraft
+            return spacecraft_;
+        }
     };
 
 } // namespace cthalassa
