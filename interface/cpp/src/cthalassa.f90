@@ -18,6 +18,9 @@ module CTHALASSA
     character(len=:), allocatable :: earth_path
     character(len=:), allocatable :: kernel_path
 
+    ! Temporary output matrix
+    real(c_double), allocatable, target :: cart_temporary(:, :)
+
     contains
 
         subroutine THALASSA_OPEN(model, paths) BIND(C)
@@ -94,6 +97,9 @@ module CTHALASSA
             deallocate(earth_path)
             deallocate(kernel_path)
 
+            ! Deallocate memory for the temporary output matrix
+            deallocate(cart_temporary)
+
             ! Deallocate memory for Earth model data
             call DEINITIALIZE_NSGRAV()
 
@@ -143,8 +149,7 @@ module CTHALASSA
             ! Measurement of CPU time, diagnostics
             integer  :: exitcode
             ! Trajectory
-            real(c_double), allocatable, target, save :: cart(:, :) ! Variable saved to ensure that it is not deallocated
-                                                                    ! before the values can be read from C
+            real(dk), allocatable, target :: cart(:, :)
             ! Function calls and integration steps
             integer :: int_steps, tot_calls
 
@@ -162,8 +167,11 @@ module CTHALASSA
             ! Propagate orbit
             call DPROP_REGULAR(R0, V0, tspan, tstep, cart, int_steps, tot_calls, exitcode)
 
+            ! Copy output to the temporary output matrix
+            cart_temporary = cart
+
             ! Store pointer to dates and Cartesian states
-            outputmatrix = C_LOC(cart)
+            outputmatrix = C_LOC(cart_temporary)
         end subroutine
 
         subroutine PTR_TO_STR(ptr, ptr_len, str)

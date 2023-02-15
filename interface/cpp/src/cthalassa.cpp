@@ -110,9 +110,6 @@ namespace cthalassa {
 #ifdef CTHALASSA_USE_FORK
         // Free output pointer
         munmap(output, sharedMemorySize);
-#else
-        // Free output pointer
-        free(output);
 #endif
     }
 
