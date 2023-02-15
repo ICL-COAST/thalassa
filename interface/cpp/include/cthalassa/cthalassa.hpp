@@ -178,10 +178,6 @@ namespace cthalassa {
      */
     class Propagator {
 
-    public:
-        /// @brief Flag for interface isolation
-        const bool INTERFACE_ISOLATION_;
-
     private:
         /// @brief Model settings
         Model model_;
@@ -196,20 +192,6 @@ namespace cthalassa {
         Spacecraft spacecraft_;
 
     public:
-#ifdef CTHALASSA_USE_FORK
-        /**
-         * @brief Construct a new Propagator object
-         *
-         * @author Max Hallgarten La Casta
-         *
-         * @param[in] model Model settings
-         * @param[in] paths Filepaths
-         * @param[in] settings Propagator settings
-         * @param[in] spacecraft Spacecraft
-         * @param[in] INTERFACE_ISOLATION Flag for isolating the opening/closing of the THALASSA interface (default: false)
-         */
-        Propagator(const Model &model, const Paths &paths, const Settings &settings, const Spacecraft &spacecraft, const bool &INTERFACE_ISOLATION = false);
-#else
         /**
          * @brief Construct a new Propagator object
          *
@@ -221,7 +203,6 @@ namespace cthalassa {
          * @param[in] spacecraft Spacecraft
          */
         Propagator(const Model &model, const Paths &paths, const Settings &settings, const Spacecraft &spacecraft);
-#endif
 
         /**
          * @brief Destroy the Propagator object
@@ -253,13 +234,8 @@ namespace cthalassa {
          * @param[in] model Model settings
          */
         void setModel(const Model &model) {
-            if (INTERFACE_ISOLATION_) {
-                // Interface isolation enabled: model can be updated
-                model_ = model;
-            } else {
-                // Interface isolation disabled: model cannot be updated
-                throw std::runtime_error("Interface isolation disabled: model cannot be changed");
-            }
+            // Interface isolation disabled: model cannot be updated
+            throw std::runtime_error("Interface isolation disabled: model cannot be changed");
         };
 
         /**
@@ -282,13 +258,8 @@ namespace cthalassa {
          * @param[in] paths Filepaths
          */
         void setPaths(const Paths &paths) {
-            if (INTERFACE_ISOLATION_) {
-                // Interface isolation enabled: paths can be updated
-                paths_ = paths;
-            } else {
-                // Interface isolation disabled: paths cannot be updated
-                throw std::runtime_error("Interface isolation disabled: paths cannot be changed");
-            }
+            // Interface isolation disabled: paths cannot be updated
+            throw std::runtime_error("Interface isolation disabled: paths cannot be changed");
         }
 
         /**
