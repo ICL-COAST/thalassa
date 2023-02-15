@@ -11,8 +11,7 @@
 namespace cthalassa {
 
 #ifdef CTHALASSA_USE_FORK
-    Propagator::Propagator(const PropagatorModel &model, const PropagatorPaths &paths, const PropagatorSettings &settings,
-                           const PropagatorSpacecraft &spacecraft, const bool &INTERFACE_ISOLATION)
+    Propagator::Propagator(const Model &model, const Paths &paths, const Settings &settings, const Spacecraft &spacecraft, const bool &INTERFACE_ISOLATION)
         : model_(model), paths_(paths), settings_(settings), spacecraft_(spacecraft), INTERFACE_ISOLATION_(INTERFACE_ISOLATION) {
         // Open THALASSA interface if interface isolation is not requested
         if (!INTERFACE_ISOLATION_) {
@@ -22,8 +21,7 @@ namespace cthalassa {
         }
     }
 #else
-    Propagator::Propagator(const PropagatorModel &model, const PropagatorPaths &paths, const PropagatorSettings &settings,
-                           const PropagatorSpacecraft &spacecraft)
+    Propagator::Propagator(const Model &model, const Paths &paths, const Settings &settings, const Spacecraft &spacecraft)
         : model_(model), paths_(paths), settings_(settings), spacecraft_(spacecraft), INTERFACE_ISOLATION_(false) {
         // Always open THALASSA interface when not using fork
         cthalassa::internal::THALASSAPhysicalModelStruct modelTemp = model_;
