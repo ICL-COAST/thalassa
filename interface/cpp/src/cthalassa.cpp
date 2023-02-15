@@ -10,17 +10,35 @@
 
 namespace cthalassa {
 
+    // Set default static values for PropagatorInstances
+    size_t PropagatorInstances::instances_ = 0;
+    std::mutex PropagatorInstances::instancesMutex_;
+
     Propagator::Propagator(const Model &model, const Paths &paths, const Settings &settings, const Spacecraft &spacecraft)
         : model_(model), paths_(paths), settings_(settings), spacecraft_(spacecraft) {
-        // Open THALASSA interface
-        cthalassa::internal::THALASSAPhysicalModelStruct modelTemp = model_;
-        cthalassa::internal::THALASSAPathStruct pathsTemp = paths_;
-        cthalassa::internal::thalassa_open(&modelTemp, &pathsTemp);
+        // Take ownership of the instances mutex
+        std::lock_guard<std::mutex> lock(instancesMutex_);
+
+        // Open the THALASSA interface if only one instance of Propagator exists
+        if (instances_ == 1) {
+            // Make local copies of the model and path structures
+            cthalassa::internal::THALASSAPhysicalModelStruct modelTemp = model_;
+            cthalassa::internal::THALASSAPathStruct pathsTemp = paths_;
+
+            // Open the THALASSA interface
+            cthalassa::internal::thalassa_open(&modelTemp, &pathsTemp);
+        }
     }
 
     Propagator::~Propagator() {
-        // Close THALASSA interface
-        cthalassa::internal::thalassa_close();
+        // Take ownership of the instances mutex
+        std::lock_guard<std::mutex> lock(instancesMutex_);
+
+        // Close the THALASSA interface if only one instance of Propagator remains
+        if (instances_ == 1) {
+            // Close the THALASSA interface
+            cthalassa::internal::thalassa_close();
+        }
     }
 
     void Propagator::propagate(const double &tStart, const double &tEnd, const double &tStep, const std::vector<double> &stateIn, std::vector<double> &timesOut,

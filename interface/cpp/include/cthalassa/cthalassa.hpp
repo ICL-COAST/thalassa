@@ -2,6 +2,7 @@
 #define CTHALASSA_HPP_
 
 #include <cstring>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -172,11 +173,57 @@ namespace cthalassa {
     } Spacecraft;
 
     /**
+     * @brief THALASSA propagator instances handler
+     *
+     * @author Max Hallgarten La Casta
+     */
+    class PropagatorInstances {
+
+    protected:
+        /// @brief Number of instantiated THALASSA propagator objects
+        static size_t instances_;
+
+        /// @brief Lock for making instance changes
+        static std::mutex instancesMutex_;
+
+    public:
+        /**
+         * @brief Construct a new Propagator Instances object
+         *
+         * @author Max Hallgarten La Casta
+         */
+        PropagatorInstances() {
+            // Increment the number of instances
+            ++instances_;
+        }
+
+        /**
+         * @brief Construct a new Propagator Instances object
+         *
+         * @author Max Hallgarten La Casta
+         */
+        PropagatorInstances(const PropagatorInstances &) {
+            // Increment the number of instances
+            ++instances_;
+        }
+
+        /**
+         * @brief Destroy the Propagator Instances object
+         *
+         * @author Max Hallgarten La Casta
+         */
+        ~PropagatorInstances() {
+            // Decrement the number of instances
+            --instances_;
+        }
+    };
+
+    /**
      * @brief THALASSA orbit propagator
      *
      * @author Max Hallgarten La Casta
      */
-    class Propagator {
+    class Propagator : public PropagatorInstances {
 
     private:
         /// @brief Model settings
