@@ -65,7 +65,7 @@ namespace cthalassa {
     }
 
     void Propagator::propagate(const double &tStart, const double &tEnd, const double &tStep, const std::vector<double> &stateIn, std::vector<double> &timesOut,
-                               std::vector<std::vector<double>> &statesOut) {
+                               std::vector<std::vector<double>> &statesOut) const {
         // Declare shared lock to prevent changes to the THALASSA interface while propagations remain to be executed
         std::shared_lock<std::shared_mutex> lock_propagationSharedMutex{propagationSharedMutex_, std::defer_lock};
 
@@ -181,7 +181,7 @@ namespace cthalassa {
 
     void Propagator::setSpacecraft(const Spacecraft &spacecraft) {
         // Take unique ownership of the local shared propagation mutex to ensure that there are no pending propagations
-        std::unique_lock<std::shared_mutex> lock(propagationLocalSharedMutex_);;
+        std::unique_lock<std::shared_mutex> lock(propagationLocalSharedMutex_);
 
         // Update spacecraft parameters
         spacecraft_ = spacecraft;

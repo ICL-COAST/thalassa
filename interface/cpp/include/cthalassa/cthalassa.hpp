@@ -241,7 +241,7 @@ namespace cthalassa {
         static std::shared_mutex propagationSharedMutex_;
 
         /// @brief Shared local lock for propagations
-        std::shared_mutex propagationLocalSharedMutex_;
+        mutable std::shared_mutex propagationLocalSharedMutex_;
 
         /// @brief Model settings
         static Model model_;
@@ -328,7 +328,7 @@ namespace cthalassa {
          * @param[out] statesOut Output states
          */
         void propagate(const double &tStart, const double &tEnd, const double &tStep, const std::vector<double> &stateIn, std::vector<double> &timesOut,
-                       std::vector<std::vector<double>> &statesOut);
+                       std::vector<std::vector<double>> &statesOut) const;
 
         /**
          * @brief Get the model settings
