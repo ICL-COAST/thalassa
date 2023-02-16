@@ -105,8 +105,11 @@ namespace cthalassa {
         size_t sharedMemorySize = 7 * ntime * sizeof(double);
         double *output = (double *)mmap(NULL, sharedMemorySize, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANON, -1, 0);
 
-        // Propagate
-        if (fork() == 0) { // child process
+        // Fork process
+        pid_t pid = fork();
+
+        // Branch based on process identifier
+        if (pid == 0) { // child process
             // Declare local output pointer
             double *outputLocal;
 
@@ -122,8 +125,8 @@ namespace cthalassa {
             // Exit child process
             exit(0);
         } else { // parent process
-            // Wait for child process to finish
-            wait(NULL);
+            // Wait for the child process to finish
+            waitpid(pid, NULL, 0);
         }
 #else
         // Declare output pointer
