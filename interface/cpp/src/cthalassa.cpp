@@ -13,14 +13,19 @@ namespace cthalassa {
     // Set default static values for PropagatorInstances
     size_t PropagatorInstances::instances_ = 0;
     std::mutex PropagatorInstances::instancesMutex_;
+    std::mutex PropagatorInstances::propagationMutex_;
+    std::shared_mutex PropagatorInstances::propagationSharedMutex_;
 
     Propagator::Propagator(const Model &model, const Paths &paths, const Settings &settings, const Spacecraft &spacecraft)
         : model_(model), paths_(paths), settings_(settings), spacecraft_(spacecraft) {
         // Take ownership of the instances mutex
-        std::lock_guard<std::mutex> lock(instancesMutex_);
+        std::scoped_lock<std::mutex> lock(instancesMutex_);
 
         // Open the THALASSA interface if only one instance of Propagator exists
         if (instances_ == 1) {
+            // Take unique ownership of the shared propagation mutex to ensure that there are no pending propagations
+            std::unique_lock<std::shared_mutex> lockShared(propagationSharedMutex_);
+
             // Make local copies of the model and path structures
             cthalassa::internal::THALASSAPhysicalModelStruct modelTemp = model_;
             cthalassa::internal::THALASSAPathStruct pathsTemp = paths_;
@@ -32,10 +37,14 @@ namespace cthalassa {
 
     Propagator::~Propagator() {
         // Take ownership of the instances mutex
-        std::lock_guard<std::mutex> lock(instancesMutex_);
+        std::scoped_lock<std::mutex> lock(instancesMutex_);
 
         // Close the THALASSA interface if only one instance of Propagator remains
         if (instances_ == 1) {
+            // Take unique ownership of the shared propagation mutex to ensure that there are no pending propagations
+            /// @warning The destructor will block the main thread if there are pending propagations
+            std::unique_lock<std::shared_mutex> lockShared(propagationSharedMutex_);
+
             // Close the THALASSA interface
             cthalassa::internal::thalassa_close();
         }
@@ -43,6 +52,14 @@ namespace cthalassa {
 
     void Propagator::propagate(const double &tStart, const double &tEnd, const double &tStep, const std::vector<double> &stateIn, std::vector<double> &timesOut,
                                std::vector<std::vector<double>> &statesOut) const {
+        // Take shared ownership of the shared propagation mutex to prevent the THALASSA interface from being closed before all propagations are complete
+        std::shared_lock<std::shared_mutex> lockShared(propagationSharedMutex_);
+
+#ifndef CTHALASSA_USE_FORK
+        // Take ownership of the propagation mutex
+        std::scoped_lock<std::mutex> lock(propagationMutex_);
+#endif
+
         // Create copies of the parameter structures
         cthalassa::internal::THALASSAPropagatorStruct settings = settings_;
         cthalassa::internal::THALASSAObjectStruct spacecraft = spacecraft_;
@@ -52,8 +69,8 @@ namespace cthalassa {
         size_t ntime = std::ceil(tSpan / tStep) + 1;
 
         // Initialise output vectors
-        timesOut = std::vector<double>(ntime);
-        statesOut = std::vector<std::vector<double>>(ntime, std::vector<double>(6));
+        timesOut.resize(ntime);
+        statesOut.resize(ntime, std::vector<double>(6));
 
         // Set initial state array
         double initialState[6];

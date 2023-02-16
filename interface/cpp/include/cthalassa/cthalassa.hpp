@@ -3,6 +3,7 @@
 
 #include <cstring>
 #include <mutex>
+#include <shared_mutex>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -186,6 +187,12 @@ namespace cthalassa {
         /// @brief Lock for making instance changes
         static std::mutex instancesMutex_;
 
+        /// @brief Lock for propagations
+        static std::mutex propagationMutex_;
+
+        /// @brief Shared lock for propagations
+        static std::shared_mutex propagationSharedMutex_;
+
     public:
         /**
          * @brief Construct a new Propagator Instances object
@@ -226,6 +233,8 @@ namespace cthalassa {
     class Propagator : public PropagatorInstances {
 
     private:
+        /// @todo move model and filepaths to PropagatorInstances, and make that they can only be changed by the constructor if no other instances exist
+
         /// @brief Model settings
         Model model_;
 
