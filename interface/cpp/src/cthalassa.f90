@@ -93,12 +93,12 @@ module CTHALASSA
             use SUN_MOON, only: DEINITIALIZE_LEGENDRE, GslSun, GslMoon
 
             ! Deallocate memory for file paths
-            deallocate(phys_path)
-            deallocate(earth_path)
-            deallocate(kernel_path)
+            if (allocated(phys_path)) deallocate(phys_path)
+            if (allocated(earth_path)) deallocate(earth_path)
+            if (allocated(kernel_path)) deallocate(kernel_path)
 
             ! Deallocate memory for the temporary output matrix
-            deallocate(cart_temporary)
+            if (allocated(cart_temporary)) deallocate(cart_temporary)
 
             ! Deallocate memory for Earth model data
             call DEINITIALIZE_NSGRAV()
