@@ -144,4 +144,34 @@ namespace cthalassa {
 #endif
     }
 
+    Model Propagator::getModel() const {
+        // Return model
+        return model_;
+    }
+
+    Paths Propagator::getPaths() const {
+        // Return paths
+        return paths_;
+    }
+
+    void Propagator::setSettings(const Settings &settings) {
+        // Update settings
+        settings_ = settings;
+    }
+
+    Settings Propagator::getSettings() const {
+        // Return settings
+        return settings_;
+    }
+
+    void Propagator::setSpacecraft(const Spacecraft &spacecraft) {
+        // Update spacecraft parameters
+        spacecraft_ = spacecraft;
+    }
+
+    Spacecraft Propagator::getSpacecraft() const {
+        // Return spacecraft
+        return spacecraft_;
+    }
+
 } // namespace cthalassa

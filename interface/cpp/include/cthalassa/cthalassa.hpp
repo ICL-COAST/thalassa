@@ -340,10 +340,7 @@ namespace cthalassa {
          *
          * @return Model Model settings
          */
-        Model getModel() const {
-            // Return model
-            return model_;
-        }
+        Model getModel() const;
 
         /**
          * @brief Get the filepaths
@@ -352,10 +349,7 @@ namespace cthalassa {
          *
          * @return Paths Filepaths
          */
-        Paths getPaths() const {
-            // Return paths
-            return paths_;
-        }
+        Paths getPaths() const;
 
         /**
          * @brief Set the propagator settings
@@ -364,10 +358,7 @@ namespace cthalassa {
          *
          * @param[in] settings Propagator settings
          */
-        void setSettings(const Settings &settings) {
-            // Update settings
-            settings_ = settings;
-        }
+        void setSettings(const Settings &settings);
 
         /**
          * @brief Get the propagator settings
@@ -376,10 +367,7 @@ namespace cthalassa {
          *
          * @return Settings Propagator settings
          */
-        Settings getSettings() const {
-            // Return settings
-            return settings_;
-        }
+        Settings getSettings() const;
 
         /**
          * @brief Set the spacecraft
@@ -388,10 +376,7 @@ namespace cthalassa {
          *
          * @param[in] spacecraft Spacecraft
          */
-        void setSpacecraft(const Spacecraft &spacecraft) {
-            // Update spacecraft parameters
-            spacecraft_ = spacecraft;
-        }
+        void setSpacecraft(const Spacecraft &spacecraft);
 
         /**
          * @brief Get the spacecraft
@@ -400,10 +385,7 @@ namespace cthalassa {
          *
          * @return Spacecraft Spacecraft
          */
-        Spacecraft getSpacecraft() const {
-            // Return spacecraft
-            return spacecraft_;
-        }
+        Spacecraft getSpacecraft() const;
     };
 
 } // namespace cthalassa
