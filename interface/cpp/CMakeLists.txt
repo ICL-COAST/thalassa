@@ -8,10 +8,17 @@ set(src_headers ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 # Add CTHALASSA library
 add_library(cthalassa STATIC ${src_c} ${src_cpp} ${src_h} ${src_hpp} ${src_f90})
+
 # Include CTHALASSA headers
 target_include_directories(cthalassa PUBLIC ${src_headers})
+
 # Link CTHALASSA to THALASSA
 target_link_libraries(cthalassa PUBLIC thalassa)
+
+# Enable threading
+find_package(Threads REQUIRED)
+target_link_libraries(cthalassa PUBLIC Threads::Threads)
+
 # Enable fork for propagations
 option(CTHALASSA_USE_FORK "Use fork in CTHALASSA to spawn subprocesses" ON)
 if(CTHALASSA_USE_FORK)
@@ -20,5 +27,6 @@ endif()
 
 # Add CTHALASSA interface example
 add_executable(thalassa_interface_example thalassa_interface_example.cpp)
+
 # Link to CTHALASSA
 target_link_libraries(thalassa_interface_example PRIVATE cthalassa)

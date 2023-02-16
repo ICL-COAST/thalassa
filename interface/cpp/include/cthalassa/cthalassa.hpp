@@ -2,6 +2,9 @@
 #define CTHALASSA_HPP_
 
 #include <cstring>
+#include <mutex>
+#include <shared_mutex>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -16,52 +19,52 @@ namespace cthalassa::internal {
 namespace cthalassa {
 
     /// @brief Gravity models
-    enum PropagatorModelGravity { SPHERICAL = 0, NONSPHERICAL = 1 };
+    enum ModelGravity { SPHERICAL = 0, NONSPHERICAL = 1 };
 
     /// @brief Sun model
-    enum PropagatorModelSun { SUN_DISABLED = 0, SUN_ENABLED = 1 };
+    enum ModelSun { SUN_DISABLED = 0, SUN_ENABLED = 1 };
 
     /// @brief Moon model
-    enum PropagatorModelMoon { MOON_DISABLED = 0, MOON_ENABLED = 1 };
+    enum ModelMoon { MOON_DISABLED = 0, MOON_ENABLED = 1 };
 
     /// @brief Drag model
-    enum PropagatorModelDrag { DRAG_DISABLED = 0, DRAG_WERTZ = 1, DRAG_US76 = 2, DRAG_J77 = 3, DRAG_NRLMSISE00 = 4 };
+    enum ModelDrag { DRAG_DISABLED = 0, DRAG_WERTZ = 1, DRAG_US76 = 2, DRAG_J77 = 3, DRAG_NRLMSISE00 = 4 };
 
     /// @brief Flux model
-    enum PropagatorModelFlux { FLUX_CONSTANT = 0, FLUX_VARIABLE = 1 };
+    enum ModelFlux { FLUX_CONSTANT = 0, FLUX_VARIABLE = 1 };
 
     /// @brief Solar Radiation Pressure (SRP) model
-    enum PropagatorModelSRP { SRP_DISABLED = 0, SRP_ENABLED = 1, SRP_ENABLED_CONICAL = 2 };
+    enum ModelSRP { SRP_DISABLED = 0, SRP_ENABLED = 1, SRP_ENABLED_CONICAL = 2 };
 
     /// @brief Ephemerides
-    enum PropagatorModelEphemerides { EPHEM_DE431 = 1, EPHEM_SIMPLE = 2 };
+    enum ModelEphemerides { EPHEM_DE431 = 1, EPHEM_SIMPLE = 2 };
 
     /**
      * @brief Structure containing propagator model settings
      *
      * @author Max Hallgarten La Casta
      */
-    typedef struct PropagatorModel {
+    typedef struct Model {
         /// @brief Gravity model
-        PropagatorModelGravity insgrav = NONSPHERICAL;
+        ModelGravity insgrav = NONSPHERICAL;
 
         /// @brief Sun model
-        PropagatorModelSun isun = SUN_ENABLED;
+        ModelSun isun = SUN_ENABLED;
 
         /// @brief Moon model
-        PropagatorModelMoon imoon = MOON_ENABLED;
+        ModelMoon imoon = MOON_ENABLED;
 
         /// @brief Drag model
-        PropagatorModelDrag idrag = DRAG_WERTZ;
+        ModelDrag idrag = DRAG_WERTZ;
 
         /// @brief Flux model
-        PropagatorModelFlux iF107 = FLUX_VARIABLE;
+        ModelFlux iF107 = FLUX_VARIABLE;
 
         /// @brief Solar Radiation Pressure (SRP) model
-        PropagatorModelSRP iSRP = SRP_ENABLED_CONICAL;
+        ModelSRP iSRP = SRP_ENABLED_CONICAL;
 
         /// @brief Ephemerides
-        PropagatorModelEphemerides iephem = EPHEM_SIMPLE;
+        ModelEphemerides iephem = EPHEM_SIMPLE;
 
         /// @brief Gravity model degree
         int gdeg = 2;
@@ -69,18 +72,45 @@ namespace cthalassa {
         /// @brief Gravity model order
         int gord = 2;
 
+        /**
+         * @brief Equality comparison with another Model structure
+         * 
+         * @author Max Hallgarten La Casta
+         * 
+         * @param rhs Other Model object
+         * @return true Model match
+         * @return false Model mismatch
+         */
+        bool operator==(const Model &rhs) const {
+            return (insgrav == rhs.insgrav) && (isun == rhs.isun) && (imoon == rhs.imoon) && (idrag == rhs.idrag) && (iF107 == rhs.iF107) &&
+                   (iSRP == rhs.iSRP) && (iephem == rhs.iephem) && (gdeg == rhs.gdeg) && (gord == rhs.gord);
+        }
+
+        /**
+         * @brief Inequality comparison with another Model structure
+         * 
+         * @author Max Hallgarten La Casta
+         * 
+         * @param rhs Other Model structure
+         * @return true Model mismatch
+         * @return false Model match
+         */
+        bool operator!=(const Model& rhs) const {
+            return !(*this == rhs);
+        }
+
         /// @brief Method to implicitly cast the structure to its internal equivalent in CTHALASSA
         operator cthalassa::internal::THALASSAPhysicalModelStruct() const {
             return cthalassa::internal::THALASSAPhysicalModelStruct{insgrav, isun, imoon, idrag, iF107, iSRP, iephem, gdeg, gord};
         }
-    } PropagatorModel;
+    } Model;
 
     /**
      * @brief Structure containing filepaths for THALASSA
      *
      * @author Max Hallgarten La Casta
      */
-    typedef struct PropagatorPaths {
+    typedef struct Paths {
         /// @brief Filepath for THALASSA physical constants
         std::string phys_path;
 
@@ -89,6 +119,32 @@ namespace cthalassa {
 
         /// @brief Filepath for SPICE kernel
         std::string kernel_path;
+
+        /**
+         * @brief Equality comparison with another Paths structure
+         * 
+         * @author Max Hallgarten La Casta
+         * 
+         * @param rhs Other Paths structure
+         * @return true Paths match
+         * @return false Paths mismatch
+         */
+        bool operator==(const Paths& rhs) const {
+            return (phys_path == rhs.phys_path) && (earth_path == rhs.earth_path) && (kernel_path == rhs.kernel_path);
+        }
+
+        /**
+         * @brief Inequality comparison with another Paths structure
+         * 
+         * @author Max Hallgarten La Casta
+         * 
+         * @param rhs Other Paths structure
+         * @return true Paths mismatch
+         * @return false Paths match
+         */
+        bool operator!=(const Paths& rhs) const {
+            return !(*this == rhs);
+        }
 
         /// @brief Method to implicitly cast the structure to its internal equivalent in CTHALASSA
         operator cthalassa::internal::THALASSAPathStruct() const {
@@ -110,17 +166,17 @@ namespace cthalassa {
             // Return path struct
             return paths;
         }
-    } PropagatorPaths;
+    } Paths;
 
     /// @brief Propagator formulations
-    enum PropagatorSettingsEquations { COWELL = 1, EDROMO_T = 2, EDROMO_C = 3, EDROMO_L = 4, KS_T = 5, KS_L = 6, STISCHE_T = 7, STISCHE_L = 8 };
+    enum Equations { COWELL = 1, EDROMO_T = 2, EDROMO_C = 3, EDROMO_L = 4, KS_T = 5, KS_L = 6, STISCHE_T = 7, STISCHE_L = 8 };
 
     /**
      * @brief Structure containing propagator settings
      *
      * @author Max Hallgarten La Casta
      */
-    typedef struct PropagatorSettings {
+    typedef struct Settings {
         /// @brief Integration tolerance
         double tol = 1.0E-13;
 
@@ -131,7 +187,7 @@ namespace cthalassa {
         int imcoll = 0;
 
         /// @brief Propagator formulation
-        PropagatorSettingsEquations eqs = EDROMO_T;
+        Equations eqs = EDROMO_T;
 
         /// @brief Propagation time span [solar days]
         double tspan;
@@ -143,14 +199,14 @@ namespace cthalassa {
         operator cthalassa::internal::THALASSAPropagatorStruct() const {
             return cthalassa::internal::THALASSAPropagatorStruct{tol, tspan, tstep, mxstep, imcoll, eqs};
         }
-    } PropagatorSettings;
+    } Settings;
 
     /**
      * @brief Structure containing spacecraft parameters
      *
      * @author Max Hallgarten La Casta
      */
-    typedef struct PropagatorSpacecraft {
+    typedef struct Spacecraft {
         /// @brief Spacecraft mass [kg]
         double mass;
 
@@ -168,31 +224,79 @@ namespace cthalassa {
 
         /// @brief Method to implicitly cast the structure to its internal equivalent in CTHALASSA
         operator cthalassa::internal::THALASSAObjectStruct() const { return cthalassa::internal::THALASSAObjectStruct{mass, area_drag, area_srp, cd, cr}; }
-    } PropagatorSpacecraft;
+    } Spacecraft;
+
+    /**
+     * @brief THALASSA propagator instances handler
+     *
+     * @author Max Hallgarten La Casta
+     */
+    class PropagatorInstances {
+
+    protected:
+        /// @brief Number of instantiated THALASSA propagator objects
+        static size_t instances_;
+
+        /// @brief Lock for making instance changes
+        static std::mutex instancesMutex_;
+
+        /// @brief Lock for propagations
+        static std::mutex propagationMutex_;
+
+        /// @brief Shared lock for propagations
+        static std::shared_mutex propagationSharedMutex_;
+
+        /// @brief Model settings
+        static Model model_;
+
+        /// @brief Filepaths
+        static Paths paths_;
+
+    public:
+        /**
+         * @brief Construct a new Propagator Instances object
+         *
+         * @author Max Hallgarten La Casta
+         */
+        PropagatorInstances() {
+            // Increment the number of instances
+            ++instances_;
+        }
+
+        /**
+         * @brief Construct a new Propagator Instances object
+         *
+         * @author Max Hallgarten La Casta
+         */
+        PropagatorInstances(const PropagatorInstances &) {
+            // Increment the number of instances
+            ++instances_;
+        }
+
+        /**
+         * @brief Destroy the Propagator Instances object
+         *
+         * @author Max Hallgarten La Casta
+         */
+        ~PropagatorInstances() {
+            // Decrement the number of instances
+            --instances_;
+        }
+    };
 
     /**
      * @brief THALASSA orbit propagator
      *
      * @author Max Hallgarten La Casta
      */
-    class Propagator {
-
-    public:
-        /// @brief Flag for interface isolation
-        const bool INTERFACE_ISOLATION_;
+    class Propagator : public PropagatorInstances {
 
     private:
-        /// @brief Model settings
-        const PropagatorModel model_;
-
-        /// @brief Filepaths
-        const PropagatorPaths paths_;
-
         /// @brief Propagator settings
-        const PropagatorSettings settings_;
+        Settings settings_;
 
         /// @brief Spacecraft
-        const PropagatorSpacecraft spacecraft_;
+        Spacecraft spacecraft_;
 
     public:
         /**
@@ -204,10 +308,8 @@ namespace cthalassa {
          * @param[in] paths Filepaths
          * @param[in] settings Propagator settings
          * @param[in] spacecraft Spacecraft
-         * @param[in] INTERFACE_ISOLATION Flag for isolating the opening/closing of the THALASSA interface (default: false)
          */
-        Propagator(const PropagatorModel &model, const PropagatorPaths &paths, const PropagatorSettings &settings, const PropagatorSpacecraft &spacecraft,
-                   const bool &INTERFACE_ISOLATION = false);
+        Propagator(const Model &model, const Paths &paths, const Settings &settings, const Spacecraft &spacecraft);
 
         /**
          * @brief Destroy the Propagator object
@@ -230,6 +332,78 @@ namespace cthalassa {
          */
         void propagate(const double &tStart, const double &tEnd, const double &tStep, const std::vector<double> &stateIn, std::vector<double> &timesOut,
                        std::vector<std::vector<double>> &statesOut) const;
+
+        /**
+         * @brief Get the model settings
+         *
+         * @author Max Hallgarten La Casta
+         *
+         * @return Model Model settings
+         */
+        Model getModel() const {
+            // Return model
+            return model_;
+        }
+
+        /**
+         * @brief Get the filepaths
+         *
+         * @author Max Hallgarten La Casta
+         *
+         * @return Paths Filepaths
+         */
+        Paths getPaths() const {
+            // Return paths
+            return paths_;
+        }
+
+        /**
+         * @brief Set the propagator settings
+         *
+         * @author Max Hallgarten La Casta
+         *
+         * @param[in] settings Propagator settings
+         */
+        void setSettings(const Settings &settings) {
+            // Update settings
+            settings_ = settings;
+        }
+
+        /**
+         * @brief Get the propagator settings
+         *
+         * @author Max Hallgarten La Casta
+         *
+         * @return Settings Propagator settings
+         */
+        Settings getSettings() const {
+            // Return settings
+            return settings_;
+        }
+
+        /**
+         * @brief Set the spacecraft
+         *
+         * @author Max Hallgarten La Casta
+         *
+         * @param[in] spacecraft Spacecraft
+         */
+        void setSpacecraft(const Spacecraft &spacecraft) {
+            // Update spacecraft parameters
+            spacecraft_ = spacecraft;
+        }
+
+        /**
+         * @brief Get the spacecraft
+         *
+         * @author Max Hallgarten La Casta
+         *
+         * @return Spacecraft Spacecraft
+         */
+        Spacecraft getSpacecraft() const {
+            // Return spacecraft
+            return spacecraft_;
+        }
     };
 
 } // namespace cthalassa
