@@ -74,9 +74,9 @@ namespace cthalassa {
 
         /**
          * @brief Equality comparison with another Model structure
-         * 
+         *
          * @author Max Hallgarten La Casta
-         * 
+         *
          * @param rhs Other Model object
          * @return true Model match
          * @return false Model mismatch
@@ -88,16 +88,14 @@ namespace cthalassa {
 
         /**
          * @brief Inequality comparison with another Model structure
-         * 
+         *
          * @author Max Hallgarten La Casta
-         * 
+         *
          * @param rhs Other Model structure
          * @return true Model mismatch
          * @return false Model match
          */
-        bool operator!=(const Model& rhs) const {
-            return !(*this == rhs);
-        }
+        bool operator!=(const Model &rhs) const { return !(*this == rhs); }
 
         /// @brief Method to implicitly cast the structure to its internal equivalent in CTHALASSA
         operator cthalassa::internal::THALASSAPhysicalModelStruct() const {
@@ -122,29 +120,25 @@ namespace cthalassa {
 
         /**
          * @brief Equality comparison with another Paths structure
-         * 
+         *
          * @author Max Hallgarten La Casta
-         * 
+         *
          * @param rhs Other Paths structure
          * @return true Paths match
          * @return false Paths mismatch
          */
-        bool operator==(const Paths& rhs) const {
-            return (phys_path == rhs.phys_path) && (earth_path == rhs.earth_path) && (kernel_path == rhs.kernel_path);
-        }
+        bool operator==(const Paths &rhs) const { return (phys_path == rhs.phys_path) && (earth_path == rhs.earth_path) && (kernel_path == rhs.kernel_path); }
 
         /**
          * @brief Inequality comparison with another Paths structure
-         * 
+         *
          * @author Max Hallgarten La Casta
-         * 
+         *
          * @param rhs Other Paths structure
          * @return true Paths mismatch
          * @return false Paths match
          */
-        bool operator!=(const Paths& rhs) const {
-            return !(*this == rhs);
-        }
+        bool operator!=(const Paths &rhs) const { return !(*this == rhs); }
 
         /// @brief Method to implicitly cast the structure to its internal equivalent in CTHALASSA
         operator cthalassa::internal::THALASSAPathStruct() const {
@@ -246,6 +240,9 @@ namespace cthalassa {
         /// @brief Shared lock for propagations
         static std::shared_mutex propagationSharedMutex_;
 
+        /// @brief Shared local lock for propagations
+        std::shared_mutex propagationLocalSharedMutex_;
+
         /// @brief Model settings
         static Model model_;
 
@@ -331,7 +328,7 @@ namespace cthalassa {
          * @param[out] statesOut Output states
          */
         void propagate(const double &tStart, const double &tEnd, const double &tStep, const std::vector<double> &stateIn, std::vector<double> &timesOut,
-                       std::vector<std::vector<double>> &statesOut) const;
+                       std::vector<std::vector<double>> &statesOut);
 
         /**
          * @brief Get the model settings
@@ -367,7 +364,7 @@ namespace cthalassa {
          *
          * @return Settings Propagator settings
          */
-        Settings getSettings() const;
+        Settings getSettings();
 
         /**
          * @brief Set the spacecraft
@@ -385,7 +382,7 @@ namespace cthalassa {
          *
          * @return Spacecraft Spacecraft
          */
-        Spacecraft getSpacecraft() const;
+        Spacecraft getSpacecraft();
     };
 
 } // namespace cthalassa

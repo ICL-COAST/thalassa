@@ -21,12 +21,12 @@ namespace cthalassa {
     Propagator::Propagator(const Model &model, const Paths &paths, const Settings &settings, const Spacecraft &spacecraft)
         : settings_(settings), spacecraft_(spacecraft) {
         // Take ownership of the instances mutex
-        std::scoped_lock<std::mutex> lock(instancesMutex_);
+        std::unique_lock<std::mutex> lock_instancesMutex(instancesMutex_);
 
         // Open the THALASSA interface if only one instance of Propagator exists
         if (instances_ == 1) {
-            // Take unique ownership of the shared propagation mutex to ensure that there are no pending propagations
-            std::unique_lock<std::shared_mutex> lockShared(propagationSharedMutex_);
+            // Unique lock to make changes to the THALASSA interface
+            std::unique_lock<std::shared_mutex> lock_propagationSharedMutex(propagationSharedMutex_);
 
             // Set model and paths
             model_ = model;
@@ -50,14 +50,14 @@ namespace cthalassa {
     }
 
     Propagator::~Propagator() {
-        // Take ownership of the instances mutex
-        std::scoped_lock<std::mutex> lock(instancesMutex_);
+        // Unique lock to enable changes to instances
+        std::unique_lock<std::mutex> lock_instancesMutex(instancesMutex_);
 
         // Close the THALASSA interface if only one instance of Propagator remains
         if (instances_ == 1) {
-            // Take unique ownership of the shared propagation mutex to ensure that there are no pending propagations
+            // Unique lock to make changes to the THALASSA interface
             /// @warning The destructor will block the main thread if there are pending propagations
-            std::unique_lock<std::shared_mutex> lockShared(propagationSharedMutex_);
+            std::unique_lock<std::shared_mutex> lock_propagationSharedMutex(propagationSharedMutex_);
 
             // Close the THALASSA interface
             cthalassa::internal::thalassa_close();
@@ -65,13 +65,19 @@ namespace cthalassa {
     }
 
     void Propagator::propagate(const double &tStart, const double &tEnd, const double &tStep, const std::vector<double> &stateIn, std::vector<double> &timesOut,
-                               std::vector<std::vector<double>> &statesOut) const {
-        // Take shared ownership of the shared propagation mutex to prevent the THALASSA interface from being closed before all propagations are complete
-        std::shared_lock<std::shared_mutex> lockShared(propagationSharedMutex_);
+                               std::vector<std::vector<double>> &statesOut) {
+        // Declare shared lock to prevent changes to the THALASSA interface while propagations remain to be executed
+        std::shared_lock<std::shared_mutex> lock_propagationSharedMutex{propagationSharedMutex_, std::defer_lock};
+
+        // Declare shared lock to prevent changes to the local settings and spacecraft while propagations remain to be executed
+        std::shared_lock<std::shared_mutex> lock_propagationLocalSharedMutex{propagationLocalSharedMutex_, std::defer_lock};
+
+        // Simultaneous shared lock
+        std::lock(lock_propagationSharedMutex, lock_propagationLocalSharedMutex);
 
 #ifndef CTHALASSA_USE_FORK
-        // Take ownership of the propagation mutex
-        std::scoped_lock<std::mutex> lock(propagationMutex_);
+        // Unique lock to ensure serial execution
+        std::unique_lock<std::mutex> lock_propagationMutex(propagationMutex_);
 #endif
 
         // Create copies of the parameter structures
@@ -155,21 +161,33 @@ namespace cthalassa {
     }
 
     void Propagator::setSettings(const Settings &settings) {
+        // Take unique ownership of the local shared propagation mutex to ensure that there are no pending propagations
+        std::unique_lock<std::shared_mutex> lock(propagationLocalSharedMutex_);
+
         // Update settings
         settings_ = settings;
     }
 
-    Settings Propagator::getSettings() const {
+    Settings Propagator::getSettings() {
+        // Take shared ownership of the local shared propagation mutex to ensure that the settings are not changed while read
+        std::shared_lock<std::shared_mutex> lock(propagationLocalSharedMutex_);
+
         // Return settings
         return settings_;
     }
 
     void Propagator::setSpacecraft(const Spacecraft &spacecraft) {
+        // Take unique ownership of the local shared propagation mutex to ensure that there are no pending propagations
+        std::unique_lock<std::shared_mutex> lock(propagationLocalSharedMutex_);;
+
         // Update spacecraft parameters
         spacecraft_ = spacecraft;
     }
 
-    Spacecraft Propagator::getSpacecraft() const {
+    Spacecraft Propagator::getSpacecraft() {
+        // Take shared ownership of the local shared propagation mutex to ensure that the spacecraft is not changed while read
+        std::shared_lock<std::shared_mutex> lock(propagationLocalSharedMutex_);
+
         // Return spacecraft
         return spacecraft_;
     }
