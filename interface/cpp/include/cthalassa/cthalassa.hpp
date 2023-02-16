@@ -72,6 +72,33 @@ namespace cthalassa {
         /// @brief Gravity model order
         int gord = 2;
 
+        /**
+         * @brief Equality comparison with another Model structure
+         * 
+         * @author Max Hallgarten La Casta
+         * 
+         * @param rhs Other Model object
+         * @return true Model match
+         * @return false Model mismatch
+         */
+        bool operator==(const Model &rhs) const {
+            return (insgrav == rhs.insgrav) && (isun == rhs.isun) && (imoon == rhs.imoon) && (idrag == rhs.idrag) && (iF107 == rhs.iF107) &&
+                   (iSRP == rhs.iSRP) && (iephem == rhs.iephem) && (gdeg == rhs.gdeg) && (gord == rhs.gord);
+        }
+
+        /**
+         * @brief Inequality comparison with another Model structure
+         * 
+         * @author Max Hallgarten La Casta
+         * 
+         * @param rhs Other Model structure
+         * @return true Model mismatch
+         * @return false Model match
+         */
+        bool operator!=(const Model& rhs) const {
+            return !(*this == rhs);
+        }
+
         /// @brief Method to implicitly cast the structure to its internal equivalent in CTHALASSA
         operator cthalassa::internal::THALASSAPhysicalModelStruct() const {
             return cthalassa::internal::THALASSAPhysicalModelStruct{insgrav, isun, imoon, idrag, iF107, iSRP, iephem, gdeg, gord};
@@ -92,6 +119,32 @@ namespace cthalassa {
 
         /// @brief Filepath for SPICE kernel
         std::string kernel_path;
+
+        /**
+         * @brief Equality comparison with another Paths structure
+         * 
+         * @author Max Hallgarten La Casta
+         * 
+         * @param rhs Other Paths structure
+         * @return true Paths match
+         * @return false Paths mismatch
+         */
+        bool operator==(const Paths& rhs) const {
+            return (phys_path == rhs.phys_path) && (earth_path == rhs.earth_path) && (kernel_path == rhs.kernel_path);
+        }
+
+        /**
+         * @brief Inequality comparison with another Paths structure
+         * 
+         * @author Max Hallgarten La Casta
+         * 
+         * @param rhs Other Paths structure
+         * @return true Paths mismatch
+         * @return false Paths match
+         */
+        bool operator!=(const Paths& rhs) const {
+            return !(*this == rhs);
+        }
 
         /// @brief Method to implicitly cast the structure to its internal equivalent in CTHALASSA
         operator cthalassa::internal::THALASSAPathStruct() const {
@@ -193,6 +246,12 @@ namespace cthalassa {
         /// @brief Shared lock for propagations
         static std::shared_mutex propagationSharedMutex_;
 
+        /// @brief Model settings
+        static Model model_;
+
+        /// @brief Filepaths
+        static Paths paths_;
+
     public:
         /**
          * @brief Construct a new Propagator Instances object
@@ -233,14 +292,6 @@ namespace cthalassa {
     class Propagator : public PropagatorInstances {
 
     private:
-        /// @todo move model and filepaths to PropagatorInstances, and make that they can only be changed by the constructor if no other instances exist
-
-        /// @brief Model settings
-        Model model_;
-
-        /// @brief Filepaths
-        Paths paths_;
-
         /// @brief Propagator settings
         Settings settings_;
 
@@ -283,18 +334,6 @@ namespace cthalassa {
                        std::vector<std::vector<double>> &statesOut) const;
 
         /**
-         * @brief Set the model settings
-         *
-         * @author Max Hallgarten La Casta
-         *
-         * @param[in] model Model settings
-         */
-        void setModel(const Model &model) {
-            // Interface isolation disabled: model cannot be updated
-            throw std::runtime_error("Interface isolation disabled: model cannot be changed");
-        };
-
-        /**
          * @brief Get the model settings
          *
          * @author Max Hallgarten La Casta
@@ -304,18 +343,6 @@ namespace cthalassa {
         Model getModel() const {
             // Return model
             return model_;
-        }
-
-        /**
-         * @brief Set the filepaths
-         *
-         * @author Max Hallgarten La Casta
-         *
-         * @param[in] paths Filepaths
-         */
-        void setPaths(const Paths &paths) {
-            // Interface isolation disabled: paths cannot be updated
-            throw std::runtime_error("Interface isolation disabled: paths cannot be changed");
         }
 
         /**

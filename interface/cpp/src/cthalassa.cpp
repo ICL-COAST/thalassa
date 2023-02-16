@@ -15,9 +15,11 @@ namespace cthalassa {
     std::mutex PropagatorInstances::instancesMutex_;
     std::mutex PropagatorInstances::propagationMutex_;
     std::shared_mutex PropagatorInstances::propagationSharedMutex_;
+    Model PropagatorInstances::model_;
+    Paths PropagatorInstances::paths_;
 
     Propagator::Propagator(const Model &model, const Paths &paths, const Settings &settings, const Spacecraft &spacecraft)
-        : model_(model), paths_(paths), settings_(settings), spacecraft_(spacecraft) {
+        : settings_(settings), spacecraft_(spacecraft) {
         // Take ownership of the instances mutex
         std::scoped_lock<std::mutex> lock(instancesMutex_);
 
@@ -26,12 +28,24 @@ namespace cthalassa {
             // Take unique ownership of the shared propagation mutex to ensure that there are no pending propagations
             std::unique_lock<std::shared_mutex> lockShared(propagationSharedMutex_);
 
+            // Set model and paths
+            model_ = model;
+            paths_ = paths;
+
             // Make local copies of the model and path structures
             cthalassa::internal::THALASSAPhysicalModelStruct modelTemp = model_;
             cthalassa::internal::THALASSAPathStruct pathsTemp = paths_;
 
             // Open the THALASSA interface
             cthalassa::internal::thalassa_open(&modelTemp, &pathsTemp);
+        } else {
+            // Throw errors if the model or paths do match what is already loaded
+            if ((model != model_)) {
+                throw std::runtime_error("Requested model does not match the existing model");
+            }
+            if ((paths != paths_)) {
+                throw std::runtime_error("Requested paths do not match the existing paths");
+            }
         }
     }
 
