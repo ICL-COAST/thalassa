@@ -231,35 +231,55 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     parse_propagator(settingsArray, &settings);
     parse_spacecraft(spacecraftArray, &spacecraft);
 
-    // Open THALASSA interface
-    thalassa_open(&model, &paths);
+    // Calculate number of times
+    const int ntime = ceil(settings.tspan / settings.tstep) + 1;
 
-    // Execute propagation
-    double *initialTime = &state.mjd;
-    double *initialState = &state.RV[0];
-    double *outputMatrix;
-    thalassa_run(initialTime, initialState, &outputMatrix, &spacecraft, &settings);
+    // Extract start and end times
+    double tStart = state.mjd;
+    double tEnd = state.mjd + settings.tspan;
 
-    // Calculate output array dimensions
-    mwSize m = 7;
-    mwSize ntime = ceil(settings.tspan / settings.tstep) + 1;
+    // Declare temporary time variable
+    double tTemp;
 
     // Create output matrices
-    plhs[0] = mxCreateDoubleMatrix(1, ntime, 0);
-    plhs[1] = mxCreateDoubleMatrix(6, ntime, 0);
+    plhs[0] = mxCreateDoubleMatrix(1, (mwSize)ntime, 0);
+    plhs[1] = mxCreateDoubleMatrix(6, (mwSize)ntime, 0);
 
     // Declare pointers to output matrices
     double *timesOut = mxGetDoubles(plhs[0]);
     double *statesOut = mxGetDoubles(plhs[1]);
 
+    // Populate time vector
+    for (size_t itime = 0; itime < ntime; itime++) {
+        // Calculate time
+        tTemp = tStart + itime * settings.tstep;
+
+        // Clamp number below end time
+        if (tTemp > tEnd) {
+            tTemp = tEnd;
+        }
+
+        // Update time vector
+        timesOut[itime] = tTemp;
+    }
+
+    // Open THALASSA interface
+    thalassa_open(&model, &paths);
+
+    // Declare pointers for the initial time and state
+    double *initialTime = &state.mjd;
+    double *initialState = &state.RV[0];
+
+    // Declare pointer for the THALASSA output matrix
+    double *outputMatrix;
+
+    // Propagate
+    thalassa_run(&ntime, timesOut, initialState, &spacecraft, &settings, &outputMatrix);
+
     // Extract output
     for (mwSize itime = 0; itime < ntime; itime++) {
-        // Extract times
-        timesOut[itime] = outputMatrix[itime];
-
-        // Extract states
         for (mwSize istate = 0; istate < 6; istate++) {
-            statesOut[6 * itime + istate] = outputMatrix[ntime + itime + istate * ntime];
+            statesOut[6 * itime + istate] = outputMatrix[itime + istate * ntime];
         }
     }
 

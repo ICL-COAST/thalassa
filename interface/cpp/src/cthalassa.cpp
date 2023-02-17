@@ -65,7 +65,35 @@ namespace cthalassa {
     }
 
     void Propagator::propagate(const double &tStart, const double &tEnd, const double &tStep, const std::vector<double> &stateIn, std::vector<double> &timesOut,
-                               std::vector<std::vector<double>> &statesOut) {
+                               std::vector<std::vector<double>> &statesOut) const {
+        // Calculate number of steps
+        const size_t Ntimes = std::ceil((tEnd - tStart) / tStep) + 1;
+
+        // Resize time vector
+        timesOut.resize(Ntimes);
+
+        // Declare temporary time variable
+        double tTemp;
+
+        // Populate time vector
+        for (size_t itime = 0; itime < Ntimes; itime++) {
+            // Calculate time
+            tTemp = tStart + itime * tStep;
+
+            // Clamp number below end time
+            if (tTemp > tEnd) {
+                tTemp = tEnd;
+            }
+
+            // Update time vector
+            timesOut[itime] = tTemp;
+        }
+
+        // Propagate
+        propagate(timesOut, stateIn, statesOut);
+    };
+
+    void Propagator::propagate(const std::vector<double> &times, const std::vector<double> &stateIn, std::vector<std::vector<double>> &statesOut) const {
         // Declare shared lock to prevent changes to the THALASSA interface while propagations remain to be executed
         std::shared_lock<std::shared_mutex> lock_propagationSharedMutex{propagationSharedMutex_, std::defer_lock};
 
@@ -84,17 +112,19 @@ namespace cthalassa {
         cthalassa::internal::THALASSAPropagatorStruct settings = settings_;
         cthalassa::internal::THALASSAObjectStruct spacecraft = spacecraft_;
 
-        // Calculate time span, and number of output times
+        // Calculate time span
+        double tStart = times.front();
+        double tEnd = times.back();
         double tSpan = tEnd - tStart;
-        size_t ntime = std::ceil(tSpan / tStep) + 1;
+
+        // Extract number of output states
+        const int ntime = times.size();
+
+        // Calculate mean time step
+        double tStep = (tEnd - tStart) / (ntime - 1);
 
         // Initialise output vectors
-        timesOut.resize(ntime);
         statesOut.resize(ntime, std::vector<double>(6));
-
-        // Set initial state array
-        double initialState[6];
-        std::copy(stateIn.begin(), stateIn.end(), initialState);
 
         // Set propagator times
         settings.tspan = tSpan;
@@ -102,16 +132,19 @@ namespace cthalassa {
 
 #ifdef CTHALASSA_USE_FORK
         // Declare shared output pointer
-        size_t sharedMemorySize = 7 * ntime * sizeof(double);
+        size_t sharedMemorySize = 6 * ntime * sizeof(double);
         double *output = (double *)mmap(NULL, sharedMemorySize, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANON, -1, 0);
 
-        // Propagate
-        if (fork() == 0) { // child process
+        // Fork process
+        pid_t pid = fork();
+
+        // Branch based on process identifier
+        if (pid == 0) { // child process
             // Declare local output pointer
             double *outputLocal;
 
             // Propagate
-            cthalassa::internal::thalassa_run(&tStart, &initialState[0], &outputLocal, &spacecraft, &settings);
+            cthalassa::internal::thalassa_run(&ntime, &times.front(), &stateIn.front(), &spacecraft, &settings, &outputLocal);
 
             // Copy local output to shared output
             std::memcpy(output, outputLocal, sharedMemorySize);
@@ -122,25 +155,22 @@ namespace cthalassa {
             // Exit child process
             exit(0);
         } else { // parent process
-            // Wait for child process to finish
-            wait(NULL);
+            // Wait for the child process to finish
+            waitpid(pid, NULL, 0);
         }
 #else
         // Declare output pointer
         double *output;
 
         // Propagate
-        cthalassa::internal::thalassa_run(&tStart, &initialState[0], &output, &spacecraft, &settings);
+        cthalassa::internal::thalassa_run(&ntime, &times.front(), &stateIn.front(), &spacecraft, &settings, &output);
 #endif
 
         // Extract output
         for (size_t itime = 0; itime < ntime; itime++) {
-            // Extract times
-            timesOut[itime] = output[itime];
-
             // Extract states
             for (size_t istate = 0; istate < 6; istate++) {
-                statesOut[itime][istate] = output[ntime + itime + istate * ntime];
+                statesOut[itime][istate] = output[itime + istate * ntime];
             }
         }
 
@@ -178,7 +208,7 @@ namespace cthalassa {
 
     void Propagator::setSpacecraft(const Spacecraft &spacecraft) {
         // Take unique ownership of the local shared propagation mutex to ensure that there are no pending propagations
-        std::unique_lock<std::shared_mutex> lock(propagationLocalSharedMutex_);;
+        std::unique_lock<std::shared_mutex> lock(propagationLocalSharedMutex_);
 
         // Update spacecraft parameters
         spacecraft_ = spacecraft;

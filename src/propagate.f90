@@ -202,14 +202,19 @@ subroutine INTLOOP(EOM,EVT,integ,eqs,neq,y0,x0,dx,tstep,yx,rtol,atol,isett,liw,&
 !    Davide Amato
 !    The University of Arizona
 !    davideamato@email.arizona.edu
+! 
+!    Max Hallgarten La Casta
+!    Imperial College London
+!    m.hallgarten-la-casta21@imperial.ac.uk
 !    
 ! Revisions:
 !    180531: Add logging facilities, exit code.
+!    230217: Add support for time vector
 !
 ! ==============================================================================
 
 ! MODULES
-use AUXILIARIES, only: MJDnext,MJD0,MJDf
+use AUXILIARIES, only: MJDnext,MJD0,MJDf,useMJDVector,MJDvector
 use INTEGRATE,   only: INTSTEP
 use SETTINGS,    only: mxstep,verb
 
@@ -254,6 +259,10 @@ i_print = 1
 
 ! MAIN LOOP
 do
+    ! Update next time from time vector
+    IF (useMJDVector .eq. 1) THEN
+      MJDnext = MJDvector(iint+1)
+    ENDIF
 
     ! Print message every print_each steps
     if ((i_print - print_each == 0) .and. (verb == 1)) then
@@ -294,7 +303,9 @@ do
     ! Advance solution
     xprev = xcur
     yprev = ycur
-    MJDnext = MJDnext + tstep
+    if (useMJDVector .eq. 0) THEN
+      MJDnext = MJDnext + tstep
+    ENDIF
     iint = iint + 1
     i_print = i_print + 1
 
