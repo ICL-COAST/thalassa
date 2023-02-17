@@ -7,6 +7,13 @@ module AUXILIARIES
 !    Davide Amato
 !    Space Dynamics Group - Technical University of Madrid
 !    davideamato@email.arizona.edu
+! 
+!    Max Hallgarten La Casta
+!    Imperial College London
+!    m.hallgarten-la-casta21@imperial.ac.uk
+! 
+! Revisions:
+!    230217: Add support for time vector
 !
 ! ==============================================================================
 
@@ -17,8 +24,10 @@ implicit none
 real(dk)  ::  DU,TU
 ! Initial epoch, next epoch during integration, and final epoch (MJD-UT1)
 real(dk)  ::  MJD0,MJDnext,MJDf
-
-
+! Flag for using time vector instead of fixed steps
+integer :: useMJDVector = 0
+! Time vector
+real(dk), allocatable :: MJDvector(:)
 
 contains
 

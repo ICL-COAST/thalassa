@@ -120,7 +120,7 @@ module CTHALASSA
             call CLOSE_NULL_LOG()
         end subroutine THALASSA_CLOSE
 
-        subroutine THALASSA_RUN(initialtime, initialstate, outputmatrix, object, propagator) bind(C)
+        subroutine THALASSA_RUN(ntimes, times, initialstate, object, propagator, outputmatrix) bind(C)
             ! Description:
             !    Runs a THALASSA propagation with verbose output
             ! 
@@ -131,15 +131,16 @@ module CTHALASSA
 
             ! Load THALASSA modules
             use KINDS,       only: dk
-            use AUXILIARIES, only: MJD0
+            use AUXILIARIES, only: MJD0, MJDvector, useMJDVector
             use PROPAGATE,   only: DPROP_REGULAR
 
             ! Subroutine parameters
-            real(c_double),                   intent(in)  :: initialtime
+            integer(c_int), intent(in)                    :: ntimes
+            real(c_double), intent(in), dimension(ntimes) :: times
             real(c_double),                   intent(in)  :: initialstate(1:6)
-            type(c_ptr),                      intent(out) :: outputmatrix
             type(THALASSA_OBJECT_STRUCT),     intent(in)  :: object
             type(THALASSA_PROPAGATOR_STRUCT), intent(in)  :: propagator
+            type(c_ptr),                      intent(out) :: outputmatrix
 
             ! Locals
             ! Integration span and dt [solar days]
@@ -160,7 +161,9 @@ module CTHALASSA
             call LOAD_OBJECT(object)
 
             ! Load initial conditions
-            MJD0 = initialtime;
+            MJD0 = times(1);
+            MJDvector = times;
+            useMJDVector = 1;
             R0 = initialstate(1:3)
             V0 = initialstate(4:6)
 
@@ -168,7 +171,7 @@ module CTHALASSA
             call DPROP_REGULAR(R0, V0, tspan, tstep, cart, int_steps, tot_calls, exitcode)
 
             ! Copy output to the temporary output matrix
-            cart_temporary = cart
+            cart_temporary = cart(:, 2:7)
 
             ! Store pointer to dates and Cartesian states
             outputmatrix = C_LOC(cart_temporary)

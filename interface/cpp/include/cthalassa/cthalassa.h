@@ -106,13 +106,13 @@ void thalassa_close();
  *
  * @author Max Hallgarten La Casta
  *
- * @param[in] initialtime Initial times
- * @param[in] initialstate Initial Cartesian states
+ * @param[in] ntimes Number of times
+ * @param[in] times Times
+ * @param[in] object Object parameters
+ * @param[in] propagator Propagator parameters
  * @param[out] outputmatrix Matrix containing propagation results
- * @param[out] object Object parameters
- * @param[out] propagator Propagator parameters
  */
-void thalassa_run(const double *initialtime, const double *initialstate, double **outputmatrix, const THALASSAObjectStruct *object,
-                  const THALASSAPropagatorStruct *propagator);
+void thalassa_run(const int *ntimes, const double *times, const double *initialstate, const THALASSAObjectStruct *object,
+                  const THALASSAPropagatorStruct *propagator, double **outputmatrix);
 
 #endif
