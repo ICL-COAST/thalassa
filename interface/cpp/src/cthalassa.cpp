@@ -126,10 +126,6 @@ namespace cthalassa {
         // Initialise output vectors
         statesOut.resize(ntime, std::vector<double>(6));
 
-        // Set propagator times
-        settings.tspan = tSpan;
-        settings.tstep = tStep;
-
 #ifdef CTHALASSA_USE_FORK
         // Declare shared output pointer
         size_t sharedMemorySize = 6 * ntime * sizeof(double);
