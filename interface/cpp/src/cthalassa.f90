@@ -154,16 +154,21 @@ module CTHALASSA
             ! Function calls and integration steps
             integer :: int_steps, tot_calls
 
-            ! Load propagator settings
-            call LOAD_PROPAGATOR(propagator, tspan, tstep)
+            ! Load propagator settings (ignore tspan and tstep from propagator structure)
+            call LOAD_PROPAGATOR(propagator)
 
             ! Load object properties
             call LOAD_OBJECT(object)
 
+            ! Force use of time vector 
+            useMJDVector = 1
+
+            ! Load times
+            MJD0 = times(1)
+            MJDvector = times
+            tspan = times(size(times)) - times(1)
+
             ! Load initial conditions
-            MJD0 = times(1);
-            MJDvector = times;
-            useMJDVector = 1;
             R0 = initialstate(1:3)
             V0 = initialstate(4:6)
 
@@ -284,14 +289,14 @@ module CTHALASSA
             use SETTINGS, only: mxstep, tol, imcoll, eqs
 
             ! Subroutine parameters
-            type(THALASSA_PROPAGATOR_STRUCT), intent(in)  :: propagator
-            real(dk),                         intent(out) :: tspan, tstep
+            type(THALASSA_PROPAGATOR_STRUCT), intent(in)            :: propagator
+            real(dk),                         intent(out), optional :: tspan, tstep
 
             ! Set integrator settings
             mxstep = propagator%mxstep
             tol    = propagator%tol
-            tspan  = propagator%tspan
-            tstep  = propagator%tstep
+            if(present(tspan)) tspan  = propagator%tspan
+            if(present(tstep)) tstep  = propagator%tstep
             imcoll = propagator%imcoll
 
             ! Set equations of motion
