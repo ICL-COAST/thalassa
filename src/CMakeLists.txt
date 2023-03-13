@@ -9,4 +9,4 @@ set_source_files_properties(${src_for} PROPERTIES COMPILE_FLAGS "-fdefault-real-
 
 # Compile THALASSA library
 add_library(${PROJECT_NAME} STATIC ${src_f} ${src_for} ${src_f90})
-target_link_libraries(${PROJECT_NAME} PUBLIC sofa spice)
+target_link_libraries(${PROJECT_NAME} PUBLIC sofa-fortran spice-fortran)
