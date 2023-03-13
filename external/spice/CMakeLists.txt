@@ -14,14 +14,14 @@ endif()
 
 # Download SPICE source
 FetchContent_Declare(
-    spice
+    spice-fortran
     URL ${SPICE_URL}
 )
-FetchContent_MakeAvailable(spice)
+FetchContent_MakeAvailable(spice-fortran)
 
 # Extract filepaths for source files
-FetchContent_GetProperties(spice)
-file(GLOB_RECURSE src_f ${spice_SOURCE_DIR}/src/spicelib/*.f)
+FetchContent_GetProperties(spice-fortran)
+file(GLOB_RECURSE src_f ${spice-fortran_SOURCE_DIR}/src/spicelib/*.f)
 
 # Set file-specific compiler flags
 set_source_files_properties(${src_f} PROPERTIES COMPILE_FLAGS "-m64 -fPIC -c -std=legacy -Wno-character-truncation")
