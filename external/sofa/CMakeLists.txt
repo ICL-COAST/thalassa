@@ -14,14 +14,14 @@ endif()
 
 # Download SOFA source
 FetchContent_Declare(
-    sofa
+    sofa-fortran
     URL ${SOFA_URL}
 )
-FetchContent_MakeAvailable(sofa)
+FetchContent_MakeAvailable(sofa-fortran)
 
 # Extract filepaths for source files
-FetchContent_GetProperties(sofa)
-file(GLOB_RECURSE src_for ${sofa_SOURCE_DIR}/20210512/f77/src/*.for)
+FetchContent_GetProperties(sofa-fortran)
+file(GLOB_RECURSE src_for ${sofa-fortran_SOURCE_DIR}/20210512/f77/src/*.for)
 
 # Set file-specific compiler flags
 set_source_files_properties(${src_for} PROPERTIES COMPILE_FLAGS "")
