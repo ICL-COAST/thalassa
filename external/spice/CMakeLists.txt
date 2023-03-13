@@ -27,4 +27,5 @@ file(GLOB_RECURSE src_f ${spice_SOURCE_DIR}/src/spicelib/*.f)
 set_source_files_properties(${src_f} PROPERTIES COMPILE_FLAGS "-m64 -fPIC -c -std=legacy -Wno-character-truncation")
 
 # Build SPICE library
-add_library(spice STATIC ${src_f})
+add_library(spice-fortran STATIC ${src_f})
+set_target_properties(spice-fortran PROPERTIES OUTPUT_NAME spice)

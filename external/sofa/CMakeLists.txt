@@ -27,4 +27,5 @@ file(GLOB_RECURSE src_for ${sofa_SOURCE_DIR}/20210512/f77/src/*.for)
 set_source_files_properties(${src_for} PROPERTIES COMPILE_FLAGS "")
 
 # Build SOFA library
-add_library(sofa STATIC ${src_for})
+add_library(sofa-fortran STATIC ${src_for})
+set_target_properties(sofa-fortran PROPERTIES OUTPUT_NAME sofa)
