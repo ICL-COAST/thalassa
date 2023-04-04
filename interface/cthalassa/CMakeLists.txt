@@ -35,7 +35,7 @@ if(CTHALASSA_USE_FORK)
 endif()
 
 # Add CTHALASSA interface example
-add_executable(thalassa_interface_example thalassa_interface_example.cpp)
+add_executable(cthalassa_example cthalassa_example.cpp)
 
 # Link to CTHALASSA
-target_link_libraries(thalassa_interface_example PRIVATE cthalassa)
+target_link_libraries(cthalassa_example PRIVATE cthalassa)
