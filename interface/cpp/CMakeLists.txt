@@ -1,3 +1,11 @@
+# Define CTHALASSA options
+option(CTHALASSA_USE_FORK "Use fork in CTHALASSA to spawn subprocesses" ON)
+
+# Disable fork on non-UNIX systems
+if(NOT UNIX)
+    set(CTHALASSA_USE_FORK OFF)
+endif()
+
 # Collect files
 file(GLOB_RECURSE src_c CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c)
 file(GLOB_RECURSE src_cpp CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
@@ -20,7 +28,6 @@ find_package(Threads REQUIRED)
 target_link_libraries(cthalassa PUBLIC Threads::Threads)
 
 # Enable fork for propagations
-option(CTHALASSA_USE_FORK "Use fork in CTHALASSA to spawn subprocesses" ON)
 if(CTHALASSA_USE_FORK)
     target_compile_definitions(cthalassa PUBLIC "CTHALASSA_USE_FORK")
 endif()
