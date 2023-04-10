@@ -1,6 +1,6 @@
 # Build arguments
 ARG BASE_DISTRO="debian"
-ARG CMAKE_CONFIG="Debug"
+ARG CMAKE_CONFIG="Release"
 
 ## THALASSA Builder images
 # Alpine
