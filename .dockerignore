@@ -13,3 +13,6 @@ lib/*.a
 
 # Ignore build
 build/*
+
+# Ignore output
+out/*
