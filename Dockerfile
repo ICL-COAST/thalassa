@@ -1,12 +1,14 @@
-## THALASSA Builder
-# Base on Alpine Linux
-FROM alpine:latest AS BUILDER_THALASSA
+# Argument for base image
+ARG BASEIMAGE="alpine"
 
-# Update and upgrade packages
-RUN apk update && apk upgrade
+## THALASSA Builder images
+# Alpine
+FROM alpine:latest AS thalassa_builder_alpine
 
-# Install packages
-RUN apk add gcc g++ gfortran libc-dev make cmake
+# Update, upgrade, and install packages
+RUN apk update && \
+    apk upgrade && \
+    apk add gcc g++ gfortran libc-dev make cmake
 
 # Change workdirectory
 WORKDIR /thalassa
@@ -21,17 +23,14 @@ RUN cmake -B /thalassa/build
 RUN cmake --build /thalassa/build --config Release --target thalassa_main
 
 
-## Release
-# Base on Alpine Linux
-FROM alpine:latest AS RELEASE
+## Release images
+# Alpine
+FROM alpine:latest AS thalassa_release_alpine
 
-# TODO: addMetadata
-
-# Update and upgrade packages
-RUN apk update && apk upgrade
-
-# Install packages
-RUN apk add libgfortran libgcc libquadmath
+# Update, upgrade, and install packages
+RUN apk update && \
+    apk upgrade && \
+    apk add libgfortran libgcc libquadmath
 
 # Change workdirectory
 WORKDIR /thalassa
@@ -47,9 +46,9 @@ RUN addgroup -g "${GID}" thalassagroup
 RUN adduser -u "${UID}" -G thalassagroup -D thalassa
 
 # Copy THALASSA files from BUILDER_THALASSA
-COPY --from=BUILDER_THALASSA /thalassa/thalassa_main /thalassa/thalassa_main
-COPY --from=BUILDER_THALASSA /thalassa/data /thalassa/data
-COPY --from=BUILDER_THALASSA /thalassa/in /thalassa/in
+COPY --from=thalassa_builder_alpine /thalassa/thalassa_main /thalassa/thalassa_main
+COPY --from=thalassa_builder_alpine /thalassa/data /thalassa/data
+COPY --from=thalassa_builder_alpine /thalassa/in /thalassa/in
 
 # Change ownership of the THALASSA directory
 RUN chown -R thalassa:thalassagroup /thalassa
@@ -59,6 +58,11 @@ USER thalassa
 
 # Create output directory
 RUN mkdir /thalassa/out
+
+
+## Final image
+# TODO: addMetadata
+FROM thalassa_release_${BASEIMAGE} AS thalassa
 
 # Run THALASSA
 ENTRYPOINT ./thalassa_main
