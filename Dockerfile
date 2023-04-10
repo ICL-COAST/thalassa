@@ -15,7 +15,7 @@ COPY . .
 # Configure CMake files for THALASSA
 RUN cmake -B /thalassa/build
 # Build THALASSA with CMake
-RUN cmake --build /thalassa/build --config Release --target thalassa_main
+RUN cmake --build /thalassa/build --config Debug --target thalassa_main
 
 # Debian
 FROM debian:bullseye-slim AS thalassa_builder_debian
@@ -30,7 +30,7 @@ COPY . .
 # Configure CMake files for THALASSA
 RUN cmake -B /thalassa/build
 # Build THALASSA with CMake
-RUN cmake --build /thalassa/build --config Release --target thalassa_main
+RUN cmake --build /thalassa/build --config Debug --target thalassa_main
 
 
 ## Release images
