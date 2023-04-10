@@ -23,8 +23,12 @@ FetchContent_MakeAvailable(sofa-fortran)
 FetchContent_GetProperties(sofa-fortran)
 file(GLOB_RECURSE src_for ${sofa-fortran_SOURCE_DIR}/20210512/f77/src/*.for)
 
-# Set file-specific compiler flags
-set_source_files_properties(${src_for} PROPERTIES COMPILE_FLAGS "")
+# Set compiler flags
+set(CMAKE_Fortran_FLAGS                "")
+set(CMAKE_Fortran_FLAGS_DEBUG          "-g")
+set(CMAKE_Fortran_FLAGS_RELEASE        "")
+set(CMAKE_Fortran_FLAGS_RELWITHDEBINFO "${CMAKE_Fortran_FLAGS_DEBUG} ${CMAKE_Fortran_FLAGS_RELEASE}")
+set(CMAKE_Fortran_FLAGS_MINSIZEREL     "")
 
 # Build SOFA library
 add_library(sofa-fortran STATIC ${src_for})

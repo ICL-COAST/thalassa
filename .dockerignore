@@ -1,3 +1,7 @@
+# Ignore Docker files
+.dockerignore
+Dockerfile
+
 # Ignore SPICE kernels
 data/kernels/*.bsp
 data/kernels/*.tls
@@ -9,3 +13,6 @@ lib/*.a
 
 # Ignore build
 build/*
+
+# Ignore output
+out/*

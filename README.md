@@ -82,6 +82,10 @@ docker build -t thalassa .
 ```
 This will automatically download and install the required compile-time and run-time dependencies. The kernels required by `spice` (listed in `./data/kernels_to_load.furnsh`) must be downloaded manually, and provided to the container via a volume bind mount.
 
+By default, the Docker container will be based on Debian Bullseye, however an Alpine-based version is available by adding `--build-arg BASE_DISTRO=alpine` to the build command.
+
+Note: testing has revealed that the Alpine-based image produces different solutions to Debian-based machines and images. It is suspected that this is due to differences in the dependencies. Users are advised to proceed with caution.
+
 ## Usage
 ### THALASSA
 THALASSA reads settings and initial conditions from two text files. Their paths can be specified as arguments to the THALASSA executable:

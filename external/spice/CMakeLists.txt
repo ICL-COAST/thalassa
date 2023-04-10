@@ -23,8 +23,12 @@ FetchContent_MakeAvailable(spice-fortran)
 FetchContent_GetProperties(spice-fortran)
 file(GLOB_RECURSE src_f ${spice-fortran_SOURCE_DIR}/src/spicelib/*.f)
 
-# Set file-specific compiler flags
-set_source_files_properties(${src_f} PROPERTIES COMPILE_FLAGS "-m64 -fPIC -c -std=legacy -Wno-character-truncation")
+# Set compiler flags
+set(CMAKE_Fortran_FLAGS                "-m64 -fPIC -c -std=legacy -Wno-character-truncation")
+set(CMAKE_Fortran_FLAGS_DEBUG          "-g")
+set(CMAKE_Fortran_FLAGS_RELEASE        "")
+set(CMAKE_Fortran_FLAGS_RELWITHDEBINFO "${CMAKE_Fortran_FLAGS_DEBUG} ${CMAKE_Fortran_FLAGS_RELEASE}")
+set(CMAKE_Fortran_FLAGS_MINSIZEREL     "")
 
 # Build SPICE library
 add_library(spice-fortran STATIC ${src_f})

@@ -4,6 +4,27 @@ cmake_minimum_required(VERSION 3.16.3)
 # Set project metadata
 project(thalassa LANGUAGES C CXX Fortran)
 
+# Set C compiler flags
+set(CMAKE_C_FLAGS                "")
+set(CMAKE_C_FLAGS_DEBUG          "-g -Wall")
+set(CMAKE_C_FLAGS_RELEASE        "-O3 -march=native")
+set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_Fortran_FLAGS_DEBUG} ${CMAKE_CXX_FLAGS_RELEASE}")
+set(CMAKE_C_FLAGS_MINSIZEREL     "")
+
+# Set C++ compiler flags
+set(CMAKE_CXX_FLAGS                "")
+set(CMAKE_CXX_FLAGS_DEBUG          "-g -Wall")
+set(CMAKE_CXX_FLAGS_RELEASE        "-O3 -march=native")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_Fortran_FLAGS_DEBUG} ${CMAKE_CXX_FLAGS_RELEASE}")
+set(CMAKE_CXX_FLAGS_MINSIZEREL     "")
+
+# Set Fortran compiler flags
+set(CMAKE_Fortran_FLAGS                "")
+set(CMAKE_Fortran_FLAGS_DEBUG          "-g -Wall")
+set(CMAKE_Fortran_FLAGS_RELEASE        "-march=native")
+set(CMAKE_Fortran_FLAGS_RELWITHDEBINFO "${CMAKE_Fortran_FLAGS_DEBUG} ${CMAKE_Fortran_FLAGS_RELEASE}")
+set(CMAKE_Fortran_FLAGS_MINSIZEREL     "")
+
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
