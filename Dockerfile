@@ -1,5 +1,5 @@
 # Argument for base image
-ARG BASEIMAGE="alpine"
+ARG BASEIMAGE="debian"
 
 ## THALASSA Builder images
 # Alpine
