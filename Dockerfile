@@ -40,7 +40,11 @@ ARG CMAKE_CONFIG
 # Change workdirectory
 WORKDIR /thalassa
 # Copy THALASSA source
-COPY . .
+COPY ./app/ /thalassa/app/
+COPY ./external/ /thalassa/external/
+COPY ./interface/ /thalassa/interface/
+COPY ./src/ /thalassa/src/
+COPY ./CMakeLists.txt /thalassa/CMakeLists.txt
 # Configure CMake files for THALASSA
 RUN cmake -B /thalassa/build
 # Build THALASSA with CMake
@@ -54,7 +58,7 @@ FROM thalassa_runtime_${BASE_DISTRO} AS thalassa
 WORKDIR /thalassa
 # Copy THALASSA files from BUILDER_THALASSA
 COPY --from=thalassa_builder /thalassa/thalassa_main /thalassa/thalassa_main
-COPY --from=thalassa_builder /thalassa/data /thalassa/data
+COPY ./data /thalassa/data
 # Create input directory
 RUN mkdir /thalassa/in
 # Create output directory
