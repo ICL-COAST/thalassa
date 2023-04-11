@@ -10,7 +10,7 @@ ARG CMAKE_CONFIG
 # Update, upgrade, and install packages
 RUN apk update && \
     apk upgrade && \
-    apk add gcc g++ gfortran libc-dev make cmake
+    apk add gcc g++ gfortran libc-dev make cmake git
 # Change workdirectory
 WORKDIR /thalassa
 # Copy THALASSA source
@@ -27,7 +27,7 @@ ARG CMAKE_CONFIG
 # Update, upgrade, and install packages
 RUN apt-get update && \
     apt-get upgrade -y && \
-    apt-get install -y gcc g++ gfortran make cmake 
+    apt-get install -y gcc g++ gfortran make cmake git
 # Change workdirectory
 WORKDIR /thalassa
 # Copy THALASSA source
@@ -50,7 +50,8 @@ WORKDIR /thalassa
 # Copy THALASSA files from BUILDER_THALASSA
 COPY --from=thalassa_builder_alpine /thalassa/thalassa_main /thalassa/thalassa_main
 COPY --from=thalassa_builder_alpine /thalassa/data /thalassa/data
-COPY --from=thalassa_builder_alpine /thalassa/in /thalassa/in
+# Create input directory
+RUN mkdir /thalassa/in
 # Create output directory
 RUN mkdir /thalassa/out
 
@@ -65,7 +66,8 @@ WORKDIR /thalassa
 # Copy THALASSA files from BUILDER_THALASSA
 COPY --from=thalassa_builder_debian /thalassa/thalassa_main /thalassa/thalassa_main
 COPY --from=thalassa_builder_debian /thalassa/data /thalassa/data
-COPY --from=thalassa_builder_debian /thalassa/in /thalassa/in
+# Create input directory
+RUN mkdir /thalassa/in
 # Create output directory
 RUN mkdir /thalassa/out
 
