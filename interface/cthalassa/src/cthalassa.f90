@@ -163,6 +163,7 @@ module CTHALASSA
             MJD0 = times(1)
             MJDvector = times
             tspan = times(size(times)) - times(1)
+            tstep = times(2) - times(1) ! use size of first step to avoid allocation issues
 
             ! Load initial conditions
             R0 = inputstate(1:3)
