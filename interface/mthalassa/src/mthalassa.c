@@ -232,7 +232,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     parse_spacecraft(spacecraftArray, &spacecraft);
 
     // Calculate number of times
-    const int ntime = ceil(settings.tspan / settings.tstep) + 1;
+    const size_t ntime = ceil(settings.tspan / settings.tstep) + 1;
 
     // Extract start and end times
     double tStart = state.mjd;
@@ -267,21 +267,22 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     thalassa_open(&model, &paths);
 
     // Declare pointers for the initial time and state
-    double *initialTime = &state.mjd;
-    double *initialState = &state.RV[0];
+    const double *inputState = &state.RV[0];
 
-    // Declare pointer for the THALASSA output matrix
-    double *outputMatrix;
+    // Calculate memory size
+    size_t memorySize = 6 * ntime * sizeof(double);
+
+    // Allocate memory for output state
+    double *outputState = (double *)malloc(memorySize);
 
     // Propagate
-    thalassa_run(&ntime, timesOut, initialState, &spacecraft, &settings, &outputMatrix);
+    thalassa_run(&ntime, timesOut, inputState, outputState, &spacecraft, &settings);
 
-    // Extract output
-    for (mwSize itime = 0; itime < ntime; itime++) {
-        for (mwSize istate = 0; istate < 6; istate++) {
-            statesOut[6 * itime + istate] = outputMatrix[itime + istate * ntime];
-        }
-    }
+    // Copy output
+    memcpy(statesOut, outputState, memorySize);
+
+    // Free output matrix
+    free(outputState);
 
     // Close THALASSA interface
     thalassa_close();

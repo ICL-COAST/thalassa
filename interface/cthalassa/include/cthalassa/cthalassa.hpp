@@ -175,7 +175,7 @@ namespace cthalassa {
         double tol = 1.0E-13;
 
         /// @brief Maximum number of integration/output steps
-        double mxstep = 1.0E6;
+        int mxstep = 1000000;
 
         /// @brief Moon collision check flag
         int imcoll = 0;

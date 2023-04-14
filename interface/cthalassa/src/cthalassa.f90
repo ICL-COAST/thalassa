@@ -18,9 +18,6 @@ module CTHALASSA
     character(len=:), allocatable :: earth_path
     character(len=:), allocatable :: kernel_path
 
-    ! Temporary output matrix
-    real(c_double), allocatable, target :: cart_temporary(:, :)
-
     contains
 
         subroutine THALASSA_OPEN(model, paths) BIND(C)
@@ -97,9 +94,6 @@ module CTHALASSA
             if (allocated(earth_path)) deallocate(earth_path)
             if (allocated(kernel_path)) deallocate(kernel_path)
 
-            ! Deallocate memory for the temporary output matrix
-            if (allocated(cart_temporary)) deallocate(cart_temporary)
-
             ! Deallocate memory for Earth model data
             call DEINITIALIZE_NSGRAV()
 
@@ -120,7 +114,7 @@ module CTHALASSA
             call CLOSE_NULL_LOG()
         end subroutine THALASSA_CLOSE
 
-        subroutine THALASSA_RUN(ntimes, times, initialstate, object, propagator, outputmatrix) bind(C)
+        subroutine THALASSA_RUN(ntime, times, inputstate, outputstates, object, propagator) bind(C)
             ! Description:
             !    Runs a THALASSA propagation with verbose output
             ! 
@@ -135,12 +129,12 @@ module CTHALASSA
             use PROPAGATE,   only: DPROP_REGULAR
 
             ! Subroutine parameters
-            integer(c_int), intent(in)                    :: ntimes
-            real(c_double), intent(in), dimension(ntimes) :: times
-            real(c_double),                   intent(in)  :: initialstate(1:6)
-            type(THALASSA_OBJECT_STRUCT),     intent(in)  :: object
-            type(THALASSA_PROPAGATOR_STRUCT), intent(in)  :: propagator
-            type(c_ptr),                      intent(out) :: outputmatrix
+            integer(c_size_t), intent(in)                   :: ntime
+            real(c_double), intent(in), dimension(ntime)    :: times
+            real(c_double), intent(in)                      :: inputstate(1:6)
+            real(c_double), intent(out), dimension(6*ntime) :: outputstates
+            type(THALASSA_OBJECT_STRUCT), intent(in)        :: object
+            type(THALASSA_PROPAGATOR_STRUCT), intent(in)    :: propagator
 
             ! Locals
             ! Integration span and dt [solar days]
@@ -150,9 +144,11 @@ module CTHALASSA
             ! Measurement of CPU time, diagnostics
             integer  :: exitcode
             ! Trajectory
-            real(dk), allocatable, target :: cart(:, :)
+            real(dk), allocatable :: cart(:, :)
             ! Function calls and integration steps
             integer :: int_steps, tot_calls
+            ! Variables for outputting the matrix
+            integer(c_size_t) :: itime, istate, offset
 
             ! Load propagator settings (ignore tspan and tstep from propagator structure)
             call LOAD_PROPAGATOR(propagator)
@@ -167,19 +163,26 @@ module CTHALASSA
             MJD0 = times(1)
             MJDvector = times
             tspan = times(size(times)) - times(1)
+            tstep = times(2) - times(1) ! use size of first step to avoid allocation issues
 
             ! Load initial conditions
-            R0 = initialstate(1:3)
-            V0 = initialstate(4:6)
+            R0 = inputstate(1:3)
+            V0 = inputstate(4:6)
 
             ! Propagate orbit
             call DPROP_REGULAR(R0, V0, tspan, tstep, cart, int_steps, tot_calls, exitcode)
 
-            ! Copy output to the temporary output matrix
-            cart_temporary = cart(:, 2:7)
+            ! Copy output to the output matrix
+            ! Iterate through times
+            do itime = 1, ntime
+                ! Calculate offset
+                offset = 6*(itime - 1)
 
-            ! Store pointer to dates and Cartesian states
-            outputmatrix = C_LOC(cart_temporary)
+                ! Iterate through states
+                do istate = 1, 6
+                    outputstates(offset + istate) = cart(itime, istate + 1)
+                end do
+            end do
         end subroutine
 
         subroutine PTR_TO_STR(ptr, ptr_len, str)
@@ -197,7 +200,7 @@ module CTHALASSA
             character(len=ptr_len), intent(out) :: str
 
             ! Locals
-            integer :: i
+            integer(c_size_t) :: i
 
             ! Iterate through characters
             do i = 1, ptr_len

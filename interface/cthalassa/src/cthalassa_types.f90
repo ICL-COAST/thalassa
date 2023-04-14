@@ -44,7 +44,7 @@ module CTHALASSA_TYPES
         real(c_double) :: tol
         real(c_double) :: tspan
         real(c_double) :: tstep
-        real(c_double) :: mxstep
+        integer(c_int) :: mxstep
         integer(c_int) :: imcoll
         integer(c_int) :: eqs
     end type THALASSA_PROPAGATOR_STRUCT
