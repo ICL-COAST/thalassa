@@ -1,5 +1,6 @@
 # Define CTHALASSA options
 option(CTHALASSA_USE_FORK "Use fork in CTHALASSA to spawn subprocesses" ON)
+option(CTHALASSA_BUILD_EXAMPLE "Build CTHALASSA example" OFF)
 
 # Disable fork on non-UNIX systems
 if(NOT UNIX)
@@ -34,8 +35,10 @@ if(CTHALASSA_USE_FORK)
     target_compile_definitions(cthalassa PUBLIC "CTHALASSA_USE_FORK")
 endif()
 
-# Add CTHALASSA interface example
-add_executable(cthalassa_example cthalassa_example.cpp)
+if(CTHALASSA_BUILD_EXAMPLES)
+    # Add CTHALASSA interface example
+    add_executable(cthalassa_example cthalassa_example.cpp)
 
-# Link to CTHALASSA
-target_link_libraries(cthalassa_example PRIVATE cthalassa)
+    # Link to CTHALASSA
+    target_link_libraries(cthalassa_example PRIVATE cthalassa)
+endif(CTHALASSA_BUILD_EXAMPLES)
