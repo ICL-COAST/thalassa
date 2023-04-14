@@ -61,9 +61,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
         timesOut[itime] = tTemp;
     }
 
-    // Open THALASSA interface
-    thalassa_open(&model, &paths);
-
     // Declare pointers for the initial time and state
     const double *inputState = &state.RV[0];
 
@@ -73,15 +70,18 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     // Allocate memory for output state
     double *outputState = (double *)malloc(memorySize);
 
+    // Open THALASSA interface
+    thalassa_open(&model, &paths);
+
     // Propagate
     thalassa_run(&ntime, timesOut, inputState, outputState, &spacecraft, &settings);
+
+    // Close THALASSA interface
+    thalassa_close();
 
     // Copy output
     memcpy(statesOut, outputState, memorySize);
 
     // Free output matrix
     free(outputState);
-
-    // Close THALASSA interface
-    thalassa_close();
 }
