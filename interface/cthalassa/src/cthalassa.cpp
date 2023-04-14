@@ -112,41 +112,26 @@ namespace cthalassa {
         cthalassa::internal::THALASSAPropagatorStruct settings = settings_;
         cthalassa::internal::THALASSAObjectStruct spacecraft = spacecraft_;
 
-        // Calculate time span
-        double tStart = times.front();
-        double tEnd = times.back();
-        double tSpan = tEnd - tStart;
-
         // Extract number of output states
-        const int ntime = times.size();
-
-        // Calculate mean time step
-        double tStep = (tEnd - tStart) / (ntime - 1);
+        const size_t ntime = times.size();
 
         // Initialise output vectors
-        statesOut.resize(ntime, std::vector<double>(6));
+        statesOut.resize(ntime);
+
+        // Calculate memory size
+        size_t memorySize = 6 * ntime * sizeof(double);
 
 #ifdef CTHALASSA_USE_FORK
         // Declare shared output pointer
-        size_t sharedMemorySize = 6 * ntime * sizeof(double);
-        double *output = (double *)mmap(NULL, sharedMemorySize, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANON, -1, 0);
+        double *output = (double *)mmap(NULL, memorySize, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANON, -1, 0);
 
         // Fork process
         pid_t pid = fork();
 
         // Branch based on process identifier
         if (pid == 0) { // child process
-            // Declare local output pointer
-            double *outputLocal;
-
             // Propagate
-            cthalassa::internal::thalassa_run(&ntime, &times.front(), &stateIn.front(), &spacecraft, &settings, &outputLocal);
-
-            // Copy local output to shared output
-            std::memcpy(output, outputLocal, sharedMemorySize);
-
-            // Free local output pointer
-            free(outputLocal);
+            cthalassa::internal::thalassa_run(&ntime, &times.front(), &stateIn.front(), output, &spacecraft, &settings);
 
             // Exit child process
             exit(0);
@@ -156,23 +141,27 @@ namespace cthalassa {
         }
 #else
         // Declare output pointer
-        double *output;
+        double *output = (double *)malloc(memorySize);
 
         // Propagate
-        cthalassa::internal::thalassa_run(&ntime, &times.front(), &stateIn.front(), &spacecraft, &settings, &output);
+        cthalassa::internal::thalassa_run(&ntime, &times.front(), &stateIn.front(), output, &spacecraft, &settings);
 #endif
 
         // Extract output
         for (size_t itime = 0; itime < ntime; itime++) {
-            // Extract states
-            for (size_t istate = 0; istate < 6; istate++) {
-                statesOut[itime][istate] = output[itime + istate * ntime];
-            }
+            // Calculate array index
+            size_t idx = 6 * itime;
+
+            // Copy state vector
+            statesOut[itime] = std::vector<double>(output + idx, output + idx + 6);
         }
 
 #ifdef CTHALASSA_USE_FORK
         // Free output pointer
-        munmap(output, sharedMemorySize);
+        munmap(output, memorySize);
+#else
+        // Free output pointer
+        free(output);
 #endif
     }
 
