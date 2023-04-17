@@ -20,6 +20,9 @@ file(GLOB_RECURSE src_f90 CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.f9
 # Add CTHALASSA library
 add_library(cthalassa STATIC ${src_c} ${src_cpp} ${src_h} ${src_hpp} ${src_f90})
 
+# Ensure PIC
+set_target_properties(cthalassa PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 # Include CTHALASSA headers
 target_include_directories(cthalassa PUBLIC ${src_headers})
 
