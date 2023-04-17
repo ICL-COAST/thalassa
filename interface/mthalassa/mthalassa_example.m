@@ -6,35 +6,35 @@ state.mjd = 59043.0;
 state.RV = [7000, 0, 0, 0, 8, 0];
 
 % Set model parameters
-model.insgrav = 1;
-model.isun    = 1;
-model.imoon   = 1;
-model.idrag   = 1;
-model.iF107   = 1;
-model.iSRP    = 2;
-model.iephem  = 2;
-model.gdeg    = 2;
-model.gord    = 2;
+parameters.model.insgrav = 1;
+parameters.model.isun    = 1;
+parameters.model.imoon   = 1;
+parameters.model.idrag   = 1;
+parameters.model.iF107   = 1;
+parameters.model.iSRP    = 2;
+parameters.model.iephem  = 2;
+parameters.model.gdeg    = 2;
+parameters.model.gord    = 2;
 
 % Set filepaths
-paths.phys_path   = '../../data/physical_constants.txt';
-paths.earth_path  = '../../data/earth_potential/GRIM5-S1.txt';
-paths.kernel_path = '../../data/kernels_to_load.furnsh';
+parameters.paths.phys_path   = '../../data/physical_constants.txt';
+parameters.paths.earth_path  = '../../data/earth_potential/GRIM5-S1.txt';
+parameters.paths.kernel_path = '../../data/kernels_to_load.furnsh';
 
 % Set propagator settings
-settings.tol    = 1e-8;
-settings.tspan  = 365.25;
-settings.tstep  = 1.0;
-settings.mxstep = 1e6;
-settings.imcoll = 1;
-settings.eqs    = 2;
+parameters.settings.tol    = 1e-8;
+parameters.settings.tspan  = 365.25;
+parameters.settings.tstep  = 1.0;
+parameters.settings.mxstep = 1e6;
+parameters.settings.imcoll = 1;
+parameters.settings.eqs    = 2;
 
 % Set spacecraft
-spacecraft.mass      = 1500;
-spacecraft.area_drag = 15;
-spacecraft.area_srp  = 15;
-spacecraft.cd        = 2.2;
-spacecraft.cr        = 1.5;
+parameters.spacecraft.mass      = 1500;
+parameters.spacecraft.area_drag = 15;
+parameters.spacecraft.area_srp  = 15;
+parameters.spacecraft.cd        = 2.2;
+parameters.spacecraft.cr        = 1.5;
 
 % Execute THALASSA via the MEX interface
-[times, states] = mthalassa(state, model, paths, settings, spacecraft);
+[times, states] = mthalassa(state, parameters);

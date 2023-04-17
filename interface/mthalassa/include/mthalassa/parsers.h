@@ -6,6 +6,20 @@
 #include <cthalassa/cthalassa.h>
 
 /**
+ * @brief Parse parameters struct from Matlab
+ *
+ * @author Max Hallgarten La Casta
+ *
+ * @param[in] parameterArray Input parameters struct
+ * @param[out] model Output model struct
+ * @param[out] paths Output paths struct
+ * @param[out] settings Output settings struct
+ * @param[out] spacecraft Output spacecraft struct
+ */
+void parse_parameters(const mxArray *parameterArray, THALASSAPhysicalModelStruct *model, THALASSAPathStruct *paths, THALASSAPropagatorStruct *settings,
+                      THALASSAObjectStruct *spacecraft);
+
+/**
  * @brief Parse model struct from Matlab
  *
  * @author Max Hallgarten La Casta

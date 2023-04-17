@@ -10,10 +10,7 @@
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     // Extract inputs
     const mxArray *stateArray = prhs[0];
-    const mxArray *modelArray = prhs[1];
-    const mxArray *pathsArray = prhs[2];
-    const mxArray *settingsArray = prhs[3];
-    const mxArray *spacecraftArray = prhs[4];
+    const mxArray *parameterArray = prhs[1];
 
     // Declare parameter structures
     THALASSAStateStruct state;
@@ -24,10 +21,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
     // Parse parameter structures
     parse_state(stateArray, &state);
-    parse_model(modelArray, &model);
-    parse_paths(pathsArray, &paths);
-    parse_propagator(settingsArray, &settings);
-    parse_spacecraft(spacecraftArray, &spacecraft);
+    parse_parameters(parameterArray, &model, &paths, &settings, &spacecraft);
 
     // Calculate number of times
     const size_t ntime = ceil(settings.tspan / settings.tstep) + 1;

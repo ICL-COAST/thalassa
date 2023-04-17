@@ -3,6 +3,32 @@
 #include <math.h>
 #include <string.h>
 
+void parse_parameters(const mxArray *parameterArray, THALASSAPhysicalModelStruct *model, THALASSAPathStruct *paths, THALASSAPropagatorStruct *settings,
+                      THALASSAObjectStruct *spacecraft) {
+    // Pointers for parsing
+    const char *fname;
+
+    // Find number of fields
+    const mwSize nfields = mxGetNumberOfFields(parameterArray);
+
+    // Iterate through fields
+    for (mwSize ifield = 0; ifield < nfields; ifield++) {
+        // Extract field name
+        fname = mxGetFieldNameByNumber(parameterArray, ifield);
+
+        // Parse structs
+        if (strcmp(fname, "model") == 0) {
+            parse_model(mxGetFieldByNumber(parameterArray, 0, ifield), model);
+        } else if (strcmp(fname, "paths") == 0) {
+            parse_paths(mxGetFieldByNumber(parameterArray, 0, ifield), paths);
+        } else if (strcmp(fname, "settings") == 0) {
+            parse_propagator(mxGetFieldByNumber(parameterArray, 0, ifield), settings);
+        } else if (strcmp(fname, "spacecraft") == 0) {
+            parse_spacecraft(mxGetFieldByNumber(parameterArray, 0, ifield), spacecraft);
+        }
+    }
+}
+
 void parse_model(const mxArray *modelArray, THALASSAPhysicalModelStruct *model) {
     // Pointers for parsing
     double tmp;
