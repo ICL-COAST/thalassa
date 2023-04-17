@@ -19,7 +19,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     THALASSAPropagatorStruct settings;
     THALASSAObjectStruct spacecraft;
 
-    // Parse parameter structures
+    // Parse inputs
     parse_state(stateArray, &state);
     parse_parameters(parameterArray, &model, &paths, &settings, &spacecraft);
 
