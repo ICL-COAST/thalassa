@@ -209,7 +209,7 @@ void parse_paths(const mxArray *pathsArray, THALASSAPathStruct *paths) {
 
 void parse_propagator(const mxArray *settingsArray, THALASSAPropagatorStruct *settings) {
     // Declare exit code with number of expected fields
-    int exitcode = 6;
+    int exitcode = 3;
 
     // Pointers for parsing
     double tmp;
@@ -228,18 +228,6 @@ void parse_propagator(const mxArray *settingsArray, THALASSAPropagatorStruct *se
             tmp = mxGetScalar(mxGetFieldByNumber(settingsArray, 0, ifield));
             settings->tol = tmp;
             --exitcode;
-        } else if (strcmp(fname, "tspan") == 0) {
-            tmp = mxGetScalar(mxGetFieldByNumber(settingsArray, 0, ifield));
-            settings->tspan = tmp;
-            --exitcode;
-        } else if (strcmp(fname, "tstep") == 0) {
-            tmp = mxGetScalar(mxGetFieldByNumber(settingsArray, 0, ifield));
-            settings->tstep = tmp;
-            --exitcode;
-        } else if (strcmp(fname, "mxstep") == 0) {
-            tmp = mxGetScalar(mxGetFieldByNumber(settingsArray, 0, ifield));
-            settings->mxstep = tmp;
-            --exitcode;
         } else if (strcmp(fname, "imcoll") == 0) {
             tmp = mxGetScalar(mxGetFieldByNumber(settingsArray, 0, ifield));
             settings->imcoll = round(tmp);
@@ -250,6 +238,9 @@ void parse_propagator(const mxArray *settingsArray, THALASSAPropagatorStruct *se
             --exitcode;
         }
     }
+
+    // Set default value for mxstep
+    settings->mxstep = 1000000;
 
     // Throw parsing error
     if (exitcode != 0) {

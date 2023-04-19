@@ -23,9 +23,6 @@
 %
 %   parameters.settings
 %     .tol:         Absolute = relative tolerance for the test propagation.
-%     .tspan:       Propagation time span [solar days].
-%     .tstep:       Step size [solar days].
-%     .mxstep:      Maximum number of integration/output steps.
 %     .imcoll:      0 = do not check for collisions with the Moon, 1 = otherwise.
 %     .eqs:         Type of the equations of motion. 1 = Cowell, 2 = EDromo(t), 3 = EDromo(c), 4 = EDromo(l), 5 = KS (t), 6 = KS (l), 7 = Sti-Sche (t), 8 = Sti-Sche (l).
 %   

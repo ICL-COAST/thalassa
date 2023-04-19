@@ -23,9 +23,6 @@ parameters.paths.kernel_path = '../../data/kernels_to_load.furnsh';
 
 % Set propagator settings
 parameters.settings.tol    = 1e-8;
-parameters.settings.tspan  = 365.25;
-parameters.settings.tstep  = 1.0;
-parameters.settings.mxstep = 1e6;
 parameters.settings.imcoll = 1;
 parameters.settings.eqs    = 2;
 
