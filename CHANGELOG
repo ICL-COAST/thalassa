@@ -32,4 +32,11 @@ through the iau_dat SOFA subroutine.
 IERS/IAU 2006 conventions through the iau_gmst06 routine (in the SOFA library)
 and the ERR_IAU06 function, respectively.
 * A check for collisions with the Moon has been implemented. The check is
-activated by toggling the "imcoll" flag in input.txt 
+activated by toggling the "imcoll" flag in input.txt
+
+New in version 1.4:
+* CMake build system
+* Direct language bindings for C/C++ and Matlab
+* Docker
+* Updated README
+* Updated license
