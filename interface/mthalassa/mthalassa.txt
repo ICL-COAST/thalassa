@@ -1,9 +1,9 @@
 % MTHALASSA Propagate an orbit, using the THALASSA propagator.
-%   [times, states] = mthalassa(state, parameters)
+%   [states] = mthalassa(times, initialstate, parameters)
 %
-%   state
-%     .mjd          Initial time.
-%     .RV           Initial state.
+%   times           Vector of times [MJD].
+%
+%   initialstate    Initial Cartesian state vector [km, km/s].
 %
 %   parameters.model
 %     .insgrav:     0 = sph. grav. field, 1 = non-spherical grav. field.
@@ -35,3 +35,5 @@
 %     .area_srp:    Area (SRP) [m^2].
 %     .cd:          CD [-].
 %     .cr:          CR [-].
+%
+%   states          Output state vectors corresponding to the time vector [km, km/s]. 

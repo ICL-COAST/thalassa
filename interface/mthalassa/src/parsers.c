@@ -3,6 +3,69 @@
 #include <math.h>
 #include <string.h>
 
+void parse_times(const mxArray *timeArray, size_t *ntime, double **times) {
+    // Extract number of time array dimensions
+    const mwSize ntimedim = mxGetNumberOfDimensions(timeArray);
+
+    // Ensure that the time array is 2D
+    if (ntimedim != 2) {
+        mexErrMsgTxt("Incompatible time vector dimensions");
+    }
+
+    // Extract time array dimensions
+    const mwSize *timedim = mxGetDimensions(timeArray);
+
+    // Extract number of times
+    if (timedim[0] == 1) {
+        *ntime = timedim[1];
+    } else if (timedim[1] == 1) {
+        *ntime = timedim[0];
+    } else {
+        mexErrMsgTxt("Incompatible time vector dimensions");
+    }
+
+    // Ensure that there are at least two times
+    if (*ntime < 2) {
+        mexErrMsgTxt("Insufficient number of times");
+    }
+
+    // Update times vector pointer
+    *times = mxGetDoubles(timeArray);
+}
+
+void parse_state(const mxArray *stateArray, double **state) {
+    // Extract number of state array dimensions
+    const mwSize nstatedim = mxGetNumberOfDimensions(stateArray);
+
+    // Ensure that the state array is 2D
+    if (nstatedim != 2) {
+        mexErrMsgTxt("Incompatible state vector dimensions");
+    }
+
+    // Extract state array dimensions
+    const mwSize *statedim = mxGetDimensions(stateArray);
+
+    // Declare variable for the number of state variables
+    size_t nstate;
+
+    // Extract number of state variables
+    if (statedim[0] == 1) {
+        nstate = statedim[1];
+    } else if (statedim[1] == 1) {
+        nstate = statedim[0];
+    } else {
+        mexErrMsgTxt("Incompatible initial state dimensions");
+    }
+
+    // Ensure that there are six state variables
+    if (nstate != 6) {
+        mexErrMsgTxt("Incorrect number of state variables");
+    }
+
+    // Update state vector pointer
+    *state = mxGetDoubles(stateArray);
+}
+
 void parse_parameters(const mxArray *parameterArray, THALASSAPhysicalModelStruct *model, THALASSAPathStruct *paths, THALASSAPropagatorStruct *settings,
                       THALASSAObjectStruct *spacecraft) {
     // Declare the exit code
@@ -237,40 +300,5 @@ void parse_spacecraft(const mxArray *spacecraftArray, THALASSAObjectStruct *spac
     // Throw parsing error
     if (exitcode != 0) {
         mexErrMsgTxt("Incomplete spacecraft");
-    }
-}
-
-void parse_state(const mxArray *stateArray, THALASSAStateStruct *state) {
-    // Declare exit code with number of expected fields
-    int exitcode = 2;
-
-    // Pointers for parsing
-    double tmp;
-    double *tmpArray;
-    const char *fname;
-
-    // Find number of fields
-    const mwSize nfields = mxGetNumberOfFields(stateArray);
-
-    // Iterate through fields
-    for (mwSize ifield = 0; ifield < nfields; ifield++) {
-        // Extract field name
-        fname = mxGetFieldNameByNumber(stateArray, ifield);
-
-        // Update fields
-        if (strcmp(fname, "mjd") == 0) {
-            tmp = mxGetScalar(mxGetFieldByNumber(stateArray, 0, ifield));
-            state->mjd = tmp;
-            --exitcode;
-        } else if (strcmp(fname, "RV") == 0) {
-            tmpArray = mxGetPr(mxGetFieldByNumber(stateArray, 0, ifield));
-            memcpy(state->RV, tmpArray, sizeof(state->RV));
-            --exitcode;
-        }
-    }
-
-    // Throw parsing error
-    if (exitcode != 0) {
-        mexErrMsgTxt("Incomplete state");
     }
 }
