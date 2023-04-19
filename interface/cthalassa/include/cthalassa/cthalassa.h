@@ -31,7 +31,7 @@ typedef struct THALASSAPropagatorStruct {
     double tol;
     double tspan;
     double tstep;
-    double mxstep;
+    int mxstep;
     int imcoll;
 
     // Equations of motion
@@ -106,13 +106,14 @@ void thalassa_close();
  *
  * @author Max Hallgarten La Casta
  *
- * @param[in] initialtime Initial times
- * @param[in] initialstate Initial Cartesian states
- * @param[out] outputmatrix Matrix containing propagation results
- * @param[out] object Object parameters
- * @param[out] propagator Propagator parameters
+ * @param[in] ntimes Number of times
+ * @param[in] times Times
+ * @param[in] inputstate Input state
+ * @param[out] outputstates Output states
+ * @param[in] object Object parameters
+ * @param[in] propagator Propagator parameters
  */
-void thalassa_run(const double *initialtime, const double *initialstate, double **outputmatrix, const THALASSAObjectStruct *object,
+void thalassa_run(const size_t *ntimes, const double *times, const double *inputstate, double *outputstates, const THALASSAObjectStruct *object,
                   const THALASSAPropagatorStruct *propagator);
 
 #endif

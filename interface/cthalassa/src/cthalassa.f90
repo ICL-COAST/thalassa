@@ -90,9 +90,9 @@ module CTHALASSA
             use SUN_MOON, only: DEINITIALIZE_LEGENDRE, GslSun, GslMoon
 
             ! Deallocate memory for file paths
-            deallocate(phys_path)
-            deallocate(earth_path)
-            deallocate(kernel_path)
+            if (allocated(phys_path)) deallocate(phys_path)
+            if (allocated(earth_path)) deallocate(earth_path)
+            if (allocated(kernel_path)) deallocate(kernel_path)
 
             ! Deallocate memory for Earth model data
             call DEINITIALIZE_NSGRAV()
@@ -114,7 +114,7 @@ module CTHALASSA
             call CLOSE_NULL_LOG()
         end subroutine THALASSA_CLOSE
 
-        subroutine THALASSA_RUN(initialtime, initialstate, outputmatrix, object, propagator) bind(C)
+        subroutine THALASSA_RUN(ntime, times, inputstate, outputstates, object, propagator) bind(C)
             ! Description:
             !    Runs a THALASSA propagation with verbose output
             ! 
@@ -125,15 +125,16 @@ module CTHALASSA
 
             ! Load THALASSA modules
             use KINDS,       only: dk
-            use AUXILIARIES, only: MJD0
+            use AUXILIARIES, only: MJD0, MJDvector, useMJDVector
             use PROPAGATE,   only: DPROP_REGULAR
 
             ! Subroutine parameters
-            real(c_double),                   intent(in)  :: initialtime
-            real(c_double),                   intent(in)  :: initialstate(1:6)
-            type(c_ptr),                      intent(out) :: outputmatrix
-            type(THALASSA_OBJECT_STRUCT),     intent(in)  :: object
-            type(THALASSA_PROPAGATOR_STRUCT), intent(in)  :: propagator
+            integer(c_size_t), intent(in)                   :: ntime
+            real(c_double), intent(in), dimension(ntime)    :: times
+            real(c_double), intent(in)                      :: inputstate(1:6)
+            real(c_double), intent(out), dimension(6*ntime) :: outputstates
+            type(THALASSA_OBJECT_STRUCT), intent(in)        :: object
+            type(THALASSA_PROPAGATOR_STRUCT), intent(in)    :: propagator
 
             ! Locals
             ! Integration span and dt [solar days]
@@ -143,27 +144,45 @@ module CTHALASSA
             ! Measurement of CPU time, diagnostics
             integer  :: exitcode
             ! Trajectory
-            real(c_double), allocatable, target, save :: cart(:, :) ! Variable saved to ensure that it is not deallocated
-                                                                    ! before the values can be read from C
+            real(dk), allocatable :: cart(:, :)
             ! Function calls and integration steps
             integer :: int_steps, tot_calls
+            ! Variables for outputting the matrix
+            integer(c_size_t) :: itime, istate, offset
 
-            ! Load propagator settings
-            call LOAD_PROPAGATOR(propagator, tspan, tstep)
+            ! Load propagator settings (ignore tspan and tstep from propagator structure)
+            call LOAD_PROPAGATOR(propagator)
 
             ! Load object properties
             call LOAD_OBJECT(object)
 
+            ! Force use of time vector 
+            useMJDVector = 1
+
+            ! Load times
+            MJD0 = times(1)
+            MJDvector = times
+            tspan = times(size(times)) - times(1)
+            tstep = times(2) - times(1) ! use size of first step to avoid allocation issues
+
             ! Load initial conditions
-            MJD0 = initialtime;
-            R0 = initialstate(1:3)
-            V0 = initialstate(4:6)
+            R0 = inputstate(1:3)
+            V0 = inputstate(4:6)
 
             ! Propagate orbit
             call DPROP_REGULAR(R0, V0, tspan, tstep, cart, int_steps, tot_calls, exitcode)
 
-            ! Store pointer to dates and Cartesian states
-            outputmatrix = C_LOC(cart)
+            ! Copy output to the output matrix
+            ! Iterate through times
+            do itime = 1, ntime
+                ! Calculate offset
+                offset = 6*(itime - 1)
+
+                ! Iterate through states
+                do istate = 1, 6
+                    outputstates(offset + istate) = cart(itime, istate + 1)
+                end do
+            end do
         end subroutine
 
         subroutine PTR_TO_STR(ptr, ptr_len, str)
@@ -181,7 +200,7 @@ module CTHALASSA
             character(len=ptr_len), intent(out) :: str
 
             ! Locals
-            integer :: i
+            integer(c_size_t) :: i
 
             ! Iterate through characters
             do i = 1, ptr_len
@@ -273,14 +292,14 @@ module CTHALASSA
             use SETTINGS, only: mxstep, tol, imcoll, eqs
 
             ! Subroutine parameters
-            type(THALASSA_PROPAGATOR_STRUCT), intent(in)  :: propagator
-            real(dk),                         intent(out) :: tspan, tstep
+            type(THALASSA_PROPAGATOR_STRUCT), intent(in)            :: propagator
+            real(dk),                         intent(out), optional :: tspan, tstep
 
             ! Set integrator settings
             mxstep = propagator%mxstep
             tol    = propagator%tol
-            tspan  = propagator%tspan
-            tstep  = propagator%tstep
+            if(present(tspan)) tspan  = propagator%tspan
+            if(present(tstep)) tstep  = propagator%tstep
             imcoll = propagator%imcoll
 
             ! Set equations of motion

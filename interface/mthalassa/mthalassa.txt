@@ -1,11 +1,11 @@
 % MTHALASSA Propagate an orbit, using the THALASSA propagator.
-%   [times, states] = mthalassa(state, model, paths, settings, spacecraft)
+%   [states] = mthalassa(times, initialstate, parameters)
 %
-%   state
-%     .mjd          Initial time.
-%     .RV           Initial state.
+%   times           Vector of times [MJD].
 %
-%   model
+%   initialstate    Initial Cartesian state vector [km, km/s].
+%
+%   parameters.model
 %     .insgrav:     0 = sph. grav. field, 1 = non-spherical grav. field.
 %     .isun:        0 = no Sun perturbation, 1 = full acceleration in rect coordinates, values >1 select order of truncated perturbing acceleration expansion.
 %     .imoon:       0 = no Moon perturbation, 1 = full acceleration in rect coordinates, values >1 select order of truncated perturbing acceleration expansion.
@@ -16,22 +16,21 @@
 %     .gdeg:        Maximum degree of the gravitational potential.
 %     .gord:        Maximum order of the gravitational potential.
 %
-%   paths
+%   parameters.paths
 %     .phys_path:   Filepath for physical constants.
 %     .earth_path:  Filepath for Earth potential.
 %     .kernel_path: Filepath for SPICE kernels.
 %
-%   settings
+%   parameters.settings
 %     .tol:         Absolute = relative tolerance for the test propagation.
-%     .tspan:       Propagation time span [solar days].
-%     .tstep:       Step size [solar days].
-%     .mxstep:      Maximum number of integration/output steps.
 %     .imcoll:      0 = do not check for collisions with the Moon, 1 = otherwise.
 %     .eqs:         Type of the equations of motion. 1 = Cowell, 2 = EDromo(t), 3 = EDromo(c), 4 = EDromo(l), 5 = KS (t), 6 = KS (l), 7 = Sti-Sche (t), 8 = Sti-Sche (l).
 %   
-%   spacecraft
+%   parameters.spacecraft
 %     .mass:        Spacecraft mass [kg].
 %     .area_drag:   Area (drag) [m^2].
 %     .area_srp:    Area (SRP) [m^2].
 %     .cd:          CD [-].
 %     .cr:          CR [-].
+%
+%   states          Output state vectors corresponding to the time vector [km, km/s]. 

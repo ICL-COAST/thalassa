@@ -9,4 +9,9 @@ set_source_files_properties(${src_for} PROPERTIES COMPILE_FLAGS "-fdefault-real-
 
 # Compile THALASSA library
 add_library(${PROJECT_NAME} STATIC ${src_f} ${src_for} ${src_f90})
-target_link_libraries(${PROJECT_NAME} PUBLIC sofa spice)
+
+# Ensure PIC
+set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+# Link to dependencies
+target_link_libraries(${PROJECT_NAME} PUBLIC sofa-f spice)

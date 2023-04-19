@@ -90,7 +90,7 @@ subroutine DEINITIALIZE_LEGENDRE(Gsl)
 real(dk), allocatable, intent(inout) :: Gsl(:,:)
 
 ! Deallocate memory
-deallocate(Gsl)
+if (allocated(Gsl)) deallocate(Gsl)
 end subroutine
 
 

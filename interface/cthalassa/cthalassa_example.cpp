@@ -2,11 +2,10 @@
 
 int main() {
     // Declare THALASSA parameters
-    cthalassa::PropagatorModel model;
-    cthalassa::PropagatorPaths paths = {"./data/physical_constants.txt", "./data/earth_potential/GRIM5-S1.txt", "./data/kernels_to_load.furnsh"};
-    cthalassa::PropagatorSettings settings;
-    cthalassa::PropagatorSpacecraft spacecraft = {+8500.000000000000E+00, +13.00000000000000E+00, +13.00000000000000E+00, +2.200000000000000E+00,
-                                                  +1.500000000000000E+00};
+    cthalassa::Model model;
+    cthalassa::Paths paths = {"./data/physical_constants.txt", "./data/earth_potential/GRIM5-S1.txt", "./data/kernels_to_load.furnsh"};
+    cthalassa::Settings settings;
+    cthalassa::Spacecraft spacecraft = {+8500.000000000000E+00, +13.00000000000000E+00, +13.00000000000000E+00, +2.200000000000000E+00, +1.500000000000000E+00};
 
     // Create THALASSA propagator
     cthalassa::Propagator propagator(model, paths, settings, spacecraft);
@@ -24,7 +23,7 @@ int main() {
     std::vector<double> timesOut;
     std::vector<std::vector<double>> statesOut;
 
-    // Propagate with THALASSA  
+    // Propagate with THALASSA
     propagator.propagate(tStart, tEnd, tStep, stateIn, timesOut, statesOut);
 
     // Return zero
