@@ -7,3 +7,8 @@ endif()
 if(THALASSA_BUILD_MTHALASSA)
     add_subdirectory(mthalassa)
 endif()
+
+# Add PYTHALASSA
+if(THALASSA_BUILD_PYTHALASSA)
+    add_subdirectory(pythalassa)
+endif()

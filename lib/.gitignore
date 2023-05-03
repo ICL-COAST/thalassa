@@ -1,5 +1,6 @@
 # Ignore libraries
 *.a
+*.so
 
 # Ignore MEX files
 *.mexa64
