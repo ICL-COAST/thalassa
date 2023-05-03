@@ -97,8 +97,7 @@ PYBIND11_MODULE(pythalassa, m) {
     // Propagator class
     py::class_<cthalassa::Propagator>(m, "Propagator")
         .def(py::init<const cthalassa::Model &, const cthalassa::Paths &, const cthalassa::Settings &, const cthalassa::Spacecraft &>())
-        .def("propagate", py::overload_cast<const double &, const double &, const double &, const std::vector<double> &, std::vector<double> &, std::vector<std::vector<double>> &>(&cthalassa::Propagator::propagate, py::const_))
-        .def("propagate", py::overload_cast<const std::vector<double> &, const std::vector<double> &, std::vector<std::vector<double>> &>(&cthalassa::Propagator::propagate, py::const_))
+        .def("propagate", py::overload_cast<const std::vector<double> &, const std::vector<double> &>(&cthalassa::Propagator::propagate, py::const_))
         .def_property_readonly("model", &cthalassa::Propagator::getModel)
         .def_property_readonly("paths", &cthalassa::Propagator::getPaths)
         .def_property("settings", &cthalassa::Propagator::getSettings, &cthalassa::Propagator::setSettings)
