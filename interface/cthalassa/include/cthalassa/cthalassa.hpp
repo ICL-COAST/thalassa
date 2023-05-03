@@ -342,6 +342,17 @@ namespace cthalassa {
         void propagate(const std::vector<double> &times, const std::vector<double> &stateIn, std::vector<std::vector<double>> &statesOut) const;
 
         /**
+         * @brief Propagate a state
+         *
+         * @author Max Hallgarten La Casta
+         *
+         * @param[in] times Times
+         * @param[in] stateIn Initial state
+         * @return std::vector<std::vector<double>> Output states
+         */
+        std::vector<std::vector<double>> propagate(const std::vector<double> &times, const std::vector<double> &stateIn) const;
+
+        /**
          * @brief Get the model settings
          *
          * @author Max Hallgarten La Casta

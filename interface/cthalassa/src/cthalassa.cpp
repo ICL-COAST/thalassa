@@ -165,6 +165,17 @@ namespace cthalassa {
 #endif
     }
 
+    std::vector<std::vector<double>> Propagator::propagate(const std::vector<double> &times, const std::vector<double> &stateIn) const {
+        // Declare output state vectors
+        std::vector<std::vector<double>> statesOut;
+
+        // Propagate
+        propagate(times, stateIn, statesOut);
+
+        // Return output state vectors
+        return statesOut;
+    }
+
     Model Propagator::getModel() const {
         // Return model
         return model_;
