@@ -1,6 +1,11 @@
+#include <pythalassa/pythalassa.hpp>
+
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <pybind11/eigen.h>
+
+#include <Eigen/Core>
 
 #include <cthalassa/cthalassa.hpp>
 
@@ -96,11 +101,11 @@ PYBIND11_MODULE(pythalassa, m) {
         .def_readwrite("cr", &cthalassa::Spacecraft::cr);
 
     // Propagator class
-    py::class_<cthalassa::Propagator>(m, "Propagator")
+    py::class_<pythalassa::Propagator>(m, "Propagator")
         .def(py::init<const cthalassa::Model &, const cthalassa::Paths &, const cthalassa::Settings &, const cthalassa::Spacecraft &>())
-        .def("propagate", py::overload_cast<const std::vector<double> &, const std::vector<double> &>(&cthalassa::Propagator::propagate, py::const_))
-        .def_property_readonly("model", &cthalassa::Propagator::getModel)
-        .def_property_readonly("paths", &cthalassa::Propagator::getPaths)
-        .def_property("settings", &cthalassa::Propagator::getSettings, &cthalassa::Propagator::setSettings)
-        .def_property("spacecraft", &cthalassa::Propagator::getSpacecraft, &cthalassa::Propagator::setSpacecraft);
+        .def("propagate", py::overload_cast<const Eigen::VectorXd &, const Eigen::VectorXd &>(&pythalassa::Propagator::propagate, py::const_))
+        .def_property_readonly("model", &pythalassa::Propagator::getModel)
+        .def_property_readonly("paths", &pythalassa::Propagator::getPaths)
+        .def_property("settings", &pythalassa::Propagator::getSettings, &pythalassa::Propagator::setSettings)
+        .def_property("spacecraft", &pythalassa::Propagator::getSpacecraft, &pythalassa::Propagator::setSpacecraft);
 }

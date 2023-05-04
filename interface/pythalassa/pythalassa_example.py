@@ -9,6 +9,7 @@ sys.path.append(
 # Import PyTHALASSA
 import pythalassa
 
+# Import Numpy
 import numpy as np
 
 # Declare model
@@ -39,4 +40,4 @@ stateIn = np.array([7000.0, 0.0, 0.0, 0.0, 8.0, 0.0])
 propagator = pythalassa.Propagator(model, paths, settings, spacecraft)
 
 # Propagate with THALASSA
-statesOut = np.array(propagator.propagate(times, stateIn))
+statesOut = propagator.propagate(times, stateIn)
