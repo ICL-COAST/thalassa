@@ -3,7 +3,7 @@ THALASSA is a Fortran orbit propagation code for bodies in the Earth-Moon-Sun sy
 
 THALASSA is a command-line tool, and has been developed and tested on MacOS and Ubuntu Linux platforms, using the ``gfortran`` compiler. Attention has been paid to avoid using advanced Fortran constructs: while they greatly improve the capabilities of the language, their portability has been found to be problematic. This might change in the future.
 
-The repository also includes some Python3 scripts to perform batch propagations. This feature is currently experimental, but it shouldn't be too difficult for a Python user to generalize the scripts to perform batch propagations on discrete grids of orbital elements. Interfaces for C/C++ (CTHALASSA) and Matlab (MTHALASSA) have been developed to avoid the file input/output bottleneck.
+The repository also includes some Python3 scripts to perform batch propagations. This feature is currently experimental, but it shouldn't be too difficult for a Python user to generalize the scripts to perform batch propagations on discrete grids of orbital elements. Interfaces for C/C++ (CTHALASSA), Matlab (MTHALASSA), and Python (PyTHALASSA) have been developed to avoid the file input/output bottleneck.
 
 Details on the mathematical fundamentals of THALASSA are contained in [Amato et al., 2018](#Amato2018).
 
@@ -12,7 +12,7 @@ If you use THALASSA in your research, please consider giving credit by citing th
 
 # Getting Started
 ## Prerequisites
-THALASSA was originally developed using the `gfortran` compiler. Compilation of CTHALASSA and MTHALASSA require additional compilers from the GNU compiler collection. Additionally, compilation of MTHALASSA requires a Matlab installation with an activated licence.
+THALASSA was originally developed using the `gfortran` compiler. Compilation of CTHALASSA, MTHALASSA, and PyTHALASSA require additional compilers from the GNU compiler collection. Additionally, compilation of MTHALASSA requires a Matlab installation with an activated licence.
 
 Compilers:
 * `gcc`
@@ -23,7 +23,7 @@ Build system:
 * `CMake`
 * `make` (or an alternative generator for CMake)
 
-The source files for the `sofa` and `spice` libraries are automatically downloaded and extracted during CMake's configuration stage.
+The source files for the `sofa` and `spice` libraries are automatically downloaded and extracted during CMake's configuration stage. `Eigen` is an optional dependency for the CTHALASSA interface, and a required dependency for the PyTHALASSA interface.
 
 THALASSA is also dependent on `spice` kernels if precise ephemerides are required. A bash script (`./dependencies.sh`) is provided for convenience to download THALASSA's default `spice` kernels.
 
@@ -42,7 +42,7 @@ By default, all targets will be built, including THALASSA, CTHALASSA, and MTHALA
 
 * If `CMake` freezes during the configuration stage, and Matlab is installed, this may be due to the Matlab license not being activated, preventing the successful configuration of the `MEX` compiler.
 
-* THALASSA was designed for single threaded execution. It is *not* thread safe by default. CTHALASSA spawns subprocesses for each propagation with `fork` to provide thread safety, however this depends on POSIX compliance. This can be deactivated, if required, by appending `-DCTHALASSA_USE_FORK=OFF` to the `CMake` configuration command. Issues have been seen with `OpenMP` and `fork`, therefore native threading is recommended.
+* THALASSA was designed for single threaded execution. It is *not* thread safe by default. CTHALASSA spawns subprocesses for each propagation with `fork` to provide thread safety, however this depends on POSIX compliance. This can be deactivated, if required, by appending `-DCTHALASSA_USE_FORK=OFF` to the `CMake` configuration command. This is deactivated on non-UNIX systems.
 
 #### Compiling MTHALASSA on Apple Machines with ARM
 The current release of Matlab for MacOS uses `x86_64` via the Rosetta translation environment. Consequently, the `MEX` compiler targets `x86_64`. However, by default `CMake` will target the native architecture of the machine, in this case `arm64`. Furthermore, older versions of `CMake` are not aware of Rosetta installations, and will attempt to use the ARM version of the `MEX` compiler.
@@ -122,9 +122,9 @@ Note: the output directory specified in `input.txt` MUST be `./out/` to ensure t
 ### CTHALASSA
 CTHALASSA is available as a `CMake` target for easy integration with other `CMake`-based projects. This automatically includes the header files, and takes care of its dependency on THALASSA.
 
-Alternatively, for more manual use, the static library is available in `./lib/`, and the header files in `./interface/cpp/include/`.
+Alternatively, for more manual use, the library is available in `./lib/`, and the header files in `./interface/cthalassa/include/`.
 
-It is recommended to use the definitions in `./interface/cpp/include/cthalassa.hpp` as these are more user friendly, and take care of pre- and post-propagation processing. Nevertheless, the C definitions used by CTHALASSA to interface with Fortran are available in `./interface/cpp/include/cthalassa.h`.
+It is recommended to use the definitions in `cthalassa.hpp` as these are more user friendly, and take care of pre- and post-propagation processing. Nevertheless, the C definitions used by CTHALASSA to interface with Fortran are available in `cthalassa.h`.
 
 CTHALASSA can be used by creating a `cthalassa::Propagator` object:
 ```
@@ -136,8 +136,12 @@ The propagator can be called with the `propagate` method:
 ```
 propagator.propagate(tStart, tEnd, tStep, stateIn, timesOut, statesOut);
 ```
+or
+```
+propagator.propagate(times, stateIn, statesOut);
+```
 
-An example for using CTHALASSA is available (`./interface/cpp/thalassa_interface_example.cpp`) which propagates an orbit via the interface.
+An example for using CTHALASSA is available (`./interface/cthalassa/cthalassa_example.cpp`) which propagates an orbit via the interface.
 
 Note: it is recommended to use absolute filepaths for the physical model files. Furthermore, it is recommended to provide a custom `.furnsh` file also containing absolute filepaths when `spice` ephemerides are being used.
 
@@ -149,7 +153,7 @@ addpath(<THALASSA lib directory>)
 
 MTHALASSA can then be used with the following signature:
 ```
-[times, states] = mthalassa(state, model, paths, settings, spacecraft)
+[states] = mthalassa(times, initialstate, parameters)
 ```
 
 A documentation file is automatically generated which can be accessed from Matlab:
@@ -157,7 +161,30 @@ A documentation file is automatically generated which can be accessed from Matla
 help mthalassa
 ```
 
-An example of using MTHALASSA is available (`./interface/matlab/thalassa_interface_example.m`) which propagates an orbit via the interface.
+An example of using MTHALASSA is available (`./interface/mthalassa/mthalassa_example.m`) which propagates an orbit via the interface.
+
+Note: it is recommended to use absolute filepaths for the physical model files. Furthermore, it is recommended to provide a custom `.furnsh` file also containing absolute filepaths when `spice` ephemerides are being used.
+
+### PyTHALASSA
+The recommended method for using PyTHALASSA is to add THALASSA's library directory to Python's path at the beginning of a script:
+```
+import os
+import sys
+sys.path.append(<THALASSA lib directory>)
+```
+
+PyTHALASSA can be used by creating a `pythalassa.Propagator` object:
+```
+propagator = pythalassa.Propagator(model, paths, settings, spacecraft)
+```
+The constructor takes multiple structures as input, including model parameters, filepaths to the physical model files (as described below), propagator settings, and spacecraft properties. These structures were designed to shadow the original text files used by THALASSA.
+
+The propagator can be called with the `propagate` method:
+```
+statesOut = propagator.propagate(times, stateIn)
+```
+
+An example of using PyTHALASSA is available (`./interface/pythalassa/pythalassa_example.py`) which propagates an orbit via the interface.
 
 Note: it is recommended to use absolute filepaths for the physical model files. Furthermore, it is recommended to provide a custom `.furnsh` file also containing absolute filepaths when `spice` ephemerides are being used.
 
