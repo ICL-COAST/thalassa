@@ -165,16 +165,61 @@ namespace cthalassa {
 #endif
     }
 
-    std::vector<std::vector<double>> Propagator::propagate(const std::vector<double> &times, const std::vector<double> &stateIn) const {
-        // Declare output state vectors
-        std::vector<std::vector<double>> statesOut;
+#ifdef CTHALASSA_USE_EIGEN
 
-        // Propagate
-        propagate(times, stateIn, statesOut);
+    void Propagator::propagate(const double &tStart, const double &tEnd, const double &tStep, const Eigen::VectorXd &stateIn, Eigen::VectorXd &timesOut,
+                               Eigen::MatrixXd &statesOut) const {
+        // Copy input state
+        const size_t Nstate = 6;
+        std::vector<double> stateIn_(Nstate);
+        Eigen::Map<Eigen::VectorXd>(&stateIn_[0], Nstate, 1) = stateIn;
 
-        // Return output state vectors
-        return statesOut;
+        // Declare output
+        std::vector<double> timesOut_;
+        std::vector<std::vector<double>> statesOut_;
+
+        // Propagate orbit
+        propagate(tStart, tEnd, tStep, stateIn_, timesOut_, statesOut_);
+
+        // Resize output
+        const size_t Ntimes = timesOut_.size();
+        timesOut.resize(Ntimes);
+        statesOut.resize(Nstate, Ntimes);
+
+        // Copy output
+        timesOut = Eigen::Map<Eigen::VectorXd>(&timesOut_[0], Ntimes, 1);
+        for (size_t it = 0; it < Ntimes; ++it) {
+            statesOut.col(it) = Eigen::Map<Eigen::VectorXd>(&statesOut_[it][0], Nstate, 1);
+        }
     }
+
+    void Propagator::propagate(const Eigen::VectorXd &times, const Eigen::VectorXd &stateIn, Eigen::MatrixXd &statesOut) const {
+        // Copy times
+        const size_t Ntimes = times.size();
+        std::vector<double> times_(Ntimes);
+        Eigen::Map<Eigen::VectorXd>(&times_[0], Ntimes, 1) = times;
+
+        // Copy input state
+        const size_t Nstate = 6;
+        std::vector<double> stateIn_(Nstate);
+        Eigen::Map<Eigen::VectorXd>(&stateIn_[0], Nstate, 1) = stateIn;
+
+        // Declare output
+        std::vector<std::vector<double>> statesOut_;
+
+        // Propagate orbit
+        propagate(times_, stateIn_, statesOut_);
+
+        // Resize output
+        statesOut.resize(Nstate, Ntimes);
+
+        // Copy output
+        for (size_t it = 0; it < Ntimes; ++it) {
+            statesOut.col(it) = Eigen::Map<Eigen::VectorXd>(&statesOut_[it][0], Nstate, 1);
+        }
+    }
+
+#endif
 
     Model Propagator::getModel() const {
         // Return model

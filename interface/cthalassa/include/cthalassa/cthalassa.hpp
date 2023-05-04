@@ -8,6 +8,10 @@
 #include <string>
 #include <vector>
 
+#ifdef CTHALASSA_USE_EIGEN
+#include <Eigen/Core>
+#endif
+
 namespace cthalassa::internal {
     extern "C" {
     // clang-format off
@@ -341,6 +345,23 @@ namespace cthalassa {
          */
         void propagate(const std::vector<double> &times, const std::vector<double> &stateIn, std::vector<std::vector<double>> &statesOut) const;
 
+#ifdef CTHALASSA_USE_EIGEN
+
+        /**
+         * @brief Propagate a state
+         *
+         * @author Max Hallgarten La Casta
+         *
+         * @param[in] tStart Initial time
+         * @param[in] tEnd Final time
+         * @param[in] tStep Output time step
+         * @param[in] stateIn Initial state
+         * @param[out] timesOut Output times
+         * @param[out] statesOut Output states
+         */
+        void propagate(const double &tStart, const double &tEnd, const double &tStep, const Eigen::VectorXd &stateIn, Eigen::VectorXd &timesOut,
+                       Eigen::MatrixXd &statesOut) const;
+
         /**
          * @brief Propagate a state
          *
@@ -348,9 +369,11 @@ namespace cthalassa {
          *
          * @param[in] times Times
          * @param[in] stateIn Initial state
-         * @return std::vector<std::vector<double>> Output states
+         * @param[out] statesOut Output states
          */
-        std::vector<std::vector<double>> propagate(const std::vector<double> &times, const std::vector<double> &stateIn) const;
+        void propagate(const Eigen::VectorXd &times, const Eigen::VectorXd &stateIn, Eigen::MatrixXd &statesOut) const;
+
+#endif
 
         /**
          * @brief Get the model settings
