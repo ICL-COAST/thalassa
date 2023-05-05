@@ -153,7 +153,7 @@ addpath(<THALASSA lib directory>)
 
 MTHALASSA can then be used with the following signature:
 ```
-[states] = mthalassa(times, initialstate, parameters)
+[statesOut] = mthalassa(times, stateIn, parameters)
 ```
 
 A documentation file is automatically generated which can be accessed from Matlab:
@@ -171,6 +171,7 @@ The recommended method for using PyTHALASSA is to add THALASSA's library directo
 import os
 import sys
 sys.path.append(<THALASSA lib directory>)
+import pythalassa
 ```
 
 PyTHALASSA can be used by creating a `pythalassa.Propagator` object:
