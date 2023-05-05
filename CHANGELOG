@@ -40,3 +40,8 @@ New in version 1.4:
 * Docker
 * Updated README
 * Updated license
+
+New in version 1.4.1:
+* Eigen signatures for CTHALASSA
+* Direct language bindings for Python
+* Updated README
