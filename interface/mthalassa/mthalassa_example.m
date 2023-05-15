@@ -3,7 +3,7 @@ addpath("../../lib/")
 
 % Set initial state
 times = linspace(59043.0, 59043.0 + 365.25, 367);
-initialstate = [7000, 0, 0, 0, 8, 0];
+stateIn = [7000, 0, 0, 0, 8, 0];
 
 % Set model parameters
 parameters.model.insgrav = 1;
@@ -34,4 +34,4 @@ parameters.spacecraft.cd        = 2.2;
 parameters.spacecraft.cr        = 1.5;
 
 % Execute THALASSA via the MEX interface
-[states] = mthalassa(times, initialstate, parameters);
+[statesOut] = mthalassa(times, stateIn, parameters);

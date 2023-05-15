@@ -36,7 +36,14 @@ target_link_libraries(cthalassa PUBLIC Threads::Threads)
 # Enable fork for propagations
 if(CTHALASSA_USE_FORK)
     target_compile_definitions(cthalassa PUBLIC "CTHALASSA_USE_FORK")
-endif()
+endif(CTHALASSA_USE_FORK)
+
+# Enable Eigen signatures
+find_package(Eigen3 3.4 QUIET NO_MODULE)
+if(Eigen3_FOUND)
+    target_compile_definitions(cthalassa PUBLIC "CTHALASSA_USE_EIGEN")
+    target_link_libraries(cthalassa PUBLIC Eigen3::Eigen)
+endif(Eigen3_FOUND)
 
 if(CTHALASSA_BUILD_EXAMPLE)
     # Add CTHALASSA interface example
