@@ -178,10 +178,17 @@ module CTHALASSA
             call DPROP_REGULAR(R0, V0, tspan, tstep, cart, int_steps, tot_calls, exitcode)
 
             ! Extract number of times propagated
-            ncart = 6*size(cart, 1)
+            ncart = size(cart, 1)
+
+            ! Check for early termination
+            if ( ncart .lt. ntime ) then
+                ! Remove last state vector as early termination results
+                ! in inconsistency with the time vector
+                ncart = ncart - 1
+            end if
 
             ! Copy output to the output matrix
-            outputstates(1:ncart) = reshape(transpose(cart(:, 2:7)), (/ ncart /))
+            outputstates(1:6*ncart) = reshape(transpose(cart(:, 2:7)), (/ 6*ncart /))
         end subroutine
 
         subroutine PTR_TO_STR(ptr, ptr_len, str)
