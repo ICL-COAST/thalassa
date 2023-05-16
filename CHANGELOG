@@ -48,3 +48,4 @@ New in version 1.4.1:
 
 New in version 1.4.2:
 * Bug fixes for CTHALASSA when early termination occurs due to re-entry
+* CMake configuration for Python bindings updated
