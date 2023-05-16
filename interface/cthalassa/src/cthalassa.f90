@@ -123,6 +123,9 @@ module CTHALASSA
             !    Imperial College London
             !    m.hallgarten-la-casta21@imperial.ac.uk
 
+            ! Load Fortran modules
+            use, intrinsic :: ieee_arithmetic, only: ieee_value, ieee_quiet_nan
+
             ! Load THALASSA modules
             use KINDS,       only: dk
             use AUXILIARIES, only: MJD0, MJDvector, useMJDVector
@@ -143,12 +146,14 @@ module CTHALASSA
             real(dk) :: R0(1:3), V0(1:3)
             ! Measurement of CPU time, diagnostics
             integer  :: exitcode
-            ! Trajectory
+            ! Trajectory and number of propagated states
             real(dk), allocatable :: cart(:, :)
+            integer(c_size_t)     :: ncart
             ! Function calls and integration steps
             integer :: int_steps, tot_calls
-            ! Variables for outputting the matrix
-            integer(c_size_t) :: itime, istate, offset
+
+            ! Fill output with NaNs
+            outputstates = ieee_value(0., ieee_quiet_nan)
 
             ! Load propagator settings (ignore tspan and tstep from propagator structure)
             call LOAD_PROPAGATOR(propagator)
@@ -172,17 +177,11 @@ module CTHALASSA
             ! Propagate orbit
             call DPROP_REGULAR(R0, V0, tspan, tstep, cart, int_steps, tot_calls, exitcode)
 
-            ! Copy output to the output matrix
-            ! Iterate through times
-            do itime = 1, ntime
-                ! Calculate offset
-                offset = 6*(itime - 1)
+            ! Extract number of times propagated
+            ncart = 6*size(cart, 1)
 
-                ! Iterate through states
-                do istate = 1, 6
-                    outputstates(offset + istate) = cart(itime, istate + 1)
-                end do
-            end do
+            ! Copy output to the output matrix
+            outputstates(1:ncart) = reshape(transpose(cart(:, 2:7)), (/ ncart /))
         end subroutine
 
         subroutine PTR_TO_STR(ptr, ptr_len, str)
