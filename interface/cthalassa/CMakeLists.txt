@@ -41,31 +41,6 @@ if(CTHALASSA_USE_FORK)
     target_compile_definitions(cthalassa PUBLIC "CTHALASSA_USE_FORK")
 endif(CTHALASSA_USE_FORK)
 
-## Add Eigen
-# Find an existing Eigen installation
-find_package(Eigen3 3.4 QUIET NO_MODULE)
-# Download Eigen if an existing installation is not found
-if(NOT ${Eigen3_FOUND})
-    # Fetch Eigen
-    FetchContent_Declare(
-        Eigen
-        GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
-        GIT_TAG 3.4.0
-        GIT_SHALLOW TRUE
-    )
-
-    # Set Eigen build flags
-    # TODO: scope build testing
-    set(BUILD_TESTING OFF)
-    set(EIGEN_BUILD_TESTING OFF)
-    set(EIGEN_MPL2_ONLY ON)
-    set(EIGEN_BUILD_PKGCONFIG OFF)
-    set(EIGEN_BUILD_DOC OFF)
-    
-    # Make Eigen available
-    FetchContent_MakeAvailable(Eigen)
-endif(NOT ${Eigen3_FOUND})
-
 # Enable Eigen signatures
 target_compile_definitions(cthalassa PUBLIC "CTHALASSA_USE_EIGEN")
 
