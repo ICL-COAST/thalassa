@@ -48,9 +48,6 @@ if((THALASSA_BUILD_MTHALASSA OR THALASSA_BUILD_PYTHALASSA) AND (NOT THALASSA_BUI
     set(THALASSA_BUILD_CTHALASSA ON)
 endif()
 
-# Add external libraries
-add_subdirectory(external)
-
 # Compile THALASSA library
 add_subdirectory(src)
 

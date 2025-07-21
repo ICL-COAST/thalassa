@@ -1,3 +1,6 @@
+# Enable FetchContent
+include(FetchContent)
+
 # Define CTHALASSA options
 option(CTHALASSA_USE_FORK "Use fork in CTHALASSA to spawn subprocesses" ON)
 option(CTHALASSA_BUILD_EXAMPLE "Build CTHALASSA example" ON)
@@ -38,12 +41,36 @@ if(CTHALASSA_USE_FORK)
     target_compile_definitions(cthalassa PUBLIC "CTHALASSA_USE_FORK")
 endif(CTHALASSA_USE_FORK)
 
-# Enable Eigen signatures
+## Add Eigen
+# Find an existing Eigen installation
 find_package(Eigen3 3.4 QUIET NO_MODULE)
-if(Eigen3_FOUND)
-    target_compile_definitions(cthalassa PUBLIC "CTHALASSA_USE_EIGEN")
-    target_link_libraries(cthalassa PUBLIC Eigen3::Eigen)
-endif(Eigen3_FOUND)
+# Download Eigen if an existing installation is not found
+if(NOT ${Eigen3_FOUND})
+    # Fetch Eigen
+    FetchContent_Declare(
+        Eigen
+        GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
+        GIT_TAG 3.4.0
+        GIT_SHALLOW TRUE
+    )
+
+    # Set Eigen build flags
+    # TODO: scope build testing
+    set(BUILD_TESTING OFF)
+    set(EIGEN_BUILD_TESTING OFF)
+    set(EIGEN_MPL2_ONLY ON)
+    set(EIGEN_BUILD_PKGCONFIG OFF)
+    set(EIGEN_BUILD_DOC OFF)
+    
+    # Make Eigen available
+    FetchContent_MakeAvailable(Eigen)
+endif(NOT ${Eigen3_FOUND})
+
+# Enable Eigen signatures
+target_compile_definitions(cthalassa PUBLIC "CTHALASSA_USE_EIGEN")
+
+# Link to CTHALASSA to Eigen
+target_link_libraries(cthalassa PUBLIC Eigen3::Eigen)
 
 if(CTHALASSA_BUILD_EXAMPLE)
     # Add CTHALASSA interface example
