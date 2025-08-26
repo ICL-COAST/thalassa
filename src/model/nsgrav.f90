@@ -118,13 +118,22 @@ subroutine INITIALIZE_ROTATION(MJDstart, MJDend, period)
 
   ! Locals
   integer  :: irotation
-  real(dk) :: tempMJD, MJD_TT, UTCjd1, UTCjd2, TTjd1, TTjd2
+  real(dk) :: MJDmin, MJDmax, tempMJD, MJD_TT, UTCjd1, UTCjd2, TTjd1, TTjd2
   integer  :: eopIdx
   real(dk) :: tempBPN_T(3,3), tempW_T(3,3)
 
+  ! Find minimum and maximum times
+  if ( MJDstart .lt. MJDend ) then
+    MJDmin = MJDstart
+    MJDmax = MJDend
+  else
+    MJDmin = MJDend
+    MJDmax = MJDstart
+  end if
+
   ! Calculate number of periods
-  ! NOTE: adds an additional point after the final time
-  nrotation = int((MJDend - MJDstart) / period) + 2
+  ! NOTE: adds additional points on both ends
+  nrotation = int((MJDmax - MJDmin) / period) + 3
 
   ! Ensure arrays are not initialised
   call DEINITIALIZE_ROTATION()
@@ -137,7 +146,7 @@ subroutine INITIALIZE_ROTATION(MJDstart, MJDend, period)
   ! Iterate through periods
   do irotation = 1, nrotation
     ! Calculate MJD
-    tempMJD = MJDstart + (irotation - 1) * period
+    tempMJD = MJDmin + (irotation - 2) * period
 
     ! Preprocess dates and EOP index
     call UTCtoPARAMS(tempMJD, MJD_TT, UTCjd1, UTCjd2, TTjd1, TTjd2, eopIdx)
@@ -182,6 +191,7 @@ subroutine GET_ROTATION(MJD_UTC, BPN_T, W_T)
 
   ! Extract index
   ! TODO: replace brute force with better search algorithm?
+  ! TODO: throw an error if the bracket is not found successfully?
   do irotation = 1, nrotation - 1
     ! Extract dates
     MJD1 = precomputedMJD(irotation)
