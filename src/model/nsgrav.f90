@@ -23,9 +23,9 @@ module NSGRAV
 ! MODULES
 use KINDS,      only: dk
 use SETTINGS,   only: gdeg,gord
-use IO,         only: id_earth
-use PHYS_CONST, only: qk,GE,RE,flatt,omegaE,secsPerDay,secsPerSidDay,twopi,&
-&ERR_constant
+use IO,         only: id_earth, id_eop
+use PHYS_CONST, only: qk, GE, RE, flatt, omegaE, secsPerDay, secsPerSidDay, twopi, ERR_constant, DAS2R, DMAS2R
+
 implicit none
 
 ! VARIABLES
@@ -38,13 +38,177 @@ real(dk),allocatable  ::  Anm(:,:),Dnm(:,:),Enm(:,:),Fnm(:,:),Gnm(:,:)
 real(dk),allocatable  ::  Rm(:),Im(:),Pn(:)
 real(dk),allocatable  ::  Aux1(:),Aux2(:),Aux3(:),Aux4(:,:)
 
+! earth orientation parameters array
+real(dk),allocatable  ::  eop(:,:)
 
-
+! Pre-computed rotation matrices
+logical               :: usePrecomputed = .FALSE.
+integer               :: nrotation
+real(dk), allocatable :: precomputedMJD(:)
+real(dk), allocatable :: precomputedBPN_T(:, :, :)
+real(dk), allocatable :: precomputedW_T(:, :, :)
 
 contains
 
+subroutine INITIALIZE_EOP(eopfile)
 
+! formal parameters
+character(len=*), intent(in)  ::  eopfile
 
+! local parameters
+integer        :: io, nlines, i
+character(200) :: line
+character(200) :: format
+real(dk)       :: mjd, pmx, pmy, UT1_UTC, LOD, dx00, dy00
+
+! set number of lines to zero
+nlines = 0
+
+! count lines
+open(unit=id_eop,file=trim(eopfile),status='old',action='read')
+do
+  read(id_eop,*,iostat=io)
+  if (io/=0) exit
+  nlines = nlines + 1
+end do
+close(id_eop)
+
+! rewind 
+rewind(id_eop)
+
+! allocate
+if (allocated(eop)) deallocate(eop)
+allocate(eop(1:nlines, 1:7))
+
+! read in eop data
+open(unit=id_eop,file=trim(eopfile),status='old',action='read')
+do i = 1,nlines
+
+  ! read line
+  read(id_eop, '(7X,F8.2,3X,F9.6,10X,F9.6,12X,F10.7,11X,F7.4,11X,F9.3,10X,F9.3,67X)')mjd,pmx,pmy,UT1_UTC,LOD,dx00,dy00
+
+  ! add to EOP array
+  eop(i,1) = mjd
+  eop(i,2) = pmx
+  eop(i,3) = pmy
+  eop(i,4) = UT1_UTC
+  eop(i,5) = LOD
+  eop(i,6) = dx00
+  eop(i,7) = dy00
+
+enddo
+
+close(id_eop)
+
+end subroutine INITIALIZE_EOP
+
+subroutine DEINITIALIZE_EOP()
+
+if (allocated(eop)) deallocate(eop)
+
+end subroutine DEINITIALIZE_EOP
+
+subroutine INITIALIZE_ROTATION(MJDstart, MJDend, period)
+  implicit none
+
+  ! Parameters
+  real(dk), intent(in) :: MJDstart
+  real(dk), intent(in) :: MJDend
+  real(dk), intent(in) :: period
+
+  ! Locals
+  integer  :: irotation
+  real(dk) :: MJDmin, MJDmax, tempMJD, MJD_TT, UTCjd1, UTCjd2, TTjd1, TTjd2
+  integer  :: eopIdx
+  real(dk) :: tempBPN_T(3,3), tempW_T(3,3)
+
+  ! Find minimum and maximum times
+  if ( MJDstart .lt. MJDend ) then
+    MJDmin = MJDstart
+    MJDmax = MJDend
+  else
+    MJDmin = MJDend
+    MJDmax = MJDstart
+  end if
+
+  ! Calculate number of periods
+  ! NOTE: adds additional points on both ends
+  nrotation = int((MJDmax - MJDmin) / period) + 3
+
+  ! Ensure arrays are not initialised
+  call DEINITIALIZE_ROTATION()
+
+  ! Allocate arrays
+  allocate(precomputedMJD(1:nrotation))
+  allocate(precomputedBPN_T(1:3, 1:3, 1:nrotation))
+  allocate(precomputedW_T(1:3, 1:3, 1:nrotation))
+
+  ! Iterate through periods
+  do irotation = 1, nrotation
+    ! Calculate MJD
+    tempMJD = MJDmin + (irotation - 2) * period
+
+    ! Preprocess dates and EOP index
+    call UTCtoPARAMS(tempMJD, MJD_TT, UTCjd1, UTCjd2, TTjd1, TTjd2, eopIdx)
+
+    ! Calculate rotation matrices
+    call GCRStoCIRS_MATRIX(TTjd1, TTjd2, eopIdx, tempBPN_T)
+    call TIRStoITRS_MATRIX(TTjd1, TTjd2, eopIdx, tempW_T)
+
+    ! Store results
+    precomputedMJD(irotation) = tempMJD
+    precomputedBPN_T(1:3, 1:3, irotation) =  tempBPN_T
+    precomputedW_T(1:3, 1:3, irotation) = tempW_T
+  end do
+
+  ! Enable precomputed rotation matrices
+  usePrecomputed = .TRUE.
+end subroutine INITIALIZE_ROTATION
+
+subroutine DEINITIALIZE_ROTATION()
+  ! Disable precomputed rotation matrices
+  usePrecomputed = .FALSE.
+
+  ! Deallocate rotation dates
+  if (allocated(precomputedMJD)) deallocate(precomputedMJD)
+
+  ! Deallocate rotation matrices
+  if (allocated(precomputedBPN_T)) deallocate(precomputedBPN_T)
+  if (allocated(precomputedW_T)) deallocate(precomputedW_T)
+end subroutine DEINITIALIZE_ROTATION
+
+subroutine GET_ROTATION(MJD_UTC, BPN_T, W_T)
+  implicit none
+
+  ! Formals
+  real(dk), intent(in)  :: MJD_UTC
+  real(dk), intent(out) :: BPN_T(3,3), W_T(3,3)
+
+  ! Locals
+  integer  :: irotation
+  real(dk) :: MJD1, MJD2
+  real(dk) :: fraction
+
+  ! Extract index
+  ! TODO: replace brute force with better search algorithm?
+  ! TODO: throw an error if the bracket is not found successfully?
+  do irotation = 1, nrotation - 1
+    ! Extract dates
+    MJD1 = precomputedMJD(irotation)
+    MJD2 = precomputedMJD(irotation + 1)
+
+    ! Check current date is within interval
+    if ((MJD_UTC .ge. MJD1) .and. (MJD_UTC .lt. MJD2)) then
+      ! Break do loop
+      exit
+    end if
+  end do
+
+  ! Interpolate matrices
+  fraction = (MJD_UTC - MJD1) / (MJD2 - MJD1)
+  BPN_T = (1.0 - fraction) * precomputedBPN_T(:, :, irotation) + fraction * precomputedBPN_T(:, :, irotation + 1)
+  W_T = (1.0 - fraction) * precomputedW_T(:, :, irotation) + fraction * precomputedW_T(:, :, irotation + 1)
+end subroutine GET_ROTATION
 
 subroutine INITIALIZE_NSGRAV(earthFile)
 ! Description:
@@ -203,9 +367,9 @@ mr = real(m,qk)
 numer = gamma(lr + mr + 1._qk)
 
 if (m == 0) then
-	kron = 1._qk
+  kron = 1._qk
 else
-	kron = 0._qk
+  kron = 0._qk
 end if
 
 denom = (2._qk - kron) * (2._qk*lr + 1._qk) * gamma(lr - mr + 1._qk)
@@ -214,6 +378,209 @@ NORMFACT = sqrt(numer/denom)
 
 end function NORMFACT
 
+subroutine GCRStoCIRS_MATRIX(TTjd1, TTjd2, eopIdx, BPN_T)
+  ! No implicit variables
+  implicit none
+  
+  ! Formals
+  real(dk), intent(in)  :: TTjd1, TTjd2
+  integer,  intent(in)  :: eopIdx
+  real(dk), intent(out) :: BPN_T(3,3)
+  
+  ! Locals
+  real(dk)  :: dx00, dy00
+  real(dk)  :: X, Y, S
+  
+  ! CIP offsets wrt IAU 20000
+  dx00 = eop(eopIdx, 5) * DMAS2R
+  dy00 = eop(eopIdx, 6) * DMAS2R
+  
+  ! CIP and CIO, IAU 2000A (Represents the PN matrix in Vallado)
+  call iau_XYS00B(TTjd1, TTjd2, X, Y, S)
+  
+  ! Add CIP corrections
+  X = X + dx00;
+  Y = Y + dy00;
+  
+  ! GCRS to CIRS matrix (celestial to intermediate matrix [BPN]' = [N]'[P]'[B]')
+  call iau_C2IXYS(X, Y, S, BPN_T)
+end subroutine GCRStoCIRS_MATRIX
+
+subroutine ERA_MATRIX(UTCjd1, UTCjd2, eopIdx, R_T)
+  ! No implicit variables
+  implicit none
+
+  ! External functions
+  real(dk), external :: iau_ERA00
+
+  ! Formals
+  real(dk), intent(in)  :: UTCjd1, UTCjd2
+  integer,  intent(in)  :: eopIdx
+  real(dk), intent(out) :: R_T(3,3)
+
+  ! Locals
+  real(dk) :: era
+  real(dk) :: UT1_UTC, UT1jd1, UT1Jd2
+  integer  :: J
+
+  ! Convert UTC to UT1
+  UT1_UTC = eop(eopIdx, 4) 
+  call iau_UTCUT1(UTCjd1, UTCjd2, UT1_UTC, UT1jd1, UT1Jd2, J)
+
+  ! Earth Rotation Angle  
+  era = iau_ERA00(UT1jd1, UT1jd2)
+
+  ! Rotation matrix about pole
+  R_T(1,1) = 1
+  R_T(1,2) = 0
+  R_T(1,3) = 0
+  R_T(2,1) = 0
+  R_T(2,2) = 1
+  R_T(2,3) = 0
+  R_T(3,1) = 0
+  R_T(3,2) = 0
+  R_T(3,3) = 1
+  call iau_RZ(era, R_T)
+end subroutine ERA_MATRIX
+
+subroutine TIRStoITRS_MATRIX(TTjd1, TTjd2, eopIdx, W_T)
+  ! No implicit variables
+  implicit none
+  
+  ! External functions
+  real(dk), external :: iau_SP00
+
+  ! Formals
+  real(dk), intent(in)  :: TTjd1, TTjd2
+  integer,  intent(in)  :: eopIdx
+  real(dk), intent(out) :: W_T(3,3)
+  
+  ! Locals
+  real(dk)  :: Xp, Yp
+
+  ! Polar motion
+  Xp = eop(eopIdx, 2) * DAS2R
+  Yp = eop(eopIdx, 3) * DAS2R
+  
+  ! Polar motion matrix (TIRS->ITRS, IERS 2003) (W_T matrix)
+  call iau_POM00(Xp, Yp, iau_SP00(TTjd1, TTjd2), W_T)
+end subroutine TIRStoITRS_MATRIX
+
+subroutine UTCtoPARAMS(MJD_UTC, MJD_TT, UTCjd1, UTCjd2, TTjd1, TTjd2, eopIdx)
+  ! External subroutines
+  use PHYS_CONST, only: UTC2TT
+
+  ! Formals
+  real(dk), intent(in)  :: MJD_UTC
+  real(dk), intent(out) :: UTCjd1, UTCjd2
+  real(dk), intent(out) :: MJD_TT
+  real(dk), intent(out) :: TTjd1, TTjd2
+  integer,  intent(out) :: eopIdx
+
+  ! Locals
+  integer :: imjdCurr, imjd0, imjdDiff
+
+  ! Get UTC and TT
+  MJD_TT  = UTC2TT(MJD_UTC)
+  UTCjd1  = 2400000.5_dk
+  UTCjd2  = MJD_UTC
+  TTjd1   = 2400000.5_dk
+  TTjd2   = MJD_TT
+
+  ! Get EOP data index
+  imjdCurr = int(MJD_UTC)
+  imjd0 = int(eop(1,1))
+
+  ! Check for unprovided date
+  if (imjdCurr < imjd0) then
+    write(*,*)imjdCurr,imjd0,'Requested date is before start of Earth Orientation Data'
+  endif
+
+  ! Index of requested MJD
+  imjdDiff = imjdCurr - imjd0
+  eopIdx = 1 + imjdDIff
+end subroutine UTCtoPARAMS
+
+subroutine GCRFtoITRF_MATRIX_(W_T, R_T, BPN_T, gcrf_itrf)
+  ! No implict variables
+  implicit none
+
+  ! Formals
+  real(dk), intent(in)  :: W_T(3,3), R_T(3,3), BPN_T(3,3)
+  real(dk), intent(out) :: gcrf_itrf(3,3)
+
+  ! Locals
+  real(dk) :: temp(3,3)
+
+  ! Multiply [R]',[BPN]',and [W]'
+  call iau_RXR(R_T, BPN_T, temp)
+  call iau_RXR(W_T, temp, gcrf_itrf)
+end subroutine GCRFtoITRF_MATRIX_
+
+subroutine GCRFtoITRF_MATRIX(MJD_UTC, gcrf_itrf)
+  ! No implicit variables
+  implicit none
+
+  ! Formals
+  real(dk), intent(in)  :: MJD_UTC
+  real(dk), intent(out) :: gcrf_itrf(3,3)
+
+  ! Locals
+  integer   :: eopIdx
+  real(dk)  :: UTCjd1, UTCjd2, TTjd1, TTjd2, MJD_TT
+  real(dk)  :: BPN_T(3,3), R_T(3,3), W_T(3,3)
+
+  ! Preprocess dates and EOP index
+  call UTCtoPARAMS(MJD_UTC, MJD_TT, UTCjd1, UTCjd2, TTjd1, TTjd2, eopIdx)
+
+  ! GCRS to CIRS matrix (celestial to intermediate matrix [BPN]' = [N]'[P]'[B]')
+  call GCRStoCIRS_MATRIX(TTjd1, TTjd2, eopIdx, BPN_T)
+
+  ! ERA matrix
+  call ERA_MATRIX(UTCjd1, UTCjd2, eopIdx, R_T)
+
+  ! Polar motion matrix (TIRS->ITRS, IERS 2003) (W_T matrix)
+  call TIRStoITRS_MATRIX(TTjd1, TTjd2, eopIdx, W_T)
+
+  ! Multiply [R]',[BPN]',and [W]'
+  call GCRFtoITRF_MATRIX_(W_T, R_T, BPN_T, gcrf_itrf)
+end subroutine GCRFtoITRF_MATRIX
+
+subroutine GCRFtoITRF(MJD_UTC, Rgcrf, Ritrf, gcrf_itrf)
+  implicit none
+
+  ! Parameters
+  real(dk), intent(in)  :: MJD_UTC
+  real(dk), intent(in)  :: Rgcrf(3)
+  real(dk), intent(out) :: Ritrf(3)
+  real(dk), intent(out) :: gcrf_itrf(3,3)
+
+  ! Locals
+  integer   :: eopIdx
+  real(dk)  :: UTCjd1, UTCjd2, TTjd1, TTjd2, MJD_TT
+  real(dk)  :: BPN_T(3,3), R_T(3,3), W_T(3,3)
+
+  ! Get rotation matrix
+  if (usePrecomputed) then
+    ! Preprocess dates and EOP index
+    call UTCtoPARAMS(MJD_UTC, MJD_TT, UTCjd1, UTCjd2, TTjd1, TTjd2, eopIdx)
+    
+    ! Calculate ERA
+    call ERA_MATRIX(UTCjd1, UTCjd2, eopIdx, R_T)
+
+    ! Interpolate matrices
+    call GET_ROTATION(MJD_UTC, BPN_T, W_T)
+
+    ! Calculate rotation matrix
+    call GCRFtoITRF_MATRIX_(W_T, R_T, BPN_T, gcrf_itrf)
+  else
+    ! Calculate rotation matrix directly
+    call GCRFtoITRF_MATRIX(MJD_UTC, gcrf_itrf)
+  endif
+
+  ! Rotate position vector
+  call iau_RXP(gcrf_itrf, Rgcrf, Ritrf)
+end subroutine GCRFtoITRF
 
 
 subroutine PINES_NSG(GM,RE,rIn,tau,FIn,pot,dPot)
@@ -275,29 +642,38 @@ real(dk)  ::  ERR, ERR_nd          ! Earth Rotation Rate [rad/s, -]
 ! SOFA routines
 real(dk) :: iau_GMST06
 
+! gcrf -> itrf conversion
+real(dk) :: Rgcrf(3), Ritrf(3)
+real(dk) :: Vgcrf(3), Vitrf(3)
+real(dk) :: Agcrf(3), Aitrf(3)
+real(dk) :: dummy
+real(dk) :: gcrf_itrf(3,3)
+real(dk) :: itrf_gcrf(3,3)
+
 ! ==============================================================================
 
 rNormSq = dot_product(rIn,rIn)
 rNorm = sqrt(rNormSq)
+rho = RE/rNorm
 
 ! ==============================================================================
 ! 01. Transform from inertial to body-fixed frame
 ! ==============================================================================
 
-u = rIn(3)/rNorm
-
-! Greenwich Mean Sidereal Time (IAU 2006 conventions)
+! get UTC and TT
 MJD_UTC = T2MJD(tau)
 MJD_TT  = UTC2TT(MJD_UTC)
 
-GMST = iau_GMST06 ( delta_JD_MJD, MJD_UTC, delta_JD_MJD, MJD_TT )
-cosGMST = cos(GMST); sinGMST = sin(GMST)
+! get rotation matrix from gcrf to itrf
+call GCRFtoITRF(MJD_UTC, rIn, Ritrf, gcrf_itrf)
 
-! Rotate equatorial components of rIn to get direction cosines in the body-fixed frame
-s = (rIn(1) * cosGMST + rIn(2) * sinGMST)/rNorm
-t = (rIn(2) * cosGMST - rIn(1) * sinGMST)/rNorm
+! transpose to get rotation from itrf to gcrf
+call iau_TR(gcrf_itrf, itrf_gcrf)
 
-rho = RE/rNorm
+! non-dimensionalized satellite body-fixed coordinates
+u = Ritrf(3)/rNorm
+s = Ritrf(1)/rNorm
+t = Ritrf(2)/rNorm
 
 ! ==============================================================================
 ! 02. Fill in coefficient matrices and auxiliary vectors
@@ -392,9 +768,7 @@ if (present(FIn)) then
   F = F / RE
 
   ! Transform to inertial frame
-  FIn(1) = F(1)*cosGMST - F(2)*sinGMST
-  FIn(2) = F(1)*sinGMST + F(2)*cosGMST
-  FIn(3) = F(3)
+  call iau_RXP(itrf_gcrf, F, FIn)
 
 end if
 

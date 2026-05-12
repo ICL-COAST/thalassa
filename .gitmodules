@@ -1,0 +1,9 @@
+[submodule "external/sofa"]
+	path = external/sofa
+	url = https://github.com/maxhlc/sofa.git
+[submodule "external/spice"]
+	path = external/spice
+	url = https://github.com/maxhlc/spice.git
+[submodule "external/eigen"]
+	path = external/eigen
+	url = https://gitlab.com/libeigen/eigen.git

@@ -1,3 +1,6 @@
+# Enable FetchContent
+include(FetchContent)
+
 # Define CTHALASSA options
 option(CTHALASSA_USE_FORK "Use fork in CTHALASSA to spawn subprocesses" ON)
 option(CTHALASSA_BUILD_EXAMPLE "Build CTHALASSA example" ON)
@@ -39,11 +42,10 @@ if(CTHALASSA_USE_FORK)
 endif(CTHALASSA_USE_FORK)
 
 # Enable Eigen signatures
-find_package(Eigen3 3.4 QUIET NO_MODULE)
-if(Eigen3_FOUND)
-    target_compile_definitions(cthalassa PUBLIC "CTHALASSA_USE_EIGEN")
-    target_link_libraries(cthalassa PUBLIC Eigen3::Eigen)
-endif(Eigen3_FOUND)
+target_compile_definitions(cthalassa PUBLIC "CTHALASSA_USE_EIGEN")
+
+# Link to CTHALASSA to Eigen
+target_link_libraries(cthalassa PUBLIC Eigen3::Eigen)
 
 if(CTHALASSA_BUILD_EXAMPLE)
     # Add CTHALASSA interface example
